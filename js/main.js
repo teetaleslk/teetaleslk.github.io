@@ -36,7 +36,7 @@ const CONFIG = {
   D(3): STPrice               | E(4): DCPrice
   F(5): Age Grp               | G(6): Suitable for
   H(7): Stock Status          | I(8): Boost Status
-  J(9): Image                 | K(10): Colour | L(11): Tags
+  J(9): Colour  | K(10): Tags | L(11): Image
 */
 const COL = {
   ITEM_ID:  0,
@@ -45,12 +45,12 @@ const COL = {
   STRIKE:   3,   // D: STPrice  (strikethrough / original price)
   PRICE:    4,   // E: DCPrice  (discounted / sale price)
   AGE_GRP:  5,   // F: Age Grp
-  SUITABLE: 6,   // G: Suitable for
-  STOCK:    7,   // H: Stock Status  ("In Stock", "Out of Stock", "Low Stock")
+  SUITABLE: 6,   // G: Suitable for  ("Ladies", "Gents", "Unisex")
+  STOCK:    7,   // H: Stock Status  ("In Stock", "Low Stock", "Out of Stock")
   BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  IMAGE:    9,   // J: Image URL (Google Drive share link)
-  COLOUR:   10,  // K: Colour
-  TAGS:     11,  // L: Tags (comma-separated, e.g. "flowers,butterfly")
+  COLOUR:   9,   // J: Colour
+  TAGS:     10,  // K: Tags (comma-separated, e.g. "flowers,butterfly")
+  IMAGE:    11,  // L: Image URL (Google Drive share link)
 };
 
 /* ── STATE ──────────────────────────────────────────────────── */
@@ -74,21 +74,37 @@ const footerYear    = document.getElementById('footerYear');
 /* ═══════════════════════════════════════════════════════════════
    FETCH & PARSE
 ═══════════════════════════════════════════════════════════════ */
-async function fetchProducts() {
+async function fetchSheetTab(tabName) {
   const url =
     `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq` +
-    `?tqx=out:json&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}`;
+    `?tqx=out:json&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
 
-  const res  = await fetch(url);
-  const text = await res.text();
+  // 10-second timeout — fail fast instead of spinning forever
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
 
-  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
-  if (!match) throw new Error('Unexpected Google Sheets response.');
+  try {
+    const res  = await fetch(url, { signal: ctrl.signal });
+    const text = await res.text();
+    clearTimeout(timer);
 
-  const json = JSON.parse(match[1]);
-  if (json.status !== 'ok') throw new Error(json.errors?.[0]?.message || 'Sheet error');
+    // GViz wraps JSON in a callback — strip it
+    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?\s*$/);
+    if (!match) throw new Error('Sheet not public or tab name wrong.');
 
-  return parseTableData(json.table);
+    const json = JSON.parse(match[1]);
+    if (json.status !== 'ok') throw new Error(json.errors?.[0]?.message || 'Sheet error');
+    return json.table;
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('Request timed out — check your internet connection.');
+    throw err;
+  }
+}
+
+async function fetchProducts() {
+  const table = await fetchSheetTab(CONFIG.SHEET_NAME);
+  return parseTableData(table);
 }
 
 function parseTableData(table) {
@@ -156,17 +172,10 @@ const OFFER_COL = {
 };
 
 async function fetchOffers() {
-  const url =
-    `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq` +
-    `?tqx=out:json&sheet=${encodeURIComponent(CONFIG.OFFERS_TAB)}`;
-  const res  = await fetch(url);
-  const text = await res.text();
-  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
-  if (!match) return [];
-  const json = JSON.parse(match[1]);
-  if (json.status !== 'ok') return [];
+  let table;
+  try { table = await fetchSheetTab(CONFIG.OFFERS_TAB); } catch { return []; }
 
-  const rows = json.table.rows || [];
+  const rows = table.rows || [];
   return rows
     .map(row => {
       const cells = row.c || [];
@@ -383,6 +392,20 @@ function stockPriority(stock) {
   return 1;
 }
 
+/** Combined audience label from Age Grp + Suitable For */
+function getAudienceLabel(ageGrp, suitable) {
+  const age  = (ageGrp  || '').toLowerCase();
+  const suit = (suitable || '').toLowerCase();
+  if (suit === 'unisex')                          return { label: 'Unisex',      emoji: '👕' };
+  if (age === 'kids'   && suit === 'ladies')      return { label: "Girls' Tee",  emoji: '👧' };
+  if (age === 'kids'   && suit === 'gents')       return { label: "Boys' Tee",   emoji: '👦' };
+  if (age === 'adults' && suit === 'ladies')      return { label: "Women's Tee", emoji: '👩' };
+  if (age === 'adults' && suit === 'gents')       return { label: "Men's Tee",   emoji: '👨' };
+  if (age === 'kids')                             return { label: 'Kids',         emoji: '👶' };
+  if (age === 'adults')                           return { label: 'Adults',       emoji: '🧑' };
+  return { label: '', emoji: '' };
+}
+
 /** Column I — marketing/urgency boost (New, Hot, Trending, Best Seller…) */
 function getBoostBadgeHtml(boostStatus) {
   const b = (boostStatus || '').toLowerCase();
@@ -440,11 +463,12 @@ function createProductCard(p) {
         return `<span class="badge badge-sale">Save ${disc}%</span>`;
       })()
     : '';
-  const stockBadge    = getStockBadgeHtml(p.stock);
-  const boostBadge    = getBoostBadgeHtml(p.boost);
-  const ageBadgeClass = p.ageGrp === 'kids' ? 'badge-age-kids' : 'badge-age-adults';
-  const ageBadgeLabel = p.ageGrp === 'kids' ? 'Kids' : 'Adults';
-  const genderLabel   = p.suitable ? capitalize(p.suitable) : '';
+  const stockBadge  = getStockBadgeHtml(p.stock);
+  const boostBadge  = getBoostBadgeHtml(p.boost);
+  const audience    = getAudienceLabel(p.ageGrp, p.suitable);
+  const audienceBadge = audience.label
+    ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>`
+    : '';
 
   /* ── WhatsApp message ── */
   const displayPrice = p.price !== null
@@ -514,8 +538,7 @@ function createProductCard(p) {
         ${stockBadge}
       </div>
       <div class="card-badge-tr">
-        <span class="badge ${ageBadgeClass}">${ageBadgeLabel}</span>
-        ${genderLabel ? `<span class="badge" style="background:rgba(255,255,255,.9);color:var(--text);margin-top:3px">${genderLabel}</span>` : ''}
+        ${audienceBadge}
       </div>
       <div class="card-wa-hover">${waBtn}</div>
     </div>
