@@ -36,7 +36,7 @@ const CONFIG = {
   D(3): STPrice               | E(4): DCPrice
   F(5): Age Grp               | G(6): Suitable for
   H(7): Stock Status          | I(8): Boost Status
-  J(9): Colour  | K(10): Tags | L(11): Image
+  J(9): Image   | K(10): Colour| L(11): Tags
 */
 const COL = {
   ITEM_ID:  0,
@@ -48,9 +48,9 @@ const COL = {
   SUITABLE: 6,   // G: Suitable for  ("Ladies", "Gents", "Unisex")
   STOCK:    7,   // H: Stock Status  ("In Stock", "Low Stock", "Out of Stock")
   BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  COLOUR:   9,   // J: Colour
-  TAGS:     10,  // K: Tags (comma-separated, e.g. "flowers,butterfly")
-  IMAGE:    11,  // L: Image URL (Google Drive share link)
+  IMAGE:    9,   // J: Image URL (Google Drive share link)
+  COLOUR:   10,  // K: Colour
+  TAGS:     11,  // L: Tags (comma-separated, e.g. "flowers,butterfly")
 };
 
 /* ── STATE ──────────────────────────────────────────────────── */
@@ -683,16 +683,35 @@ function closeProductModal() {
 window.placeholderHtml = () =>
   `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════ */
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+function formatNum(n) {
+  return Number(n).toLocaleString('en-LK');
+}
+
 /* ═══════════════════════════════════════════════════════════════
    FILTERING
 ═══════════════════════════════════════════════════════════════ */
 function applyFilters() {
   let f = allProducts;
 
-  if (activeAge     !== 'all') f = f.filter(p => p.ageGrp   === activeAge);
-  if (activeGender  !== 'all') f = f.filter(p => p.suitable === activeGender);
-  if (activeTag     !== 'all') f = f.filter(p => p.tags.includes(activeTag));
-  if (activeColour  !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
+  if (activeAge    !== 'all') f = f.filter(p => p.ageGrp   === activeAge);
+  if (activeGender !== 'all') f = f.filter(p => p.suitable === activeGender);
+  if (activeTag    !== 'all') f = f.filter(p => p.tags.includes(activeTag));
+  if (activeColour !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -713,9 +732,224 @@ function applyFilters() {
 }
 
 function updateFilterSummary() {
+  if (!filterSummary) return;
   const tags = [];
   if (activeAge    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-users"></i> ${capitalize(activeAge)}</span>`);
   if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
   if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${capitalize(activeTag)}</span>`);
   if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
-  if (searchQ
+  if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
+  filterSummary.innerHTML = tags.join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXTRA FILTER INJECTION  (Tag + Colour rows — injected once)
+═══════════════════════════════════════════════════════════════ */
+function injectExtraFilters() {
+  const bar = document.querySelector('.filters-bar .filters-row');
+  if (!bar) return;
+
+  if (!document.getElementById('tagFilterGroup')) {
+    const tagGroup = document.createElement('div');
+    tagGroup.className = 'filter-group';
+    tagGroup.id = 'tagFilterGroup';
+    tagGroup.style.display = 'none';
+    tagGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-tag"></i> Theme</span>
+      <div class="filter-pills" id="tagFilter"></div>`;
+    bar.appendChild(tagGroup);
+  }
+
+  if (!document.getElementById('colourFilterGroup')) {
+    const colGroup = document.createElement('div');
+    colGroup.className = 'filter-group';
+    colGroup.id = 'colourFilterGroup';
+    colGroup.style.display = 'none';
+    colGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-palette"></i> Colour</span>
+      <div class="colour-filter-wrap" id="colourFilter"></div>`;
+    bar.appendChild(colGroup);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HOME PAGE — 4 Adults + 4 Kids preview
+═══════════════════════════════════════════════════════════════ */
+async function initHome() {
+  renderOffers();
+
+  const adultsGrid = document.getElementById('homeAdultsGrid');
+  const kidsGrid   = document.getElementById('homeKidsGrid');
+  if (!adultsGrid && !kidsGrid) return;
+
+  try {
+    const products = await fetchProducts();
+
+    const adults = products
+      .filter(p => p.ageGrp === 'adults')
+      .sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock))
+      .slice(0, 4);
+
+    const kids = products
+      .filter(p => p.ageGrp === 'kids')
+      .sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock))
+      .slice(0, 4);
+
+    if (adultsGrid) {
+      adultsGrid.innerHTML = '';
+      if (adults.length) {
+        const frag = document.createDocumentFragment();
+        adults.forEach(p => frag.appendChild(createProductCard(p)));
+        adultsGrid.appendChild(frag);
+      } else {
+        adultsGrid.innerHTML = '<p class="preview-empty">Check back soon for adults styles!</p>';
+      }
+    }
+
+    if (kidsGrid) {
+      kidsGrid.innerHTML = '';
+      if (kids.length) {
+        const frag = document.createDocumentFragment();
+        kids.forEach(p => frag.appendChild(createProductCard(p)));
+        kidsGrid.appendChild(frag);
+      } else {
+        kidsGrid.innerHTML = '<p class="preview-empty">Check back soon for kids styles!</p>';
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load home preview:', err);
+    if (adultsGrid) adultsGrid.innerHTML = '<p class="preview-empty">Unable to load products right now.</p>';
+    if (kidsGrid)   kidsGrid.innerHTML   = '<p class="preview-empty">Unable to load products right now.</p>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHOP PAGE — full catalogue with filters
+═══════════════════════════════════════════════════════════════ */
+async function initShop() {
+  // Pre-select age filter from URL param ?age=adults|kids
+  const params = new URLSearchParams(window.location.search);
+  const ageParam = (params.get('age') || '').toLowerCase();
+  if (ageParam === 'adults' || ageParam === 'kids') {
+    activeAge = ageParam;
+    const ageFilter = document.getElementById('ageFilter');
+    if (ageFilter) {
+      ageFilter.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.age === ageParam);
+      });
+    }
+  }
+
+  injectExtraFilters();
+
+  // Age filter
+  const ageFilter = document.getElementById('ageFilter');
+  if (ageFilter) {
+    ageFilter.addEventListener('click', (e) => {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      ageFilter.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeAge = pill.dataset.age;
+      applyFilters();
+    });
+  }
+
+  // Gender / Suitable For filter
+  const genderFilter = document.getElementById('genderFilter');
+  if (genderFilter) {
+    genderFilter.addEventListener('click', (e) => {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      genderFilter.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeGender = pill.dataset.gender;
+      applyFilters();
+    });
+  }
+
+  // Search
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim();
+      if (searchClear) searchClear.style.display = searchQuery ? 'flex' : 'none';
+      applyFilters();
+    });
+  }
+  if (searchClear) {
+    searchClear.style.display = 'none';
+    searchClear.addEventListener('click', () => {
+      searchQuery = '';
+      if (searchInput) searchInput.value = '';
+      searchClear.style.display = 'none';
+      applyFilters();
+    });
+  }
+
+  // Fetch + render
+  try {
+    allProducts = await fetchProducts();
+    buildTagFilter(allProducts);
+    buildColourFilter(allProducts);
+    applyFilters();
+  } catch (err) {
+    if (loadingState) {
+      loadingState.innerHTML = `
+        <div class="error-state">
+          <div class="empty-icon">⚠️</div>
+          <h3>Could not load products</h3>
+          <p>${escHtml(err.message)}</p>
+          <button onclick="location.reload()" class="btn btn-outline" style="margin-top:12px">
+            Try Again
+          </button>
+        </div>`;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Footer year
+  if (footerYear) footerYear.textContent = new Date().getFullYear();
+
+  // Navbar scroll shrink
+  const navbar = document.getElementById('navbar');
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
+  }
+
+  // Hamburger
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  if (hamburger && mobileMenu) {
+    hamburger.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        hamburger.classList.remove('open');
+      });
+    });
+  }
+
+  // Floating WhatsApp button — show after scroll
+  const floatWA = document.getElementById('floatWA');
+  if (floatWA) {
+    window.addEventListener('scroll', () => {
+      floatWA.classList.toggle('visible', window.scrollY > 300);
+    });
+  }
+
+  // Page detection
+  if (document.getElementById('homeAdultsGrid')) {
+    initHome();
+  } else if (document.getElementById('productsGrid')) {
+    initShop();
+  }
+});
