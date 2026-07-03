@@ -409,13 +409,15 @@ function stockPriority(stock) {
 function getAudienceLabel(ageGrp, suitable) {
   const age  = (ageGrp  || '').toLowerCase();
   const suit = (suitable || '').toLowerCase();
-  if (suit === 'unisex')                          return { label: 'Unisex',      emoji: '👕' };
-  if (age === 'kids'   && suit === 'ladies')      return { label: "Girls' Tee",  emoji: '👧' };
-  if (age === 'kids'   && suit === 'gents')       return { label: "Boys' Tee",   emoji: '👦' };
-  if (age === 'adults' && suit === 'ladies')      return { label: "Women's Tee", emoji: '👩' };
-  if (age === 'adults' && suit === 'gents')       return { label: "Men's Tee",   emoji: '👨' };
-  if (age === 'kids')                             return { label: 'Kids',         emoji: '👶' };
-  if (age === 'adults')                           return { label: 'Adults',       emoji: '🧑' };
+  if (age === 'kids'   && suit === 'ladies')  return { label: "Girl's Tee",   emoji: '👧' };
+  if (age === 'kids'   && suit === 'gents')   return { label: "Boy's Tee",    emoji: '👦' };
+  if (age === 'kids'   && suit === 'unisex')  return { label: "Kids' Tee",    emoji: '🧒' };
+  if (age === 'adults' && suit === 'ladies')  return { label: "Ladies' Tee",  emoji: '👩' };
+  if (age === 'adults' && suit === 'gents')   return { label: "Gents' Tee",   emoji: '👨' };
+  if (age === 'adults' && suit === 'unisex')  return { label: "Unisex Tee",   emoji: '👕' };
+  if (age === 'kids')                         return { label: "Kids' Tee",    emoji: '🧒' };
+  if (age === 'adults')                       return { label: 'Adults',        emoji: '🧑' };
+  if (suit === 'unisex')                      return { label: 'Unisex Tee',   emoji: '👕' };
   return { label: '', emoji: '' };
 }
 
