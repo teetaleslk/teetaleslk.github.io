@@ -419,6 +419,7 @@ input { font-family: var(--font); }
 .badge-trending   { background: #ff4d4d;         color: var(--white); }
 .badge-hot        { background: linear-gradient(135deg, #ff6b35, #f7c59f); color: var(--white); }
 .badge-new        { background: #00b894;         color: var(--white); }
+.badge-audience   { background: #5a67d8;         color: var(--white); }
 
 /* WhatsApp Quick Order — slides up from bottom of image on hover */
 .card-wa-hover {

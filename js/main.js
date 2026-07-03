@@ -605,14 +605,14 @@ function openProductModal(p) {
     : `<div class="modal-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
   /* Badges */
-  const ageBadgeClass = p.ageGrp === 'kids' ? 'badge-age-kids' : 'badge-age-adults';
-  const ageBadgeLabel = p.ageGrp === 'kids' ? 'Kids' : 'Adults';
-  const genderLabel   = p.suitable ? capitalize(p.suitable) : '';
+  const modalAudience = getAudienceLabel(p.ageGrp, p.suitable);
+  const modalAudienceBadge = modalAudience.label
+    ? `<span class="badge badge-audience">${modalAudience.emoji} ${modalAudience.label}</span>`
+    : '';
   document.getElementById('modalBadges').innerHTML =
     `${getBoostBadgeHtml(p.boost)}
      ${getStockBadgeHtml(p.stock)}
-     <span class="badge ${ageBadgeClass}">${ageBadgeLabel}</span>
-     ${genderLabel ? `<span class="badge" style="background:#eee;color:var(--text)">${genderLabel}</span>` : ''}`;
+     ${modalAudienceBadge}`;
 
   /* Title */
   document.getElementById('modalTitle').textContent = p.type;
