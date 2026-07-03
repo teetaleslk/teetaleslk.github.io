@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeeTales — Wear Your Story</title>
+  <meta name="description" content="Premium quality t-shirts for adults and kids. Vibrant colours, comfortable fits, unbeatable prices. Order instantly via WhatsApp." />
+  <meta property="og:title"       content="TeeTales — Wear Your Story" />
+  <meta property="og:description" content="Premium t-shirts for the whole family. Order via WhatsApp — fast, easy, personal." />
+  <meta property="og:image"       content="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+
+    <a href="#home" class="nav-brand">
+      <img src="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH"
+           alt="TeeTales Logo" class="nav-logo"
+           onerror="this.style.display='none'" />
+      <span class="brand-text"><span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home"    class="nav-link">Home</a></li>
+      <li><a href="shop.html" class="nav-link">Shop</a></li>
+      <li><a href="#offersSection" class="nav-link nav-link-offers">Deals 🔥</a></li>
+      <li><a href="#gift"    class="nav-link">Gift Ideas</a></li>
+      <li><a href="#social"  class="nav-link">Gallery</a></li>
+      <li><a href="#about"   class="nav-link">About</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+
+    <!-- Social icons — UPDATE THESE HREFS WITH YOUR PROFILE URLS -->
+    <div class="nav-socials">
+      <a href="https://facebook.com/teetales" target="_blank" rel="noopener"
+         class="social-icon" aria-label="Facebook" title="TeeTales on Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener"
+         class="social-icon" aria-label="Instagram" title="TeeTales on Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://tiktok.com/@YOUR_HANDLE" target="_blank" rel="noopener"
+         class="social-icon" aria-label="TikTok" title="TeeTales on TikTok">
+        <i class="fab fa-tiktok"></i>
+      </a>
+    </div>
+
+    <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20order%20%F0%9F%91%95"
+       target="_blank" rel="noopener" class="nav-wa-btn">
+      <i class="fab fa-whatsapp"></i> Order Now
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#home"    class="mobile-link" onclick="closeMobileMenu()">Home</a>
+    <a href="shop.html" class="mobile-link">Shop</a>
+    <a href="#offersSection" class="mobile-link" onclick="closeMobileMenu()">Deals 🔥</a>
+    <a href="#gift"    class="mobile-link" onclick="closeMobileMenu()">Gift Ideas</a>
+    <a href="#about"   class="mobile-link" onclick="closeMobileMenu()">About</a>
+    <a href="#contact" class="mobile-link" onclick="closeMobileMenu()">Contact</a>
+    <div class="mobile-socials">
+      <a href="https://facebook.com/teetales"   target="_blank" rel="noopener" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener" class="social-icon"><i class="fab fa-instagram"></i></a>
+      <a href="https://tiktok.com/@YOUR_HANDLE"  target="_blank" rel="noopener" class="social-icon"><i class="fab fa-tiktok"></i></a>
+    </div>
+    <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20browse%20your%20collection."
+       target="_blank" rel="noopener" class="mobile-wa-btn" onclick="closeMobileMenu()">
+      <i class="fab fa-whatsapp"></i> Order on WhatsApp
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO  — Identity-first copy (Emotional Engineering)
+════════════════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badge"><i class="fas fa-fire"></i> New Collection — Shop Now</div>
+
+    <!-- Identity-focused headline (Tactic 1: Emotional Engineering) -->
+    <h1 class="hero-title">
+      Not Just a <span style="white-space:nowrap">T-Shirt.</span><br />
+      <span class="hero-accent">It's Who You Are.</span>
+    </h1>
+    <p class="hero-sub">
+      Every thread, every colour, every cut — curated to tell your story.
+      Premium tees for adults &amp; kids, delivered with a WhatsApp message.
+    </p>
+
+    <!-- Dual CTA: Trend-Seeker + Gifter (Proxy Targeting) -->
+    <div class="hero-actions">
+      <a href="shop.html" class="btn btn-primary">
+        <i class="fas fa-tshirt"></i> Shop Collection
+      </a>
+      <a href="#gift" class="btn btn-secondary">
+        <i class="fas fa-gift"></i> Buy as a Gift
+      </a>
+    </div>
+
+    <div class="hero-tags">
+      <span class="hero-tag"><i class="fas fa-check"></i> Adults &amp; Kids</span>
+      <span class="hero-tag"><i class="fas fa-check"></i> WhatsApp Orders</span>
+      <span class="hero-tag"><i class="fas fa-check"></i> Premium Quality</span>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-logo-card">
+      <img src="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH"
+           alt="TeeTales" class="hero-logo-img"
+           onerror="this.parentElement.innerHTML='<span style=\'font-size:5rem\'>👕</span>'" />
+    </div>
+    <div class="hero-floating-cards">
+      <div class="hero-card hero-card-1">
+        <span class="hc-icon">🔥</span><span class="hc-label">Trending Now</span>
+      </div>
+      <div class="hero-card hero-card-2">
+        <span class="hc-icon">👶</span><span class="hc-label">Kids Collection</span>
+      </div>
+      <div class="hero-card hero-card-3">
+        <span class="hc-icon">🎁</span><span class="hc-label">Perfect Gift</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SOCIAL PROOF STRIP  — (Visual proof of popularity)
+════════════════════════════════════════════════════════ -->
+<div class="trust-strip">
+  <div class="trust-strip-inner">
+    <div class="trust-item"><i class="fas fa-star"></i> <strong>100+</strong> Happy Customers</div>
+    <div class="trust-sep">·</div>
+    <div class="trust-item"><i class="fas fa-tshirt"></i> Premium Quality Fabric</div>
+    <div class="trust-sep">·</div>
+    <div class="trust-item"><i class="fab fa-whatsapp"></i> WhatsApp Response in Minutes</div>
+    <div class="trust-sep">·</div>
+    <div class="trust-item"><i class="fas fa-users"></i> Adults &amp; Kids Collection</div>
+    <div class="trust-sep">·</div>
+    <div class="trust-item"><i class="fas fa-map-marker-alt"></i> Sri Lanka 🇱🇰</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CURRENT OFFERS — live from "Offers" tab in Google Sheet
+     Hidden automatically when no active offers exist.
+════════════════════════════════════════════════════════ -->
+<section class="offers-section" id="offersSection" style="display:none;">
+  <div class="container">
+
+    <div class="section-header">
+      <span class="section-label">Limited Time</span>
+      <h2 class="section-title">🔥 Current Deals</h2>
+      <p class="section-sub">Tap any deal to order instantly via WhatsApp — while stocks last!</p>
+    </div>
+
+    <div class="offers-grid" id="offersGrid">
+      <!-- Offer cards injected by main.js -->
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     COLLECTION PREVIEW — live 4+4 from Google Sheets
+════════════════════════════════════════════════════════ -->
+<section class="collection-preview" id="shop">
+  <div class="container">
+
+    <div class="section-header">
+      <span class="section-label">Our Collection</span>
+      <h2 class="section-title">Fresh Picks</h2>
+      <p class="section-sub">Updated live from our sheet — tap any tee to order instantly via WhatsApp.</p>
+    </div>
+
+    <!-- Adults preview -->
+    <div class="preview-group">
+      <div class="preview-group-header">
+        <span class="preview-group-title"><i class="fas fa-user"></i> Adults</span>
+        <a href="shop.html?age=adults" class="preview-see-all">See all Adults <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="products-grid" id="homeAdultsGrid">
+        <div class="loading-state" id="loadingStateAdults">
+          <div class="spinner"></div><p>Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kids preview -->
+    <div class="preview-group">
+      <div class="preview-group-header">
+        <span class="preview-group-title"><i class="fas fa-child"></i> Kids</span>
+        <a href="shop.html?age=kids" class="preview-see-all">See all Kids <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="products-grid" id="homeKidsGrid">
+        <div class="loading-state" id="loadingStateKids">
+          <div class="spinner"></div><p>Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-cta">
+      <a href="shop.html" class="btn btn-primary">
+        <i class="fas fa-tshirt"></i> Browse Full Catalogue
+      </a>
+      <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20browse%20your%20full%20collection.%20%F0%9F%91%95"
+         target="_blank" rel="noopener" class="btn btn-wa">
+        <i class="fab fa-whatsapp"></i> Order via WhatsApp
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     GIFT SECTION — Proxy Targeting (Tactic 3)
+════════════════════════════════════════════════════════ -->
+<section class="gift-section" id="gift">
+  <div class="container">
+    <div class="gift-inner">
+      <div class="gift-text">
+        <span class="section-label light">For Gifters</span>
+        <h2>The Shirt That Proves<br />You Know Them Best.</h2>
+        <p>
+          Whether it's a birthday, anniversary, or just because — a TeeTales tee
+          is the most personal gift you can give. Custom prints, chosen colours,
+          and the right size: every detail says <em>"I thought of you."</em>
+        </p>
+        <div class="gift-bullets">
+          <div class="gift-bullet"><span class="gb-icon">🎂</span> Birthdays &amp; Milestones</div>
+          <div class="gift-bullet"><span class="gb-icon">💑</span> For Your Partner</div>
+          <div class="gift-bullet"><span class="gb-icon">👫</span> Best Friend Gifts</div>
+          <div class="gift-bullet"><span class="gb-icon">👨‍👩‍👧</span> Family &amp; Kids</div>
+        </div>
+        <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27m%20buying%20a%20gift%20for%20someone.%20Can%20you%20help%20me%20choose%20the%20perfect%20tee%3F%20%F0%9F%8E%81"
+           target="_blank" rel="noopener" class="btn btn-wa gift-cta">
+          <i class="fab fa-whatsapp"></i> Get Gift Help
+        </a>
+      </div>
+      <div class="gift-visual">
+        <div class="gift-card">
+          <div class="gift-card-icon">🎁</div>
+          <div class="gift-card-title">Custom Gift Tee</div>
+          <div class="gift-card-sub">Tell us who it's for — we'll help you pick the perfect design, colour &amp; size.</div>
+          <div class="gift-card-price"><span class="price-original" style="font-size:.95rem">Rs. 1,099</span> <span class="price-current" style="font-size:1.3rem">Rs. 999</span></div>
+          <a href="https://wa.me/94774407066?text=Hi!%20I%27d%20like%20to%20order%20a%20custom%20gift%20tee.%20It%27s%20for%20my%20%5Bfriend%2Fpartner%2Ffamily%5D.%20Can%20you%20help%3F%20%F0%9F%8E%81"
+             target="_blank" rel="noopener" class="gift-order-btn">
+            <i class="fab fa-whatsapp"></i> Order Gift Now
+          </a>
+        </div>
+        <div class="gift-bubbles">
+          <div class="gift-bubble">❤️ "He loved it!"</div>
+          <div class="gift-bubble">🎉 "Best birthday gift ever!"</div>
+          <div class="gift-bubble">😍 "She cried happy tears!"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ABOUT
+════════════════════════════════════════════════════════ -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-text">
+        <span class="section-label">Who We Are</span>
+        <h2>About <span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></h2>
+        <p>
+          Every t-shirt tells a story. At TeeTales, we bring you quality, comfort, and style
+          in every piece — whether you're shopping for yourself, your kids, or gifting someone special.
+        </p>
+        <p>
+          Our collection features a wide range of styles, colours, and sizes for both adults
+          and kids, with fresh stock added regularly. And if you want something truly yours,
+          we do custom prints too.
+        </p>
+        <div class="about-features">
+          <div class="feat"><i class="fas fa-check-circle"></i> Premium quality fabric</div>
+          <div class="feat"><i class="fas fa-check-circle"></i> Adults &amp; kids sizes</div>
+          <div class="feat"><i class="fas fa-check-circle"></i> Male, female &amp; unisex styles</div>
+          <div class="feat"><i class="fas fa-check-circle"></i> Custom DTF print on demand</div>
+          <div class="feat"><i class="fas fa-check-circle"></i> Fast WhatsApp ordering</div>
+        </div>
+      </div>
+      <div class="about-cards">
+        <div class="about-card">
+          <div class="ac-icon">👕</div>
+          <div class="ac-title">Quality Tees</div>
+          <div class="ac-sub">Every piece selected for comfort &amp; durability</div>
+        </div>
+        <div class="about-card">
+          <div class="ac-icon">🎨</div>
+          <div class="ac-title">Custom Prints</div>
+          <div class="ac-sub">Your design, your identity, your tee</div>
+        </div>
+        <div class="about-card">
+          <div class="ac-icon">👦</div>
+          <div class="ac-title">Kids Collection</div>
+          <div class="ac-sub">Fun, comfy styles made for growing up</div>
+        </div>
+        <div class="about-card">
+          <div class="ac-icon">💬</div>
+          <div class="ac-title">Easy Ordering</div>
+          <div class="ac-sub">Message us on WhatsApp — we handle the rest</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SOCIAL FEED — Facebook Reels & Customer Photos
+════════════════════════════════════════════════════════ -->
+<section class="social-feed" id="social">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">See Us in Action</span>
+      <h2 class="section-title">Real People. Real Tees.</h2>
+      <p class="section-sub">Watch our reels, see customer photos, and follow us for new arrivals &amp; behind-the-scenes content.</p>
+    </div>
+
+    <div class="social-feed-grid">
+
+      <!-- Facebook Page Plugin (official embed — shows latest reels & posts) -->
+      <div class="fb-embed-wrap">
+        <div class="fb-page"
+             data-href="https://www.facebook.com/teetales"
+             data-tabs="timeline"
+             data-width="500"
+             data-height="580"
+             data-small-header="true"
+             data-adapt-container-width="true"
+             data-hide-cover="false"
+             data-show-facepile="true">
+          <!-- Fallback if FB SDK is blocked -->
+          <div class="fb-fallback">
+            <div class="fb-fallback-icon"><i class="fab fa-facebook-f"></i></div>
+            <p>Follow <strong>@TeeTales</strong> on Facebook for our latest reels and customer photos.</p>
+            <a href="https://facebook.com/teetales" target="_blank" rel="noopener" class="btn-fb">
+              <i class="fab fa-facebook-f"></i> Visit Our Page
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social proof cards (complement the embed) -->
+      <div class="social-proof-col">
+        <div class="sp-header">
+          <div class="sp-title">Why Customers Love Us 💚</div>
+          <div class="sp-sub">Straight from our Facebook page</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"Ordered for my whole family — quality is excellent and delivery was super fast via WhatsApp!"</p>
+          <div class="review-author"><span class="review-avatar">👩</span> Sanduni P.</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"Got a custom tee for my son's birthday. He absolutely loved it — the print is crisp and the colours are vibrant!"</p>
+          <div class="review-author"><span class="review-avatar">👨</span> Kasun M.</div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"Best price in Sri Lanka for this quality. Will definitely order again. The WhatsApp ordering is so easy!"</p>
+          <div class="review-author"><span class="review-avatar">👩</span> Nadeesha S.</div>
+        </div>
+
+        <div class="sp-social-links">
+          <a href="https://facebook.com/teetales" target="_blank" rel="noopener" class="sp-social-btn fb-btn">
+            <i class="fab fa-facebook-f"></i> Follow on Facebook
+          </a>
+          <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener" class="sp-social-btn ig-btn">
+            <i class="fab fa-instagram"></i> Follow on Instagram
+          </a>
+          <a href="https://tiktok.com/@YOUR_HANDLE" target="_blank" rel="noopener" class="sp-social-btn tt-btn">
+            <i class="fab fa-tiktok"></i> Follow on TikTok
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONTACT
+════════════════════════════════════════════════════════ -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label light">Reach Us</span>
+      <h2 class="section-title light">Get In Touch</h2>
+      <p class="section-sub light">We're just one message away. Usually respond within an hour.</p>
+    </div>
+    <div class="contact-card">
+      <div class="contact-info">
+        <div class="contact-row">
+          <div class="contact-item">
+            <div class="ci-icon wa-bg"><i class="fab fa-whatsapp"></i></div>
+            <div class="ci-text"><strong>WhatsApp</strong><span>+94 77 440 7066</span></div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-icon clock-bg"><i class="fas fa-clock"></i></div>
+            <div class="ci-text"><strong>Response Time</strong><span>Usually within 1 hour</span></div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-icon loc-bg"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="ci-text"><strong>Location</strong><span>Sri Lanka 🇱🇰</span></div>
+          </div>
+        </div>
+      </div>
+      <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20place%20an%20order.%20%F0%9F%91%95"
+         target="_blank" rel="noopener" class="btn-wa-large">
+        <i class="fab fa-whatsapp"></i>
+        <span><strong>Start a Chat</strong><small>Tap to open WhatsApp</small></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#home" class="footer-logo-link">
+          <img src="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH"
+               alt="TeeTales" class="footer-logo"
+               onerror="this.style.display='none'" />
+          <span class="footer-brand-text"><span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></span>
+        </a>
+        <p>Premium t-shirts for adults &amp; kids.<br />Your story, your tee.</p>
+        <!-- Social links in footer — UPDATE HREFS -->
+        <div class="footer-socials">
+          <a href="https://facebook.com/teetales"    target="_blank" rel="noopener" class="fsocial fb"  aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener" class="fsocial ig"  aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://tiktok.com/@YOUR_HANDLE"   target="_blank" rel="noopener" class="fsocial tt"  aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <a href="https://wa.me/94774407066"         target="_blank" rel="noopener" class="fsocial wa"  aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-nav-group">
+        <div class="footer-col">
+          <div class="footer-col-title">Quick Links</div>
+          <a href="#home">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="#offersSection">Deals 🔥</a>
+          <a href="#gift">Gift Ideas</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Order Via</div>
+          <a href="https://wa.me/94774407066" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </a>
+          <a href="https://facebook.com/teetales" target="_blank" rel="noopener">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </a>
+          <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
+          <a href="https://tiktok.com/@YOUR_HANDLE" target="_blank" rel="noopener">
+            <i class="fab fa-tiktok"></i> TikTok
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; <span id="footerYear"></span> TeeTales. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════
+     FLOATING WHATSAPP
+════════════════════════════════════════════════════════ -->
+<a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20interested%20in%20your%20collection.%20Can%20you%20help%20me%3F"
+   target="_blank" rel="noopener"
+   class="float-wa" id="floatWA"
+   aria-label="Chat on WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+  <span class="float-wa-pulse"></span>
+  <div class="float-wa-tooltip">Chat with us!</div>
+</a>
+
+<script src="js/main.js"></script>
+
+<!-- Facebook SDK for Page Plugin embed -->
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous"
+  src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0">
+</script>
+</body>
+</html>
