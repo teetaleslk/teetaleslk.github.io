@@ -36,7 +36,7 @@ const CONFIG = {
   D(3): STPrice               | E(4): DCPrice
   F(5): Age Grp               | G(6): Suitable for
   H(7): Stock Status          | I(8): Boost Status
-  J(9): Image   | K(10): Colour| L(11): Tags
+  J(9): Colour  | K(10): Tags  | L(11): Image
 */
 const COL = {
   ITEM_ID:  0,
@@ -48,9 +48,9 @@ const COL = {
   SUITABLE: 6,   // G: Suitable for  ("Ladies", "Gents", "Unisex")
   STOCK:    7,   // H: Stock Status  ("In Stock", "Low Stock", "Out of Stock")
   BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  IMAGE:    9,   // J: Image URL (Google Drive share link)
-  COLOUR:   10,  // K: Colour
-  TAGS:     11,  // L: Tags (comma-separated, e.g. "flowers,butterfly")
+  COLOUR:   9,   // J: Colour
+  TAGS:     10,  // K: Tags (comma-separated, e.g. "flowers,butterfly")
+  IMAGE:    11,  // L: Image URL (Google Drive share link)
 };
 
 /* ── STATE ──────────────────────────────────────────────────── */
@@ -173,23 +173,35 @@ const OFFER_COL = {
 
 async function fetchOffers() {
   let table;
-  try { table = await fetchSheetTab(CONFIG.OFFERS_TAB); } catch { return []; }
+  try {
+    table = await fetchSheetTab(CONFIG.OFFERS_TAB);
+  } catch (err) {
+    console.error('[TeeTales] fetchOffers failed:', err);
+    return [];
+  }
 
   const rows = table.rows || [];
   return rows
     .map(row => {
       const cells = row.c || [];
+      // Raw string value — use formatted display (c.f) as fallback for text cells
       const v = (i) => {
         const c = cells[i];
-        return (c && c.v !== null && c.v !== undefined) ? String(c.v).trim() : '';
+        if (!c || c.v === null || c.v === undefined) return '';
+        return String(c.f !== undefined && c.f !== null ? c.f : c.v).trim();
       };
+      // Number value — strip currency symbols and commas then parse
       const n = (i) => {
         const c = cells[i];
-        if (!c || c.v === null) return null;
-        const num = parseFloat(c.v); return isNaN(num) ? null : num;
+        if (!c || c.v === null || c.v === undefined) return null;
+        if (typeof c.v === 'number') return c.v;
+        // Formatted string like "Rs2,700.00" — strip non-numeric chars except dot
+        const raw = String(c.f || c.v).replace(/[^0-9.]/g, '');
+        const num = parseFloat(raw);
+        return isNaN(num) ? null : num;
       };
       const status = v(OFFER_COL.STATUS).toLowerCase();
-      if (status !== 'active') return null;  // skip expired / blank rows
+      if (status !== 'active') return null;
       const title = v(OFFER_COL.TITLE);
       if (!title) return null;
       return {
@@ -252,8 +264,9 @@ async function renderOffers() {
     offers.forEach(o => frag.appendChild(createOfferCard(o)));
     grid.appendChild(frag);
     section.style.display = '';  // make visible
-  } catch {
-    section.style.display = 'none';  // hide on error — don't break the page
+  } catch (err) {
+    console.error('[TeeTales] renderOffers failed:', err);
+    section.style.display = 'none';
   }
 }
 
