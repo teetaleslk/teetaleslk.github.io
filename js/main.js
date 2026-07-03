@@ -943,4 +943,28 @@ document.addEventListener('DOMContentLoaded', () => {
   if (hamburger && mobileMenu) {
     hamburger.addEventListener('click', () => {
       const isOpen = mobileMenu.classList.toggle('open');
- 
+       hamburger.classList.toggle('open', isOpen);
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        hamburger.classList.remove('open');
+      });
+    });
+  }
+
+  // Floating WhatsApp button — show after scroll
+  const floatWA = document.getElementById('floatWA');
+  if (floatWA) {
+    window.addEventListener('scroll', () => {
+      floatWA.classList.toggle('visible', window.scrollY > 300);
+    });
+  }
+
+  // Page detection — home vs shop
+  if (document.getElementById('homeAdultsGrid')) {
+    initHome();
+  } else if (document.getElementById('productsGrid')) {
+    initShop();
+  }
+});
