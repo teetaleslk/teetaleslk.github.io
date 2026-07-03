@@ -36,7 +36,7 @@ const CONFIG = {
   D(3): STPrice               | E(4): DCPrice
   F(5): Age Grp               | G(6): Suitable for
   H(7): Stock Status          | I(8): Boost Status
-  J(9): Colour  | K(10): Tags  | L(11): Image
+  J(9): Colour  | K(10): Sticker/Image (Design Name) | L(11): Image
 */
 const COL = {
   ITEM_ID:  0,
@@ -49,7 +49,7 @@ const COL = {
   STOCK:    7,   // H: Stock Status  ("In Stock", "Low Stock", "Out of Stock")
   BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
   COLOUR:   9,   // J: Colour
-  TAGS:     10,  // K: Tags (comma-separated, e.g. "flowers,butterfly")
+  DESIGN:   10,  // K: Sticker/Image — design name (e.g. "Batman,Floral")
   IMAGE:    11,  // L: Image URL (Google Drive share link)
 };
 
@@ -126,10 +126,10 @@ function parseTableData(table) {
       const type   = val(COL.TYPE);
       if (!itemId && !type) return null;  // skip blank rows
 
-      // Parse tags — split by comma, trim, lowercase
-      const rawTags = val(COL.TAGS);
-      const tags = rawTags
-        ? rawTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+      // Parse design name — split by comma, trim, keep original case
+      const rawDesign = val(COL.DESIGN);
+      const design = rawDesign
+        ? rawDesign.split(',').map(t => t.trim()).filter(Boolean)
         : [];
 
       return {
@@ -144,7 +144,7 @@ function parseTableData(table) {
         boost:    val(COL.BOOST),   // "New" / "Hot" / "Trending" / "Best Seller"
         image:    val(COL.IMAGE),
         colour:   val(COL.COLOUR),
-        tags,
+        design,
       };
     })
     .filter(Boolean);
@@ -277,7 +277,7 @@ async function renderOffers() {
 /** Collect all unique tags from products and render tag pills */
 function buildTagFilter(products) {
   const tagSet = new Set();
-  products.forEach(p => p.tags.forEach(t => tagSet.add(t)));
+  products.forEach(p => p.design.forEach(t => tagSet.add(t)));
   if (tagSet.size === 0) return;
 
   const container = document.getElementById('tagFilterGroup');
@@ -287,7 +287,7 @@ function buildTagFilter(products) {
   if (!pills) return;
 
   // Clear existing
-  pills.innerHTML = `<button class="tag-pill active" data-tag="all">All Themes</button>`;
+  pills.innerHTML = `<button class="tag-pill active" data-tag="all">All Designs</button>`;
 
   // Sort tags alphabetically
   [...tagSet].sort().forEach(tag => {
@@ -527,8 +527,8 @@ function createProductCard(p) {
   }
 
   /* ── Tags ── */
-  const tagsHtml = p.tags.length
-    ? `<div class="card-tags">${p.tags.slice(0, 3).map(t => `<span class="card-tag-chip">#${t}</span>`).join('')}</div>`
+  const tagsHtml = p.design.length
+    ? `<div class="card-tags">${p.design.slice(0, 3).map(t => `<span class="card-tag-chip">${t}</span>`).join('')}</div>`
     : '';
 
   /* ── Colour swatch + size bar (always visible) ── */
@@ -661,8 +661,8 @@ function openProductModal(p) {
     <div class="modal-item-id">Item ID: ${escHtml(p.id)}</div>`;
 
   /* Tags */
-  document.getElementById('modalTags').innerHTML = p.tags.length
-    ? p.tags.map(t => `<span class="card-tag-chip">#${t}</span>`).join('')
+  document.getElementById('modalTags').innerHTML = p.design.length
+    ? p.design.map(t => `<span class="card-tag-chip">${t}</span>`).join('')
     : '';
 
   /* WhatsApp action */
@@ -725,7 +725,7 @@ function applyFilters() {
 
   if (activeAge    !== 'all') f = f.filter(p => p.ageGrp   === activeAge);
   if (activeGender !== 'all') f = f.filter(p => p.suitable === activeGender);
-  if (activeTag    !== 'all') f = f.filter(p => p.tags.includes(activeTag));
+  if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
   if (activeColour !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
 
   if (searchQuery) {
@@ -735,7 +735,7 @@ function applyFilters() {
       p.colour.toLowerCase().includes(q) ||
       p.size.toLowerCase().includes(q)   ||
       p.id.toLowerCase().includes(q)     ||
-      p.tags.some(t => t.includes(q))
+      p.design.some(t => t.includes(q))
     );
   }
 
@@ -751,7 +751,7 @@ function updateFilterSummary() {
   const tags = [];
   if (activeAge    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-users"></i> ${capitalize(activeAge)}</span>`);
   if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
-  if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${capitalize(activeTag)}</span>`);
+  if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${activeTag}</span>`);
   if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
   if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
   filterSummary.innerHTML = tags.join('');
@@ -770,7 +770,7 @@ function injectExtraFilters() {
     tagGroup.id = 'tagFilterGroup';
     tagGroup.style.display = 'none';
     tagGroup.innerHTML = `
-      <span class="filter-label"><i class="fas fa-tag"></i> Theme</span>
+      <span class="filter-label"><i class="fas fa-tag"></i> Design</span>
       <div class="filter-pills" id="tagFilter"></div>`;
     bar.appendChild(tagGroup);
   }
@@ -943,28 +943,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (hamburger && mobileMenu) {
     hamburger.addEventListener('click', () => {
       const isOpen = mobileMenu.classList.toggle('open');
-      hamburger.classList.toggle('open', isOpen);
-    });
-    mobileMenu.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        mobileMenu.classList.remove('open');
-        hamburger.classList.remove('open');
-      });
-    });
-  }
-
-  // Floating WhatsApp button — show after scroll
-  const floatWA = document.getElementById('floatWA');
-  if (floatWA) {
-    window.addEventListener('scroll', () => {
-      floatWA.classList.toggle('visible', window.scrollY > 300);
-    });
-  }
-
-  // Page detection
-  if (document.getElementById('homeAdultsGrid')) {
-    initHome();
-  } else if (document.getElementById('productsGrid')) {
-    initShop();
-  }
-});
+ 
