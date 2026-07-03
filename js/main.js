@@ -330,13 +330,15 @@ function buildColourFilter(products) {
 function resolveImageUrl(raw) {
   if (!raw) return null;
   raw = raw.trim();
+  // Already a non-Drive URL — use as-is
   if (raw.startsWith('http') && !raw.includes('drive.google.com') && !raw.includes('docs.google.com')) return raw;
-  const fileMatch = raw.match(/\/file\/d\/([^/]+)/);
-  if (fileMatch) return `https://lh3.googleusercontent.com/d/${fileMatch[1]}`;
+  // Extract file ID from any Drive share link format
+  const fileMatch = raw.match(/\/file\/d\/([^/?]+)/);
+  if (fileMatch) return `https://drive.google.com/thumbnail?id=${fileMatch[1]}&sz=w600`;
   const idMatch   = raw.match(/[?&]id=([^&]+)/);
-  if (idMatch)   return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+  if (idMatch)   return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w600`;
   const openMatch = raw.match(/open\?id=([^&]+)/);
-  if (openMatch) return `https://lh3.googleusercontent.com/d/${openMatch[1]}`;
+  if (openMatch) return `https://drive.google.com/thumbnail?id=${openMatch[1]}&sz=w600`;
   return raw;
 }
 
@@ -365,12 +367,20 @@ function getSwatchColor(colourName) {
    BADGE HELPERS  (Stock Status + Boost Status)
 ═══════════════════════════════════════════════════════════════ */
 
-/** Column H — stock availability */
+/** Column H — stock availability badge */
 function getStockBadgeHtml(stockStatus) {
   const s = (stockStatus || '').toLowerCase();
-  if (s.includes('out')) return `<span class="badge badge-out">Out of Stock</span>`;
-  if (s.includes('low')) return `<span class="badge badge-low">⚡ Last Few!</span>`;
-  return '';  // "In Stock" = no badge
+  if (s.includes('out'))  return `<span class="badge badge-out">✕ Out of Stock</span>`;
+  if (s.includes('low') || s.includes('few')) return `<span class="badge badge-low">⚡ Few Left</span>`;
+  return `<span class="badge badge-in-stock">✓ In Stock</span>`;
+}
+
+/** Stock sort priority — Few first, In Stock second, Out of Stock last */
+function stockPriority(stock) {
+  const s = (stock || '').toLowerCase();
+  if (s.includes('low') || s.includes('few')) return 0;
+  if (s.includes('out')) return 2;
+  return 1;
 }
 
 /** Column I — marketing/urgency boost (New, Hot, Trending, Best Seller…) */
@@ -482,19 +492,16 @@ function createProductCard(p) {
     ? `<div class="card-tags">${p.tags.slice(0, 3).map(t => `<span class="card-tag-chip">#${t}</span>`).join('')}</div>`
     : '';
 
-  /* ── Colour swatch + meta label (slide effect) ── */
+  /* ── Colour swatch + size bar (always visible) ── */
   const swatchColor = getSwatchColor(p.colour);
   const swatchDot   = p.colour
     ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}" title="${escHtml(p.colour)}"></span>`
     : '';
-  const metaParts = [p.colour, p.size && `Size: ${p.size}`].filter(Boolean);
-  const metaLabel = metaParts.join(' · ');
+  const colourLabel = p.colour ? `<span class="card-meta-colour">${escHtml(p.colour)}</span>` : '';
+  const sizeLabel   = p.size   ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong></span>` : '';
 
-  const metaSlide = (swatchDot || metaLabel)
-    ? `<div class="card-meta-slide">
-         <div class="card-swatch-row">${swatchDot}</div>
-         <div class="card-meta-label">${escHtml(metaLabel)}</div>
-       </div>`
+  const metaBar = (colourLabel || sizeLabel)
+    ? `<div class="card-meta-bar">${swatchDot}${colourLabel}${colourLabel && sizeLabel ? '<span class="card-meta-sep">·</span>' : ''}${sizeLabel}</div>`
     : '';
 
   /* ── Assemble ── */
@@ -514,13 +521,140 @@ function createProductCard(p) {
     </div>
     <div class="card-info">
       <div class="card-type">${escHtml(p.type)}</div>
-      <div class="card-id">ID: ${escHtml(p.id)}</div>
       ${priceHtml}
+      ${metaBar}
       ${tagsHtml}
-      ${metaSlide}
     </div>`;
 
+  /* ── Open modal on card click (but not on WA button) ── */
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('a, button')) return;
+    openProductModal(p);
+  });
+  card.style.cursor = 'pointer';
+
   return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRODUCT MODAL
+═══════════════════════════════════════════════════════════════ */
+function ensureModal() {
+  if (document.getElementById('productModal')) return;
+  const el = document.createElement('div');
+  el.id = 'productModal';
+  el.className = 'product-modal';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML = `
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <div class="modal-image-col">
+        <div class="modal-img-wrap" id="modalImgWrap"></div>
+      </div>
+      <div class="modal-detail-col">
+        <div class="modal-badges" id="modalBadges"></div>
+        <h2 class="modal-title" id="modalTitle"></h2>
+        <div class="modal-price" id="modalPrice"></div>
+        <div class="modal-meta" id="modalMeta"></div>
+        <div class="modal-tags" id="modalTags"></div>
+        <div class="modal-actions" id="modalActions"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+
+  /* Close handlers */
+  el.querySelector('.modal-overlay').addEventListener('click', closeProductModal);
+  el.querySelector('.modal-close').addEventListener('click', closeProductModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeProductModal(); });
+}
+
+function openProductModal(p) {
+  ensureModal();
+  const modal = document.getElementById('productModal');
+
+  /* Image */
+  const imgUrl = resolveImageUrl(p.image);
+  document.getElementById('modalImgWrap').innerHTML = imgUrl
+    ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}"
+           onerror="this.parentElement.innerHTML='<div class=\\'modal-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>'" />`
+    : `<div class="modal-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
+
+  /* Badges */
+  const ageBadgeClass = p.ageGrp === 'kids' ? 'badge-age-kids' : 'badge-age-adults';
+  const ageBadgeLabel = p.ageGrp === 'kids' ? 'Kids' : 'Adults';
+  const genderLabel   = p.suitable ? capitalize(p.suitable) : '';
+  document.getElementById('modalBadges').innerHTML =
+    `${getBoostBadgeHtml(p.boost)}
+     ${getStockBadgeHtml(p.stock)}
+     <span class="badge ${ageBadgeClass}">${ageBadgeLabel}</span>
+     ${genderLabel ? `<span class="badge" style="background:#eee;color:var(--text)">${genderLabel}</span>` : ''}`;
+
+  /* Title */
+  document.getElementById('modalTitle').textContent = p.type;
+
+  /* Price */
+  let priceHtml = '';
+  if (p.price !== null && p.strike !== null && p.strike > p.price) {
+    const disc = Math.round((1 - p.price / p.strike) * 100);
+    priceHtml = `<span class="modal-price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>
+                 <span class="modal-price-strike">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>
+                 <span class="price-badge">-${disc}%</span>`;
+  } else if (p.price !== null) {
+    priceHtml = `<span class="modal-price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>`;
+  } else if (p.strike !== null) {
+    priceHtml = `<span class="modal-price-current">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>`;
+  } else {
+    priceHtml = `<span style="color:var(--text-muted)">Ask for price</span>`;
+  }
+  document.getElementById('modalPrice').innerHTML = priceHtml;
+
+  /* Colour + Size + ID */
+  const swatchColor = getSwatchColor(p.colour);
+  const swatchDot = p.colour
+    ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}"></span>`
+    : '';
+  document.getElementById('modalMeta').innerHTML = `
+    <div class="modal-meta-row">${swatchDot}
+      ${p.colour ? `<span class="modal-meta-item"><strong>Colour:</strong> ${escHtml(p.colour)}</span>` : ''}
+      ${p.size   ? `<span class="modal-meta-item"><strong>Size:</strong> ${escHtml(p.size)}</span>`   : ''}
+    </div>
+    <div class="modal-item-id">Item ID: ${escHtml(p.id)}</div>`;
+
+  /* Tags */
+  document.getElementById('modalTags').innerHTML = p.tags.length
+    ? p.tags.map(t => `<span class="card-tag-chip">#${t}</span>`).join('')
+    : '';
+
+  /* WhatsApp action */
+  const displayPrice = p.price !== null
+    ? `${CONFIG.CURRENCY} ${formatNum(p.price)}`
+    : (p.strike !== null ? `${CONFIG.CURRENCY} ${formatNum(p.strike)}` : 'TBC');
+  const isOut = p.stock.toLowerCase().includes('out');
+  const waMsg = encodeURIComponent(
+    `Hi TeeTales! 👋 I'd like to order:\n\n` +
+    `• Item: ${p.type}\n` +
+    `• Size: ${p.size || 'TBD'}\n` +
+    `• Colour: ${p.colour || 'TBD'}\n` +
+    `• Price: ${displayPrice}\n` +
+    `• Item ID: ${p.id}\n\n` +
+    `Is this available? 👕`
+  );
+  document.getElementById('modalActions').innerHTML = isOut
+    ? `<button class="modal-wa-btn out-of-stock" disabled><i class="fas fa-times-circle"></i> Out of Stock</button>`
+    : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}" target="_blank" rel="noopener" class="modal-wa-btn">
+         <i class="fab fa-whatsapp"></i> Order on WhatsApp
+       </a>`;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('productModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 window.placeholderHtml = () =>
@@ -548,6 +682,9 @@ function applyFilters() {
     );
   }
 
+  // Sort: Few Left → In Stock → Out of Stock
+  f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
+
   renderProducts(f);
   updateFilterSummary();
 }
@@ -558,262 +695,4 @@ function updateFilterSummary() {
   if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
   if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${capitalize(activeTag)}</span>`);
   if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
-  if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
-
-  if (tags.length) {
-    filterSummary.innerHTML =
-      `<span style="font-size:.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px">Filters:</span>` +
-      tags.join('');
-    filterSummary.style.display = 'flex';
-  } else {
-    filterSummary.style.display = 'none';
-    filterSummary.innerHTML = '';
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   EVENT LISTENERS
-═══════════════════════════════════════════════════════════════ */
-
-// Age filter
-document.getElementById('ageFilter')?.addEventListener('click', e => {
-  const pill = e.target.closest('.pill');
-  if (!pill) return;
-  document.querySelectorAll('#ageFilter .pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  activeAge = pill.dataset.age;
-  applyFilters();
-});
-
-// Gender filter
-document.getElementById('genderFilter')?.addEventListener('click', e => {
-  const pill = e.target.closest('.pill');
-  if (!pill) return;
-  document.querySelectorAll('#genderFilter .pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
-  activeGender = pill.dataset.gender;
-  applyFilters();
-});
-
-// Buyer-type tabs (trending / custom)
-document.querySelectorAll('.buyer-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.buyer-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const buyer = tab.dataset.buyer;
-    if (buyer === 'trending') {
-      activeTag = 'trending'; // Will show nothing until tagged; prompt to tag
-    } else if (buyer === 'custom') {
-      activeTag = 'custom';
-    } else {
-      activeTag = 'all';
-    }
-    applyFilters();
-  });
-});
-
-// Search
-searchInput?.addEventListener('input', e => {
-  searchQuery = e.target.value.trim();
-  searchClear?.classList.toggle('visible', searchQuery.length > 0);
-  applyFilters();
-});
-searchClear?.addEventListener('click', () => {
-  searchInput.value = '';
-  searchQuery = '';
-  searchClear.classList.remove('visible');
-  searchInput.focus();
-  applyFilters();
-});
-
-// Hamburger
-const hamburger  = document.getElementById('hamburger');
-const mobileMenu = document.getElementById('mobileMenu');
-hamburger?.addEventListener('click', () => {
-  const open = mobileMenu.classList.toggle('open');
-  hamburger.classList.toggle('open', open);
-});
-window.closeMobileMenu = () => {
-  mobileMenu?.classList.remove('open');
-  hamburger?.classList.remove('open');
-};
-
-// Navbar shadow on scroll
-window.addEventListener('scroll', () => {
-  document.getElementById('navbar')?.classList.toggle('scrolled', window.scrollY > 10);
-}, { passive: true });
-
-// Smooth scroll
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', e => {
-    const target = document.querySelector(link.getAttribute('href'));
-    if (!target) return;
-    e.preventDefault();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════════
-   INJECT FILTER CONTAINERS into DOM (for tag + colour filters)
-   These are added dynamically so the filters only appear when
-   there is actual data to filter by.
-═══════════════════════════════════════════════════════════════ */
-function injectExtraFilters() {
-  const filtersRow = document.querySelector('.filters-row');
-  if (!filtersRow) return;
-
-  // Tag filter group
-  const tagGroup = document.createElement('div');
-  tagGroup.className = 'filter-group';
-  tagGroup.id = 'tagFilterGroup';
-  tagGroup.style.display = 'none';
-  tagGroup.innerHTML = `
-    <span class="filter-label"><i class="fas fa-tag"></i> Theme / Design</span>
-    <div class="filter-pills" id="tagFilter"></div>`;
-  filtersRow.appendChild(tagGroup);
-
-  // Colour filter group
-  const colGroup = document.createElement('div');
-  colGroup.className = 'filter-group';
-  colGroup.id = 'colourFilterGroup';
-  colGroup.style.display = 'none';
-  colGroup.innerHTML = `
-    <span class="filter-label"><i class="fas fa-palette"></i> Colour</span>
-    <div class="colour-filter" id="colourFilter"></div>`;
-  filtersRow.appendChild(colGroup);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   HOME PAGE — preview 4 Adults + 4 Kids
-═══════════════════════════════════════════════════════════════ */
-async function initHome() {
-  if (footerYear) footerYear.textContent = new Date().getFullYear();
-
-  // Load offers in parallel — section hides itself if sheet tab is missing or empty
-  renderOffers();
-
-  const adultsGrid = document.getElementById('homeAdultsGrid');
-  const kidsGrid   = document.getElementById('homeKidsGrid');
-  if (!adultsGrid && !kidsGrid) return;
-
-  const showLoading = (el) => {
-    el.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-muted)">
-      <div class="spinner" style="margin:0 auto 12px"></div><p>Loading…</p></div>`;
-  };
-  if (adultsGrid) showLoading(adultsGrid);
-  if (kidsGrid)   showLoading(kidsGrid);
-
-  try {
-    allProducts = await fetchProducts();
-
-    const adults = allProducts.filter(p => p.ageGrp === 'adults').slice(0, 4);
-    const kids   = allProducts.filter(p => p.ageGrp === 'kids').slice(0, 4);
-
-    const renderPreview = (grid, items, label) => {
-      if (!grid) return;
-      grid.innerHTML = '';
-      if (items.length === 0) {
-        grid.innerHTML = `<p style="color:var(--text-muted);font-size:.9rem;grid-column:1/-1">
-          No ${label} products yet — check back soon!</p>`;
-        return;
-      }
-      const frag = document.createDocumentFragment();
-      items.forEach(p => frag.appendChild(createProductCard(p)));
-      grid.appendChild(frag);
-    };
-
-    renderPreview(adultsGrid, adults, 'Adults');
-    renderPreview(kidsGrid,   kids,   'Kids');
-
-  } catch (err) {
-    console.error('TeeTales: Failed to load preview —', err);
-    [adultsGrid, kidsGrid].forEach(el => {
-      if (el) el.innerHTML = `<p style="color:var(--text-muted);grid-column:1/-1">
-        ⚠️ Couldn't load products. Make sure the sheet is public.</p>`;
-    });
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   SHOP PAGE — full catalogue with filters
-═══════════════════════════════════════════════════════════════ */
-async function initShop() {
-  if (footerYear) footerYear.textContent = new Date().getFullYear();
-
-  // Pre-select age tab from URL param e.g. shop.html?age=kids
-  const urlAge = new URLSearchParams(window.location.search).get('age');
-  if (urlAge) {
-    document.querySelectorAll('#ageFilter .pill').forEach(p => p.classList.remove('active'));
-    const targetPill = document.querySelector(`#ageFilter .pill[data-age="${urlAge}"]`);
-    if (targetPill) { targetPill.classList.add('active'); activeAge = urlAge; }
-    document.querySelectorAll('.buyer-tab').forEach(t => t.classList.remove('active'));
-    const buyerTab = document.querySelector(`.buyer-tab[data-buyer="${urlAge}"]`);
-    if (buyerTab) buyerTab.classList.add('active');
-  }
-
-  injectExtraFilters();
-
-  try {
-    allProducts = await fetchProducts();
-
-    if (allProducts.length === 0) {
-      if (loadingState) loadingState.style.display = 'none';
-      if (emptyState)   emptyState.style.display   = 'block';
-      if (resultsBar)   resultsBar.textContent = '🛒 No products yet — add items to your Google Sheet!';
-    } else {
-      buildTagFilter(allProducts);
-      buildColourFilter(allProducts);
-      applyFilters();
-    }
-  } catch (err) {
-    console.error('TeeTales: Failed to load products —', err);
-    if (loadingState) loadingState.innerHTML = `
-      <div style="text-align:center;padding:60px 20px;color:var(--text-muted)">
-        <div style="font-size:2.5rem;margin-bottom:16px">⚠️</div>
-        <p style="font-weight:700;color:var(--text);margin-bottom:8px">Couldn't load products</p>
-        <p style="font-size:.88rem;line-height:1.6">Make sure your Google Sheet is set to
-          <strong>"Anyone with the link → Viewer"</strong>.</p>
-        <button onclick="location.reload()" style="
-          margin-top:20px;padding:10px 22px;
-          background:var(--accent);color:#fff;
-          border-radius:50px;font-weight:600;font-size:.9rem;
-          cursor:pointer;border:none;font-family:var(--font)">
-          Try Again
-        </button>
-      </div>`;
-  }
-
-  // Auto-refresh every N minutes
-  if (CONFIG.REFRESH_MIN > 0) {
-    setInterval(async () => {
-      try {
-        const fresh = await fetchProducts();
-        if (JSON.stringify(fresh) !== JSON.stringify(allProducts)) {
-          allProducts = fresh;
-          buildTagFilter(allProducts);
-          buildColourFilter(allProducts);
-          applyFilters();
-          console.log('TeeTales: Stock refreshed at', new Date().toLocaleTimeString());
-        }
-      } catch { /* silent fail */ }
-    }, CONFIG.REFRESH_MIN * 60 * 1000);
-  }
-}
-
-/* ── Utilities ──────────────────────────────────────────────── */
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-function formatNum(n) { return Number(n).toLocaleString('en-LK'); }
-function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
-
-/* ── Auto-detect page and initialise ───────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('homeAdultsGrid')) {
-    initHome();
-  } else if (document.getElementById('productsGrid')) {
-    initShop();
-  }
-});
+  if (searchQ
