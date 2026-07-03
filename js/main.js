@@ -25,8 +25,8 @@ const CONFIG = {
   // Social media — UPDATE THESE with your actual profile URLs
   SOCIAL: {
     facebook:  'https://facebook.com/teetales',
-    instagram: 'https://instagram.com/YOUR_HANDLE',  // UPDATE when ready
-    tiktok:    'https://tiktok.com/@YOUR_HANDLE',    // UPDATE when ready
+    instagram: 'https://instagram.com/teetales.tshirt',
+    tiktok:    'https://tiktok.com/@tee.tales.tshirt',
   },
 };
 
