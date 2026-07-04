@@ -53,44 +53,42 @@ Also search for `YOUR_PAGE` and `YOUR_HANDLE` in `index.html` and replace them t
 
 ## 📊 Google Sheet — Column Guide
 
-Your sheet must have these columns **in order** (A through L):
+**WebStock** tab — columns must be in this exact order (A through L):
 
-| Column | Header              | Example Value         | Notes                                  |
-|--------|---------------------|-----------------------|----------------------------------------|
-| A      | ItemID              | TT-001                | Unique ID for each item                |
-| B      | Type                | Polo Shirt            | Product name / style                   |
-| C      | Size                | M / L / XL            | Can list multiple: "S, M, L"           |
-| D      | Colour              | Navy Blue             | Used for colour swatch filter          |
-| E      | Strikethrough Price | 1500                  | Original price — shown crossed out     |
-| F      | Discounted Price    | 999                   | Sale price — **use 999 not 1000** ✓    |
-| G      | Age Grp             | Adults / Kids         | Used for category filter               |
-| H      | Suitable for        | Male / Female / Unisex| Gender filter                          |
-| I      | Image               | (Google Drive URL)    | See image upload guide below           |
-| J      | Tags                | flowers,butterfly,pink| Comma-separated theme tags             |
-| K      | Stock Status        | In Stock              | See stock status options below         |
-| L      | Material            | 100% Cotton           | Shown on product card                  |
+| Column | Header                      | Example Value            | Notes                                      |
+|--------|-----------------------------|--------------------------|--------------------------------------------|
+| A      | ItemID                      | ALF0001                  | Unique ID — don't change once set          |
+| B      | Type                        | Polo Shirt               | Product name / style shown on card         |
+| C      | Size                        | M / L / XL               | Size(s) available                          |
+| D      | STPrice                     | 1799                     | Strike-through (original) price            |
+| E      | DCPrice                     | 1599                     | Discounted / sale price                    |
+| F      | Age Grp                     | Adults / Kids            | Home-page category split                   |
+| G      | Suitable for                | Ladies / Gents / Unisex  | Gender filter on shop page                 |
+| H      | Stock Status                | In Stock                 | See Stock Status values below              |
+| I      | Boost Status                | Hot                      | See Boost Status values below              |
+| J      | Colour                      | Pink                     | Colour-swatch filter                       |
+| K      | Sticker/Image (Design Name) | Batman, Floral           | Comma-separated design names               |
+| L      | Image                       | (Google Drive share URL) | See image upload guide below               |
 
-### Stock Status Values
+### Stock Status Values (Column H)
 | Value          | Badge shown on site           |
 |----------------|-------------------------------|
-| `In Stock`     | (no badge — default)          |
-| `Low Stock`    | ⚡ Last Few!                  |
-| `New`          | ✨ New Arrival                |
-| `Trending`     | 🔥 Trending                   |
-| `Hot`          | 🌟 Hot Pick                   |
-| `Out of Stock` | Out of Stock (button greyed)  |
+| `In Stock`     | Green — In Stock              |
+| `Low Stock`    | Orange — Low Stock            |
+| `Out of Stock` | Red — button disabled         |
 
-### Suggested Tags (Column J)
-Use these consistently across your products for best filtering:
+### Boost Status Values (Column I)
+| Value      | Badge shown on card  |
+|------------|----------------------|
+| `Hot`      | 🔥 Hot Pick          |
+| `New`      | ✨ New Arrival       |
+| `Trending` | 📈 Trending          |
+| *(blank)*  | No badge             |
 
-**Designs:** `flowers`, `butterfly`, `nature`, `superhero`, `quotes`, `abstract`, `geometric`,
-`stripes`, `logo`, `minimal`, `animal`, `cartoon`, `sports`, `music`, `vintage`, `flag`
+### Design Names (Column K)
+Comma-separated names matching the sticker/print on the shirt.
 
-**Occasion:** `birthday`, `gift`, `casual`, `formal`, `party`, `school`
-
-**Style:** `classic`, `oversized`, `fitted`, `printed`, `embroidered`, `custom`
-
-Example: `flowers,butterfly,nature`
+Example: `Batman, Superman` or `Floral, Butterfly` or `Labubu`
 
 ---
 
