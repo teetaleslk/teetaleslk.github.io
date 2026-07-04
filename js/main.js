@@ -662,10 +662,13 @@ function openProductModal(p) {
   const swatchDot = p.colour
     ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}"></span>`
     : '';
+  const modalAgeRange = p.ageGrp && p.ageGrp !== 'adults';
   document.getElementById('modalMeta').innerHTML = `
     <div class="modal-meta-row">${swatchDot}
-      ${p.colour ? `<span class="modal-meta-item"><strong>Colour:</strong> ${escHtml(p.colour)}</span>` : ''}
-      ${p.size   ? `<span class="modal-meta-item"><strong>Size:</strong> ${escHtml(p.size)}</span>`   : ''}
+      ${p.colour         ? `<span class="modal-meta-item"><strong>Colour:</strong> ${escHtml(p.colour)}</span>` : ''}
+      ${p.size           ? `<span class="modal-meta-item"><strong>Size:</strong> ${escHtml(p.size)}</span>` : ''}
+      ${modalAgeRange    ? `<span class="modal-meta-item"><strong>Age:</strong> ${escHtml(p.ageGrp)}</span>` : ''}
+      ${p.material       ? `<span class="modal-meta-item"><strong>Material:</strong> ${escHtml(p.material)}</span>` : ''}
     </div>
     <div class="modal-item-id">Item ID: ${escHtml(p.id)}</div>`;
 
