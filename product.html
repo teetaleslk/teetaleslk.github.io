@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeeTales — Product</title>
+  <meta name="description" content="View product details and order instantly via WhatsApp." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+
+    <a href="index.html" class="nav-brand">
+      <img src="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH"
+           alt="TeeTales Logo" class="nav-logo" onerror="this.style.display='none'" />
+      <span class="brand-text"><span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html"            class="nav-link">Home</a></li>
+      <li><a href="shop.html"             class="nav-link">Shop</a></li>
+      <li><a href="index.html#offersSection" class="nav-link nav-link-offers">Deals 🔥</a></li>
+      <li><a href="index.html#gift"       class="nav-link">Gift Ideas</a></li>
+      <li><a href="index.html#social"     class="nav-link">Gallery</a></li>
+      <li><a href="index.html#about"      class="nav-link">About</a></li>
+      <li><a href="index.html#contact"    class="nav-link">Contact</a></li>
+    </ul>
+
+    <div class="nav-socials">
+      <a href="https://facebook.com/teetales" target="_blank" rel="noopener"
+         class="social-icon" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://instagram.com/teetales.tshirt" target="_blank" rel="noopener"
+         class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="https://tiktok.com/@tee.tales.tshirt" target="_blank" rel="noopener"
+         class="social-icon" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+    </div>
+
+    <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20order%20%F0%9F%91%95"
+       target="_blank" rel="noopener" class="nav-wa-btn">
+      <i class="fab fa-whatsapp"></i> Order Now
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html"               class="mobile-link">Home</a>
+    <a href="shop.html"                class="mobile-link">Shop</a>
+    <a href="index.html#offersSection" class="mobile-link">Deals 🔥</a>
+    <a href="index.html#gift"          class="mobile-link">Gift Ideas</a>
+    <a href="index.html#about"         class="mobile-link">About</a>
+    <a href="index.html#contact"       class="mobile-link">Contact</a>
+    <div class="mobile-socials">
+      <a href="https://facebook.com/teetales"        target="_blank" rel="noopener" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+      <a href="https://instagram.com/teetales.tshirt" target="_blank" rel="noopener" class="social-icon"><i class="fab fa-instagram"></i></a>
+      <a href="https://tiktok.com/@tee.tales.tshirt"  target="_blank" rel="noopener" class="social-icon"><i class="fab fa-tiktok"></i></a>
+    </div>
+    <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20browse%20your%20collection."
+       target="_blank" rel="noopener" class="mobile-wa-btn">
+      <i class="fab fa-whatsapp"></i> Order on WhatsApp
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     PRODUCT DETAIL
+════════════════════════════════════════════════════════ -->
+<section class="pd-section">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="pd-breadcrumb" aria-label="breadcrumb">
+      <a href="index.html">Home</a>
+      <span class="pd-bc-sep">›</span>
+      <a href="shop.html">Shop</a>
+      <span class="pd-bc-sep">›</span>
+      <span id="pdBcName">Loading…</span>
+    </nav>
+
+    <!-- Loading state -->
+    <div id="pdLoading" class="pd-state-msg">
+      <div class="pd-spinner"></div>
+      <p>Loading product…</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="pdError" class="pd-state-msg" style="display:none">
+      <p style="font-size:2.5rem;margin-bottom:12px">😕</p>
+      <p>Product not found. <a href="shop.html">Browse the shop →</a></p>
+    </div>
+
+    <!-- Product content (shown after load) -->
+    <div id="pdContent" style="display:none">
+      <div class="pd-layout">
+
+        <!-- LEFT: Images -->
+        <div class="pd-images">
+          <div class="pd-main-img" id="pdMainImg"></div>
+          <div class="pd-thumb-row" id="pdThumbRow"></div>
+        </div>
+
+        <!-- RIGHT: Info -->
+        <div class="pd-info">
+          <div id="pdBadges" class="pd-badges"></div>
+          <h1 id="pdTitle" class="pd-title"></h1>
+          <div id="pdPrice" class="pd-price-block"></div>
+
+          <hr class="pd-divider" />
+
+          <dl id="pdMeta" class="pd-meta-list"></dl>
+
+          <hr class="pd-divider" />
+
+          <div class="pd-delivery-strip">
+            <span><i class="fas fa-truck"></i> Islandwide Delivery</span>
+            <span><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span>
+            <span><i class="fas fa-shield-alt"></i> Quality Guaranteed</span>
+          </div>
+
+          <div id="pdOrderBtn" class="pd-order-wrap"></div>
+
+          <p id="pdItemId" class="pd-item-id"></p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- You May Also Like -->
+    <div id="pdRelatedWrap" class="pd-related" style="display:none">
+      <h2 class="section-title" style="text-align:left;margin-bottom:24px">You May Also Like</h2>
+      <div id="pdRelatedGrid" class="products-grid"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo-link">
+          <img src="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH"
+               alt="TeeTales" class="footer-logo" onerror="this.style.display='none'" />
+          <span class="footer-brand-text"><span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></span>
+        </a>
+        <p>Premium t-shirts for adults &amp; kids.<br />Your story, your tee.</p>
+        <div class="footer-socials">
+          <a href="https://facebook.com/teetales"         target="_blank" rel="noopener" class="fsocial fb" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://instagram.com/teetales.tshirt" target="_blank" rel="noopener" class="fsocial ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://tiktok.com/@tee.tales.tshirt"  target="_blank" rel="noopener" class="fsocial tt" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <a href="https://wa.me/94774407066"             target="_blank" rel="noopener" class="fsocial wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-nav-group">
+        <div class="footer-col">
+          <div class="footer-col-title">Quick Links</div>
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="index.html#offersSection">Deals 🔥</a>
+          <a href="index.html#gift">Gift Ideas</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#contact">Contact</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Order Via</div>
+          <a href="https://wa.me/94774407066"              target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+          <a href="https://facebook.com/teetales"          target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i> Facebook</a>
+          <a href="https://instagram.com/teetales.tshirt"  target="_blank" rel="noopener"><i class="fab fa-instagram"></i> Instagram</a>
+          <a href="https://tiktok.com/@tee.tales.tshirt"   target="_blank" rel="noopener"><i class="fab fa-tiktok"></i> TikTok</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; <span id="footerYear"></span> TeeTales. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating WhatsApp -->
+<a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20viewing%20a%20product.%20Can%20you%20help%20me%3F"
+   target="_blank" rel="noopener"
+   class="float-wa" id="floatWA"
+   aria-label="Chat on WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+  <span class="float-wa-pulse"></span>
+  <div class="float-wa-tooltip">Chat with us!</div>
+</a>
+
+<script src="js/main.js"></script>
+</body>
+</html>

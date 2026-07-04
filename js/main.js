@@ -577,10 +577,10 @@ function createProductCard(p) {
       ${tagsHtml}
     </div>`;
 
-  /* ── Open modal on card click (but not on WA button) ── */
+  /* ── Navigate to product page on card click (but not on WA button) ── */
   card.addEventListener('click', (e) => {
     if (e.target.closest('a, button')) return;
-    openProductModal(p);
+    window.location.href = `product.html?id=${encodeURIComponent(p.id)}`;
   });
   card.style.cursor = 'pointer';
 
@@ -861,15 +861,27 @@ async function initHome() {
    SHOP PAGE — full catalogue with filters
 ═══════════════════════════════════════════════════════════════ */
 async function initShop() {
-  // Pre-select age filter from URL param ?age=adults|kids
-  const params = new URLSearchParams(window.location.search);
-  const ageParam = (params.get('age') || '').toLowerCase();
+  // Pre-select filters from URL params: ?age=adults|kids  &suitable=ladies|gents|unisex
+  const params    = new URLSearchParams(window.location.search);
+  const ageParam  = (params.get('age')      || '').toLowerCase();
+  const suitParam = (params.get('suitable') || '').toLowerCase();
+
   if (ageParam === 'adults' || ageParam === 'kids') {
     activeAge = ageParam;
     const ageFilter = document.getElementById('ageFilter');
     if (ageFilter) {
       ageFilter.querySelectorAll('.pill').forEach(p => {
         p.classList.toggle('active', p.dataset.age === ageParam);
+      });
+    }
+  }
+
+  if (suitParam === 'ladies' || suitParam === 'gents' || suitParam === 'unisex') {
+    activeGender = suitParam;
+    const genderFilter = document.getElementById('genderFilter');
+    if (genderFilter) {
+      genderFilter.querySelectorAll('.pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.gender === suitParam);
       });
     }
   }
@@ -942,6 +954,148 @@ async function initShop() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PRODUCT DETAIL PAGE  (product.html?id=xxx)
+═══════════════════════════════════════════════════════════════ */
+async function initProduct() {
+  const id      = new URLSearchParams(window.location.search).get('id');
+  const loadEl  = document.getElementById('pdLoading');
+  const errEl   = document.getElementById('pdError');
+  const contEl  = document.getElementById('pdContent');
+  const relWrap = document.getElementById('pdRelatedWrap');
+
+  if (!id) { loadEl.style.display = 'none'; errEl.style.display = 'block'; return; }
+
+  try {
+    const products = await fetchProducts();
+    const p = products.find(q => q.id === id);
+    if (!p) { loadEl.style.display = 'none'; errEl.style.display = 'block'; return; }
+
+    /* Page title & breadcrumb */
+    document.title = `TeeTales — ${p.type}`;
+    const bcEl = document.getElementById('pdBcName');
+    if (bcEl) bcEl.textContent = p.type;
+
+    /* Main image */
+    const imgUrl  = resolveImageUrl(p.image);
+    const img2Url = resolveImageUrl(p.image2);
+    const mainImgEl = document.getElementById('pdMainImg');
+    mainImgEl.innerHTML = imgUrl
+      ? `<img id="pdMainImgTag" src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}"
+             onerror="this.parentElement.innerHTML='<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>'" />`
+      : `<div class="pd-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
+
+    /* Image 2 thumbnail */
+    if (img2Url) {
+      const thumbEl = document.getElementById('pdThumbRow');
+      const thumb   = document.createElement('img');
+      thumb.src       = img2Url;
+      thumb.alt       = `${p.type} — view 2`;
+      thumb.className = 'pd-thumb';
+      thumb.onerror   = () => thumb.remove();
+      thumb.addEventListener('click', () => {
+        const main = document.getElementById('pdMainImgTag');
+        if (main) main.src = img2Url;
+      });
+      thumbEl.appendChild(thumb);
+    }
+
+    /* Badges */
+    const audience = getAudienceLabel(p.ageGrp, p.suitable);
+    const audBadge = audience.label
+      ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>` : '';
+    document.getElementById('pdBadges').innerHTML =
+      `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock)} ${audBadge}`;
+
+    /* Title */
+    document.getElementById('pdTitle').textContent = p.type;
+
+    /* Price */
+    let priceHtml = '';
+    if (p.price !== null && p.strike !== null && p.strike > p.price) {
+      const disc = Math.round((1 - p.price / p.strike) * 100);
+      priceHtml = `<span class="pd-price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>
+                   <span class="pd-price-strike">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>
+                   <span class="price-badge">-${disc}%</span>`;
+    } else if (p.price !== null) {
+      priceHtml = `<span class="pd-price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>`;
+    } else if (p.strike !== null) {
+      priceHtml = `<span class="pd-price-current">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>`;
+    } else {
+      priceHtml = `<span class="pd-price-ask">Contact us for price</span>`;
+    }
+    document.getElementById('pdPrice').innerHTML = priceHtml;
+
+    /* Meta list */
+    const swatchColor = getSwatchColor(p.colour);
+    const swatchDot   = p.colour
+      ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}"></span>` : '';
+    const ageIsKids   = p.ageGrp && p.ageGrp !== 'adults';
+    const metaItems   = [
+      p.colour     ? `<div class="pd-meta-item"><dt>Colour</dt><dd>${swatchDot}${escHtml(p.colour)}</dd></div>` : '',
+      p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd>${escHtml(p.size)}</dd></div>` : '',
+      p.category   ? `<div class="pd-meta-item"><dt>Style</dt><dd>${escHtml(p.category)}</dd></div>` : '',
+      p.printSize  ? `<div class="pd-meta-item"><dt>Print Size</dt><dd>${escHtml(p.printSize)}</dd></div>` : '',
+      ageIsKids    ? `<div class="pd-meta-item"><dt>Age Group</dt><dd>🎂 ${escHtml(p.ageGrp)}</dd></div>` : '',
+      p.material   ? `<div class="pd-meta-item"><dt>Material</dt><dd>${escHtml(p.material)}</dd></div>` : '',
+      p.design.length
+        ? `<div class="pd-meta-item pd-meta-full"><dt>Design</dt><dd>${p.design.map(t => `<span class="card-tag-chip">${escHtml(t)}</span>`).join('')}</dd></div>`
+        : '',
+    ].filter(Boolean);
+    document.getElementById('pdMeta').innerHTML = metaItems.join('');
+
+    /* WhatsApp order button */
+    const isOut       = p.stock.toLowerCase().includes('out');
+    const displayPrice = p.price !== null
+      ? `${CONFIG.CURRENCY} ${formatNum(p.price)}`
+      : (p.strike !== null ? `${CONFIG.CURRENCY} ${formatNum(p.strike)}` : 'TBC');
+    const waMsg = encodeURIComponent(
+      `Hi TeeTales! 👋 I'd like to order:\n\n` +
+      `• Item: ${p.type}\n` +
+      `• Size: ${p.size || 'TBD'}\n` +
+      `• Colour: ${p.colour || 'TBD'}\n` +
+      `• Price: ${displayPrice}\n` +
+      `• Item ID: ${p.id}\n\n` +
+      `Is this available? 👕`
+    );
+    document.getElementById('pdOrderBtn').innerHTML = isOut
+      ? `<button class="pd-wa-btn pd-wa-btn-out" disabled><i class="fas fa-times-circle"></i> Sold Out</button>`
+      : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}" target="_blank" rel="noopener" class="pd-wa-btn">
+           <i class="fab fa-whatsapp"></i> Order on WhatsApp
+         </a>`;
+
+    /* Item ID */
+    document.getElementById('pdItemId').textContent = `Item ID: ${p.id}`;
+
+    /* Show content */
+    loadEl.style.display = 'none';
+    contEl.style.display = 'block';
+
+    /* Related products — same audience first, then anything in stock */
+    const related = products
+      .filter(q => q.id !== p.id && !q.stock.toLowerCase().includes('out'))
+      .sort((a, b) => {
+        const score = r => {
+          if (r.suitable === p.suitable && r.ageGrp === p.ageGrp) return 3;
+          if (r.suitable === p.suitable || r.ageGrp === p.ageGrp) return 2;
+          return 0;
+        };
+        return score(b) - score(a);
+      })
+      .slice(0, 4);
+
+    if (related.length) {
+      const grid = document.getElementById('pdRelatedGrid');
+      related.forEach(rp => grid.appendChild(createProductCard(rp)));
+      relWrap.style.display = 'block';
+    }
+
+  } catch (err) {
+    if (loadEl) loadEl.style.display = 'none';
+    if (errEl)  { errEl.style.display = 'block'; errEl.innerHTML = `<p style="font-size:2.5rem;margin-bottom:12px">😕</p><p>Failed to load product. <a href="shop.html">Browse the shop →</a></p>`; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOT
 ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
@@ -985,5 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHome();
   } else if (document.getElementById('productsGrid')) {
     initShop();
+  } else if (document.getElementById('pdContent')) {
+    initProduct();
   }
 });
