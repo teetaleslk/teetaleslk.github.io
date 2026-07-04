@@ -36,7 +36,8 @@ const CONFIG = {
   D(3): STPrice               | E(4): DCPrice
   F(5): Age Grp               | G(6): Suitable for
   H(7): Stock Status          | I(8): Boost Status
-  J(9): Colour  | K(10): Sticker/Image (Design Name) | L(11): Image
+  J(9): Colour  | K(10): Sticker/Image (Design Name)
+  L(11): Material | M(12): Image 1 | N(13): Image 2
 */
 const COL = {
   ITEM_ID:  0,
@@ -50,7 +51,9 @@ const COL = {
   BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
   COLOUR:   9,   // J: Colour
   DESIGN:   10,  // K: Sticker/Image — design name (e.g. "Batman,Floral")
-  IMAGE:    11,  // L: Image URL (Google Drive share link)
+  MATERIAL: 11,  // L: Material (e.g. "100% Cotton")
+  IMAGE:    12,  // M: Image 1 — primary product photo (Google Drive share link)
+  IMAGE2:   13,  // N: Image 2 — second photo (optional)
 };
 
 /* ── STATE ──────────────────────────────────────────────────── */
@@ -142,11 +145,12 @@ function parseTableData(table) {
         suitable: val(COL.SUITABLE).toLowerCase(),
         stock:    val(COL.STOCK) || 'In Stock',
         boost:    val(COL.BOOST),
+        material: val(COL.MATERIAL),
         image:    val(COL.IMAGE),
+        image2:   val(COL.IMAGE2),
         colour:   val(COL.COLOUR),
         design,
       };
-      console.log('[TeeTales] product:', product.id, '| ageGrp:', JSON.stringify(product.ageGrp), '| suitable:', product.suitable);
       return product;
     })
     .filter(Boolean);
