@@ -1171,6 +1171,10 @@ input { font-family: var(--font); }
   color: var(--text);
   font-weight: 600;
 }
+.card-meta-age {
+  font-size: .78rem;
+  color: var(--text-muted);
+}
 
 /* ─────────────────────────────────────────────────────────────
    PRODUCT MODAL

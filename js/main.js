@@ -407,17 +407,17 @@ function stockPriority(stock) {
 
 /** Combined audience label from Age Grp + Suitable For */
 function getAudienceLabel(ageGrp, suitable) {
-  const age  = (ageGrp  || '').toLowerCase();
-  const suit = (suitable || '').toLowerCase();
-  if (age === 'kids'   && suit === 'ladies')  return { label: "Girl's Tee",   emoji: '👧' };
-  if (age === 'kids'   && suit === 'gents')   return { label: "Boy's Tee",    emoji: '👦' };
-  if (age === 'kids'   && suit === 'unisex')  return { label: "Kids' Tee",    emoji: '🧒' };
-  if (age === 'adults' && suit === 'ladies')  return { label: "Ladies' Tee",  emoji: '👩' };
-  if (age === 'adults' && suit === 'gents')   return { label: "Gents' Tee",   emoji: '👨' };
-  if (age === 'adults' && suit === 'unisex')  return { label: "Unisex Tee",   emoji: '👕' };
-  if (age === 'kids')                         return { label: "Kids' Tee",    emoji: '🧒' };
-  if (age === 'adults')                       return { label: 'Adults',        emoji: '🧑' };
-  if (suit === 'unisex')                      return { label: 'Unisex Tee',   emoji: '👕' };
+  const age    = (ageGrp  || '').toLowerCase();
+  const suit   = (suitable || '').toLowerCase();
+  const isKids = age !== 'adults';
+  if (isKids  && suit === 'ladies')  return { label: "Girl's Tee",  emoji: '👧' };
+  if (isKids  && suit === 'gents')   return { label: "Boy's Tee",   emoji: '👦' };
+  if (isKids  && suit === 'unisex')  return { label: "Kids' Tee",   emoji: '🧒' };
+  if (!isKids && suit === 'ladies')  return { label: "Ladies' Tee", emoji: '👩' };
+  if (!isKids && suit === 'gents')   return { label: "Gents' Tee",  emoji: '👨' };
+  if (!isKids && suit === 'unisex')  return { label: "Unisex Tee",  emoji: '👕' };
+  if (isKids)                        return { label: "Kids' Tee",   emoji: '🧒' };
+  if (!isKids)                       return { label: 'Adults',      emoji: '🧑' };
   return { label: '', emoji: '' };
 }
 
@@ -537,10 +537,13 @@ function createProductCard(p) {
     ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}" title="${escHtml(p.colour)}"></span>`
     : '';
   const colourLabel = p.colour ? `<span class="card-meta-colour">${escHtml(p.colour)}</span>` : '';
+  const ageIsRange  = p.ageGrp && p.ageGrp !== 'adults';
+  const ageLabel    = ageIsRange ? `<span class="card-meta-age">🎂 ${escHtml(p.ageGrp)}</span>` : '';
   const sizeLabel   = p.size   ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong></span>` : '';
 
-  const metaBar = (colourLabel || sizeLabel)
-    ? `<div class="card-meta-bar">${swatchDot}${colourLabel}${colourLabel && sizeLabel ? '<span class="card-meta-sep">·</span>' : ''}${sizeLabel}</div>`
+  const metaParts   = [colourLabel, ageLabel, sizeLabel].filter(Boolean);
+  const metaBar     = metaParts.length
+    ? `<div class="card-meta-bar">${swatchDot}${metaParts.join('<span class="card-meta-sep">·</span>')}</div>`
     : '';
 
   /* ── Assemble ── */
@@ -723,7 +726,8 @@ function formatNum(n) {
 function applyFilters() {
   let f = allProducts;
 
-  if (activeAge    !== 'all') f = f.filter(p => p.ageGrp   === activeAge);
+  if (activeAge === 'adults') f = f.filter(p => p.ageGrp === 'adults');
+  else if (activeAge === 'kids') f = f.filter(p => p.ageGrp !== 'adults');
   if (activeGender !== 'all') f = f.filter(p => p.suitable === activeGender);
   if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
   if (activeColour !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
@@ -806,7 +810,7 @@ async function initHome() {
       .slice(0, 4);
 
     const kids = products
-      .filter(p => p.ageGrp === 'kids')
+      .filter(p => p.ageGrp !== 'adults')
       .sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock))
       .slice(0, 4);
 
