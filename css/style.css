@@ -462,7 +462,7 @@ input { font-family: var(--font); }
 /* Price row */
 .card-price { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
 .price-current  { font-size: 1rem; font-weight: 800; color: #c62a32; }
-.price-original { font-size: .8rem;  color: var(--mid-gray); text-decoration: line-through; }
+.price-original { font-size: .85rem; color: #888; text-decoration: line-through; font-weight: 500; }
 .price-only     { font-size: 1rem;  font-weight: 800; color: var(--text); }
 .price-badge    { background: rgba(198,42,50,.1); color: #c62a32; padding: 2px 6px; border-radius: 50px; font-size: .68rem; font-weight: 700; }
 
@@ -1305,8 +1305,9 @@ input { font-family: var(--font); }
 }
 .modal-price-strike {
   font-size: 1rem;
-  color: var(--text-muted);
+  color: #888;
   text-decoration: line-through;
+  font-weight: 500;
 }
 
 .modal-meta { display: flex; flex-direction: column; gap: 6px; }

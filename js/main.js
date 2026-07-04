@@ -435,9 +435,9 @@ function getAudienceLabel(ageGrp, suitable) {
 function getBoostBadgeHtml(boostStatus) {
   const b = (boostStatus || '').toLowerCase();
   if (!b) return '';
-  if (b.includes('new'))         return `<span class="badge badge-new">✨ New</span>`;
-  if (b.includes('hot'))         return `<span class="badge badge-hot">🌟 Hot Pick</span>`;
-  if (b.includes('trending'))    return `<span class="badge badge-trending">🔥 Trending</span>`;
+  if (b.includes('new'))         return `<span class="badge badge-new">🏷️ New In</span>`;
+  if (b.includes('hot'))         return `<span class="badge badge-hot">🔥 Hot Pick</span>`;
+  if (b.includes('trending'))    return `<span class="badge badge-trending">📈 Trending</span>`;
   if (b.includes('best seller') || b.includes('bestseller'))
                                  return `<span class="badge badge-trending">⭐ Best Seller</span>`;
   if (b.includes('featured'))    return `<span class="badge badge-new">Featured</span>`;
