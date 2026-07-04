@@ -562,8 +562,6 @@ function createProductCard(p) {
       <div class="card-img-link">${imgInner}</div>
       <div class="card-badges">
         ${boostBadge}
-        ${saleBadge}
-        ${stockBadge}
       </div>
       <div class="card-badge-tr">
         ${audienceBadge}
@@ -572,6 +570,7 @@ function createProductCard(p) {
     </div>
     <div class="card-info">
       <div class="card-type">${escHtml(p.type)}</div>
+      ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
       ${priceHtml}
       ${metaBar}
       ${tagsHtml}
@@ -743,7 +742,12 @@ function applyFilters() {
 
   if (activeAge === 'adults') f = f.filter(p => p.ageGrp === 'adults');
   else if (activeAge === 'kids') f = f.filter(p => p.ageGrp !== 'adults');
-  if (activeGender !== 'all') f = f.filter(p => p.suitable === activeGender);
+  if (activeGender === 'ladies' || activeGender === 'gents') {
+    // Include unisex items alongside the selected gender
+    f = f.filter(p => p.suitable === activeGender || p.suitable === 'unisex');
+  } else if (activeGender !== 'all') {
+    f = f.filter(p => p.suitable === activeGender);
+  }
   if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
   if (activeColour !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
 

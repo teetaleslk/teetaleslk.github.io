@@ -167,6 +167,26 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
+     CURRENT OFFERS — live from "Offers" tab in Google Sheet
+     Hidden automatically when no active offers exist.
+════════════════════════════════════════════════════════ -->
+<section class="offers-section" id="offersSection" style="display:none;">
+  <div class="container">
+
+    <div class="section-header">
+      <span class="section-label">Limited Time</span>
+      <h2 class="section-title">🔥 Current Deals</h2>
+      <p class="section-sub">Tap any deal to order instantly via WhatsApp — while stocks last!</p>
+    </div>
+
+    <div class="offers-grid" id="offersGrid">
+      <!-- Offer cards injected by main.js -->
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
      CATEGORY GRID — 3×2 browse-by-audience sections
 ════════════════════════════════════════════════════════ -->
 <section class="cat-grid-section">
@@ -219,22 +239,29 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════
-     CURRENT OFFERS — live from "Offers" tab in Google Sheet
-     Hidden automatically when no active offers exist.
+     BULK ORDERS CTA
 ════════════════════════════════════════════════════════ -->
-<section class="offers-section" id="offersSection" style="display:none;">
+<section class="bulk-section">
   <div class="container">
-
-    <div class="section-header">
-      <span class="section-label">Limited Time</span>
-      <h2 class="section-title">🔥 Current Deals</h2>
-      <p class="section-sub">Tap any deal to order instantly via WhatsApp — while stocks last!</p>
+    <div class="bulk-card">
+      <div class="bulk-left">
+        <div class="bulk-icon">🎽</div>
+        <div class="bulk-text">
+          <h3 class="bulk-title">Buying in Bulk?</h3>
+          <p class="bulk-sub">Corporate events, school uniforms, team outfits &amp; family sets — we offer special pricing for bulk orders.</p>
+          <div class="bulk-perks">
+            <span><i class="fas fa-check-circle"></i> 10+ tees — exclusive discount</span>
+            <span><i class="fas fa-check-circle"></i> Custom prints available</span>
+            <span><i class="fas fa-check-circle"></i> Mix sizes &amp; colours freely</span>
+            <span><i class="fas fa-check-circle"></i> Fast islandwide delivery</span>
+          </div>
+        </div>
+      </div>
+      <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20interested%20in%20a%20bulk%20order.%20Here%20are%20my%20requirements%3A%0A%0A%E2%80%A2%20Quantity%3A%20%0A%E2%80%A2%20Sizes%3A%20%0A%E2%80%A2%20Colour(s)%3A%20%0A%E2%80%A2%20Design%2FPrint%3A%20%0A%0APlease%20share%20your%20best%20bulk%20pricing%20%F0%9F%99%8F"
+         target="_blank" rel="noopener" class="bulk-wa-btn">
+        <i class="fab fa-whatsapp"></i> Get Bulk Pricing
+      </a>
     </div>
-
-    <div class="offers-grid" id="offersGrid">
-      <!-- Offer cards injected by main.js -->
-    </div>
-
   </div>
 </section>
 

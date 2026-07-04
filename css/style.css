@@ -409,17 +409,22 @@ input { font-family: var(--font); }
   display: flex; flex-direction: column; gap: 4px; align-items: flex-end;
 }
 
-.badge { padding: 4px 10px; border-radius: 14px; font-size: .68rem; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.badge {
+  padding: 4px 10px; border-radius: 14px; font-size: .68rem; font-weight: 700;
+  letter-spacing: .3px; text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0,0,0,.25);
+  box-shadow: 0 2px 6px rgba(0,0,0,.18);
+}
 .badge-age-adults { background: var(--primary); color: var(--white); }
-.badge-age-kids   { background: var(--gold);    color: var(--white); }
-.badge-sale       { background: #c62a32;  color: var(--white); }
-.badge-in-stock   { background: #27ae60;  color: var(--white); }
-.badge-low        { background: #e67e22;  color: var(--white); }
-.badge-out        { background: #c0392b;  color: var(--white); }
-.badge-trending   { background: #ff4d4d;         color: var(--white); }
-.badge-hot        { background: linear-gradient(135deg, #ff6b35, #f7c59f); color: var(--white); }
-.badge-new        { background: #00b894;         color: var(--white); }
-.badge-audience   { background: #5a67d8;         color: var(--white); }
+.badge-age-kids   { background: #b7791f;        color: var(--white); }
+.badge-sale       { background: #c62a32;         color: var(--white); }
+.badge-in-stock   { background: #1e8449;         color: var(--white); }
+.badge-low        { background: #c87416;         color: var(--white); }
+.badge-out        { background: #922b21;         color: var(--white); }
+.badge-trending   { background: #c0392b;         color: var(--white); }
+.badge-hot        { background: linear-gradient(135deg, #e85d04, #dc2f02); color: var(--white); }
+.badge-new        { background: #1a7a5e;         color: var(--white); }
+.badge-audience   { background: #3730a3;         color: var(--white); }
 
 /* WhatsApp Quick Order — slides up from bottom of image on hover */
 .card-wa-hover {
@@ -461,10 +466,11 @@ input { font-family: var(--font); }
 
 /* Price row */
 .card-price { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-.price-current  { font-size: 1rem; font-weight: 800; color: #c62a32; }
-.price-original { font-size: .85rem; color: #888; text-decoration: line-through; font-weight: 500; }
+.price-current  { font-size: 1.05rem; font-weight: 800; color: #c62a32; }
+.price-original { font-size: .88rem; color: #555; text-decoration: line-through; text-decoration-color: #c62a32; text-decoration-thickness: 2px; font-weight: 600; }
 .price-only     { font-size: 1rem;  font-weight: 800; color: var(--text); }
-.price-badge    { background: rgba(198,42,50,.1); color: #c62a32; padding: 2px 6px; border-radius: 50px; font-size: .68rem; font-weight: 700; }
+.price-badge    { background: #c62a32; color: #fff; padding: 4px 10px; border-radius: 50px; font-size: .78rem; font-weight: 900; letter-spacing: .4px; box-shadow: 0 2px 6px rgba(198,42,50,.35); }
+.card-stock-row { margin: 2px 0 4px; }
 
 /* Tags */
 .card-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
@@ -1305,9 +1311,11 @@ input { font-family: var(--font); }
 }
 .modal-price-strike {
   font-size: 1rem;
-  color: #888;
+  color: #555;
   text-decoration: line-through;
-  font-weight: 500;
+  text-decoration-color: #c62a32;
+  text-decoration-thickness: 2px;
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1363,6 +1371,53 @@ input { font-family: var(--font); }
 .cat-card:hover .cat-cta { background: rgba(255,255,255,.4); }
 
 /* ═══════════════════════════════════════════════════════════════
+   BULK ORDERS CTA
+═══════════════════════════════════════════════════════════════ */
+.bulk-section { padding: 20px 0 60px; }
+
+.bulk-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  border-radius: 24px;
+  padding: 40px 48px;
+  color: #fff;
+}
+@media (max-width: 768px) {
+  .bulk-card { flex-direction: column; align-items: flex-start; padding: 32px 24px; gap: 24px; }
+  .bulk-wa-btn { width: 100%; justify-content: center; }
+}
+
+.bulk-left { display: flex; align-items: flex-start; gap: 24px; flex: 1; }
+.bulk-icon { font-size: 3rem; line-height: 1; flex-shrink: 0; }
+.bulk-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 8px; }
+.bulk-sub   { font-size: .9rem; color: rgba(255,255,255,.75); margin: 0 0 16px; line-height: 1.6; max-width: 480px; }
+
+.bulk-perks { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.bulk-perks span { font-size: .82rem; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 6px; }
+.bulk-perks i { color: #43e97b; }
+
+.bulk-wa-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  padding: 15px 28px;
+  background: #25d366;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 14px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background .2s, transform .15s;
+  box-shadow: 0 4px 16px rgba(37,211,102,.4);
+}
+.bulk-wa-btn:hover { background: #1ebe5d; transform: translateY(-2px); }
+
+/* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL PAGE  (product.html)
 ═══════════════════════════════════════════════════════════════ */
 .pd-section { padding: 30px 0 70px; min-height: 60vh; }
@@ -1399,7 +1454,7 @@ input { font-family: var(--font); }
 @media (max-width: 480px) { .pd-title { font-size: 1.6rem; } }
 .pd-price-block { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .pd-price-current { font-size: 1.9rem; font-weight: 800; color: #c62a32; }
-.pd-price-strike  { font-size: 1.1rem; color: #888; text-decoration: line-through; font-weight: 500; }
+.pd-price-strike  { font-size: 1.1rem; color: #555; text-decoration: line-through; text-decoration-color: #c62a32; text-decoration-thickness: 2px; font-weight: 600; }
 .pd-price-ask     { font-size: 1rem; color: var(--text-muted); }
 
 .pd-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
