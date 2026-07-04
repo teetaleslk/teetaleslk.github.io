@@ -31,29 +31,31 @@ const CONFIG = {
 };
 
 /*
-  Column index map — matches WebStock sheet headers:
-  A(0): ItemID | B(1): Type    | C(2): Size
-  D(3): STPrice               | E(4): DCPrice
-  F(5): Age Grp               | G(6): Suitable for
-  H(7): Stock Status          | I(8): Boost Status
-  J(9): Colour  | K(10): Sticker/Image (Design Name)
-  L(11): Material | M(12): Image 1 | N(13): Image 2
+  Column index map — matches WebStock sheet headers (A–P, 16 cols):
+  A(0): ItemID     | B(1): Type       | C(2): TeeCategory
+  D(3): Size       | E(4): PrintSize  | F(5): STPrice
+  G(6): DCPrice    | H(7): Age Grp    | I(8): Suitable for
+  J(9): Stock Status | K(10): Boost Status | L(11): Colour
+  M(12): Sticker/Image (Design Name)  | N(13): Material
+  O(14): Image1    | P(15): Image2
 */
 const COL = {
-  ITEM_ID:  0,
-  TYPE:     1,
-  SIZE:     2,
-  STRIKE:   3,   // D: STPrice  (strikethrough / original price)
-  PRICE:    4,   // E: DCPrice  (discounted / sale price)
-  AGE_GRP:  5,   // F: Age Grp
-  SUITABLE: 6,   // G: Suitable for  ("Ladies", "Gents", "Unisex")
-  STOCK:    7,   // H: Stock Status  ("In Stock", "Low Stock", "Out of Stock")
-  BOOST:    8,   // I: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  COLOUR:   9,   // J: Colour
-  DESIGN:   10,  // K: Sticker/Image — design name (e.g. "Batman,Floral")
-  MATERIAL: 11,  // L: Material (e.g. "100% Cotton")
-  IMAGE:    12,  // M: Image 1 — primary product photo (Google Drive share link)
-  IMAGE2:   13,  // N: Image 2 — second photo (optional)
+  ITEM_ID:    0,
+  TYPE:       1,
+  CATEGORY:   2,  // C: TeeCategory (e.g. "Round Neck", "Polo")
+  SIZE:       3,  // D: Size
+  PRINT_SIZE: 4,  // E: PrintSize
+  STRIKE:     5,  // F: STPrice  (strikethrough / original price)
+  PRICE:      6,  // G: DCPrice  (discounted / sale price)
+  AGE_GRP:    7,  // H: Age Grp
+  SUITABLE:   8,  // I: Suitable for  ("Ladies", "Gents", "Unisex")
+  STOCK:      9,  // J: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
+  BOOST:     10,  // K: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
+  COLOUR:    11,  // L: Colour
+  DESIGN:    12,  // M: Sticker/Image — design name
+  MATERIAL:  13,  // N: Material (e.g. "100% Cotton")
+  IMAGE:     14,  // O: Image1 — primary product photo (Google Drive share link)
+  IMAGE2:    15,  // P: Image2 — second photo (optional)
 };
 
 /* ── STATE ──────────────────────────────────────────────────── */
@@ -136,19 +138,21 @@ function parseTableData(table) {
         : [];
 
       const product = {
-        id:       itemId || `item-${idx + 1}`,
-        type:     type   || 'T-Shirt',
-        size:     val(COL.SIZE),
-        strike:   numVal(COL.STRIKE),
-        price:    numVal(COL.PRICE),
-        ageGrp:   val(COL.AGE_GRP).toLowerCase(),
-        suitable: val(COL.SUITABLE).toLowerCase(),
-        stock:    val(COL.STOCK) || 'In Stock',
-        boost:    val(COL.BOOST),
-        material: val(COL.MATERIAL),
-        image:    val(COL.IMAGE),
-        image2:   val(COL.IMAGE2),
-        colour:   val(COL.COLOUR),
+        id:         itemId || `item-${idx + 1}`,
+        type:       type   || 'T-Shirt',
+        category:   val(COL.CATEGORY),
+        size:       val(COL.SIZE),
+        printSize:  val(COL.PRINT_SIZE),
+        strike:     numVal(COL.STRIKE),
+        price:      numVal(COL.PRICE),
+        ageGrp:     val(COL.AGE_GRP).toLowerCase(),
+        suitable:   val(COL.SUITABLE).toLowerCase(),
+        stock:      val(COL.STOCK) || 'In Stock',
+        boost:      val(COL.BOOST),
+        material:   val(COL.MATERIAL),
+        image:      val(COL.IMAGE),
+        image2:     val(COL.IMAGE2),
+        colour:     val(COL.COLOUR),
         design,
       };
       return product;
@@ -398,15 +402,15 @@ function getSwatchColor(colourName) {
 /** Column H — stock availability badge */
 function getStockBadgeHtml(stockStatus) {
   const s = (stockStatus || '').toLowerCase();
-  if (s.includes('out'))  return `<span class="badge badge-out">✕ Out of Stock</span>`;
-  if (s.includes('low') || s.includes('few')) return `<span class="badge badge-low">⚡ Few Left</span>`;
+  if (s.includes('out'))  return `<span class="badge badge-out">✕ Sold Out</span>`;
+  if (s.includes('low') || s.includes('few') || s.includes('almost')) return `<span class="badge badge-low">⚡ Almost Gone</span>`;
   return `<span class="badge badge-in-stock">✓ In Stock</span>`;
 }
 
-/** Stock sort priority — Few first, In Stock second, Out of Stock last */
+/** Stock sort priority — Almost Gone first, In Stock second, Sold Out last */
 function stockPriority(stock) {
   const s = (stock || '').toLowerCase();
-  if (s.includes('low') || s.includes('few')) return 0;
+  if (s.includes('low') || s.includes('few') || s.includes('almost')) return 0;
   if (s.includes('out')) return 2;
   return 1;
 }
@@ -508,7 +512,7 @@ function createProductCard(p) {
 
   const waBtn = isOutOfStock
     ? `<button class="wa-quick-btn out-of-stock" disabled>
-         <i class="fas fa-times-circle"></i> Out of Stock
+         <i class="fas fa-times-circle"></i> Sold Out
        </button>`
     : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}"
           target="_blank" rel="noopener" class="wa-quick-btn">
@@ -667,6 +671,8 @@ function openProductModal(p) {
     <div class="modal-meta-row">${swatchDot}
       ${p.colour         ? `<span class="modal-meta-item"><strong>Colour:</strong> ${escHtml(p.colour)}</span>` : ''}
       ${p.size           ? `<span class="modal-meta-item"><strong>Size:</strong> ${escHtml(p.size)}</span>` : ''}
+      ${p.category       ? `<span class="modal-meta-item"><strong>Type:</strong> ${escHtml(p.category)}</span>` : ''}
+      ${p.printSize      ? `<span class="modal-meta-item"><strong>Print:</strong> ${escHtml(p.printSize)}</span>` : ''}
       ${modalAgeRange    ? `<span class="modal-meta-item"><strong>Age:</strong> ${escHtml(p.ageGrp)}</span>` : ''}
       ${p.material       ? `<span class="modal-meta-item"><strong>Material:</strong> ${escHtml(p.material)}</span>` : ''}
     </div>
@@ -692,7 +698,7 @@ function openProductModal(p) {
     `Is this available? 👕`
   );
   document.getElementById('modalActions').innerHTML = isOut
-    ? `<button class="modal-wa-btn out-of-stock" disabled><i class="fas fa-times-circle"></i> Out of Stock</button>`
+    ? `<button class="modal-wa-btn out-of-stock" disabled><i class="fas fa-times-circle"></i> Sold Out</button>`
     : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}" target="_blank" rel="noopener" class="modal-wa-btn">
          <i class="fab fa-whatsapp"></i> Order on WhatsApp
        </a>`;
@@ -752,7 +758,7 @@ function applyFilters() {
     );
   }
 
-  // Sort: Few Left → In Stock → Out of Stock
+  // Sort: Almost Gone → In Stock → Sold Out
   f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
 
   renderProducts(f);
