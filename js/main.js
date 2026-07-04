@@ -132,7 +132,7 @@ function parseTableData(table) {
         ? rawDesign.split(',').map(t => t.trim()).filter(Boolean)
         : [];
 
-      return {
+      const product = {
         id:       itemId || `item-${idx + 1}`,
         type:     type   || 'T-Shirt',
         size:     val(COL.SIZE),
@@ -141,11 +141,13 @@ function parseTableData(table) {
         ageGrp:   val(COL.AGE_GRP).toLowerCase(),
         suitable: val(COL.SUITABLE).toLowerCase(),
         stock:    val(COL.STOCK) || 'In Stock',
-        boost:    val(COL.BOOST),   // "New" / "Hot" / "Trending" / "Best Seller"
+        boost:    val(COL.BOOST),
         image:    val(COL.IMAGE),
         colour:   val(COL.COLOUR),
         design,
       };
+      console.log('[TeeTales] product:', product.id, '| ageGrp:', JSON.stringify(product.ageGrp), '| suitable:', product.suitable);
+      return product;
     })
     .filter(Boolean);
 }
@@ -957,6 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+
   // Floating WhatsApp button — show after scroll
   const floatWA = document.getElementById('floatWA');
   if (floatWA) {
@@ -965,7 +968,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Page detection — home vs shop
   if (document.getElementById('homeAdultsGrid')) {
     initHome();
   } else if (document.getElementById('productsGrid')) {
