@@ -1203,11 +1203,12 @@ input { font-family: var(--font); }
   text-decoration: none;
   color: #fff;
   aspect-ratio: 2/3;
+  max-height: 380px;
   position: relative;
   overflow: hidden;
   transition: transform .22s, box-shadow .22s;
   background-size: cover;
-  background-position: center 20%;
+  background-position: center center;
 }
 .cat-card::after {
   content: '';
