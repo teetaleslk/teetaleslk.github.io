@@ -1220,27 +1220,10 @@ input { font-family: var(--font); }
   position: relative;
   overflow: hidden;
   transition: transform .22s, box-shadow .22s;
-  background-size: cover;           /* photo fills the full card */
-  background-position: center center;  /* photo is centred — no cropping off-edge */
-}
-.cat-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,.18);  /* hover darkening overlay */
-  opacity: 0;
-  transition: opacity .22s;
-}
-.cat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,.28); }
-.cat-card:hover::after { opacity: 1; }
-.cat-body {
-  /* Text + CTA block pinned to bottom of the card */
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  text-align: center;
-  padding: 48px 14px 18px;
-  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 100%);  /* dark fade so text is readable */
+  background-size: contain;           /* ← CHANGE: shows FULL image */
+  background-position: center center; /* image centered */
+  background-repeat: no-repeat;       /* ← ADD: prevents tiling */
+  background-color: #f5f5f5;          /* ← ADD: fallback color where image doesn't fill */
 }
 
 /*
