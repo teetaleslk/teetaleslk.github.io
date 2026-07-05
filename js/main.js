@@ -1047,6 +1047,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // Footer year — automatically keeps the copyright year current
   if (footerYear) footerYear.textContent = new Date().getFullYear();
 
+  // Announcement bar — rotating messages + dismiss (remembers for 24h via localStorage)
+  const announceBar   = document.getElementById('announceBar');
+  const announceClose = document.getElementById('announceClose');
+  if (announceBar && announceClose) {
+    const dismissed = localStorage.getItem('tt_announce_dismissed');
+    if (dismissed && Date.now() - parseInt(dismissed) < 86400000) {
+      announceBar.style.display = 'none';  // keep hidden for 24h after user closes it
+    } else {
+      document.body.classList.add('has-announce');
+      // Rotate through messages every 3 seconds
+      const msgs = announceBar.querySelectorAll('.announce-msg');
+      if (msgs.length > 1) {
+        let i = 0;
+        setInterval(() => {
+          msgs[i].classList.remove('active');
+          i = (i + 1) % msgs.length;
+          msgs[i].classList.add('active');
+        }, 3000);
+      }
+    }
+    announceClose.addEventListener('click', () => {
+      announceBar.style.display = 'none';
+      document.body.classList.remove('has-announce');
+      localStorage.setItem('tt_announce_dismissed', Date.now());
+    });
+  }
+
   // Navbar scroll shrink
   const navbar = document.getElementById('navbar');
   if (navbar) {
