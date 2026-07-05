@@ -1237,8 +1237,16 @@ input { font-family: var(--font); }
 .cat-girls  { background-image: linear-gradient(135deg, #fd7043 0%, #ff8a65 100%); }
 .cat-kids   { background-image: linear-gradient(135deg, #43e97b 0%, #38b2ac 100%); }
 
+.cat-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  padding: 48px 14px 18px;
+  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 100%);
+}
 .cat-label { font-size: 1rem; font-weight: 700; margin-bottom: 4px; letter-spacing: .2px; }
-.cat-sub   { font-size: .72rem; font-weight: 400; opacity: .88; margin-bottom: 10px; line-height: 1.3; }  /* emotional tagline */
+.cat-sub   { font-size: .72rem; font-weight: 400; opacity: .88; margin-bottom: 10px; line-height: 1.3; }
 .cat-cta   { font-size: .75rem; font-weight: 600; background: rgba(255,255,255,.25); padding: 4px 14px; border-radius: 50px; transition: background .2s; }
 .cat-card:hover .cat-cta { background: rgba(255,255,255,.4); }
 
