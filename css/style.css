@@ -1207,7 +1207,7 @@ input { font-family: var(--font); }
   overflow: hidden;
   transition: transform .22s, box-shadow .22s;
   background-size: cover;
-  background-position: center top;
+  background-position: center 20%;
 }
 .cat-card::after {
   content: '';
