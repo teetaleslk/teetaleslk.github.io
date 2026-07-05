@@ -687,8 +687,28 @@ function injectExtraFilters() {
 /* ═══════════════════════════════════════════════════════════════
    HOME PAGE — 4 Adults + 4 Kids preview
 ═══════════════════════════════════════════════════════════════ */
+async function fetchOtherImages() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=OtherImg&_=${Date.now()}`;
+    const text = await (await fetch(url)).text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?\s*$/)[1]);
+    const map = {};
+    (json.table.rows || []).forEach(r => {
+      const id = r.c[0]?.v, img = r.c[1]?.v;
+      if (id && img) map[id] = resolveImageUrl(img);
+    });
+    return map;
+  } catch { return {}; }
+}
+
 async function initHome() {
   renderOffers();
+  fetchOtherImages().then(map => {
+    document.querySelectorAll('[data-img-id]').forEach(el => {
+      const url = map[el.dataset.imgId];
+      if (url) el.style.backgroundImage = `url('${url}')`;
+    });
+  });
 
   const adultsGrid = document.getElementById('homeAdultsGrid');
   const kidsGrid   = document.getElementById('homeKidsGrid');

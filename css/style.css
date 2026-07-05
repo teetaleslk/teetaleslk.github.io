@@ -1198,28 +1198,35 @@ input { font-family: var(--font); }
 .cat-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-end;
   border-radius: 20px;
-  padding: 36px 16px;
   text-decoration: none;
   color: #fff;
-  min-height: 170px;
+  aspect-ratio: 2/3;
   position: relative;
   overflow: hidden;
   transition: transform .22s, box-shadow .22s;
+  background-size: cover;
+  background-position: center top;
 }
 .cat-card::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.12);
+  background: rgba(0,0,0,.18);
   opacity: 0;
   transition: opacity .22s;
 }
-.cat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,.18); }
+.cat-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(0,0,0,.28); }
 .cat-card:hover::after { opacity: 1; }
+.cat-body {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  padding: 48px 14px 18px;
+  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, transparent 100%);
+}
 
 /* Individual card colours */
 .cat-ladies { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
@@ -1229,7 +1236,6 @@ input { font-family: var(--font); }
 .cat-girls  { background: linear-gradient(135deg, #fd7043 0%, #ff8a65 100%); }
 .cat-kids   { background: linear-gradient(135deg, #43e97b 0%, #38b2ac 100%); }
 
-.cat-emoji { font-size: 2.6rem; line-height: 1; margin-bottom: 10px; }
 .cat-label { font-size: 1rem; font-weight: 700; margin-bottom: 4px; letter-spacing: .2px; }
 .cat-sub   { font-size: .72rem; font-weight: 400; opacity: .88; margin-bottom: 10px; line-height: 1.3; }
 .cat-cta   { font-size: .75rem; font-weight: 600; background: rgba(255,255,255,.25); padding: 4px 14px; border-radius: 50px; transition: background .2s; }
