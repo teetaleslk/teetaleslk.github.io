@@ -15,12 +15,23 @@
 'use strict';
 
 /* ── CONFIG ─────────────────────────────────────────────────── */
+/*
+  ╔══════════════════════════════════════════════╗
+  ║  HOW TO EDIT TEETALES WITHOUT KNOWING CODE   ║
+  ╠══════════════════════════════════════════════╣
+  ║  • Change WhatsApp number → WA_NUMBER below  ║
+  ║  • Change currency label  → CURRENCY below   ║
+  ║  • Add/remove products    → Google Sheet      ║
+  ║  • Add category images    → OtherImg tab      ║
+  ║  • Add deals/offers       → Offers tab        ║
+  ╚══════════════════════════════════════════════╝
+*/
 const CONFIG = {
-  SHEET_ID:    '1rHyu237K7jfq8WMMZgMkrU-ves5PNYUkvrS3qWQqZho',
-  SHEET_NAME:  'WebStock',   // ← actual tab name in the sheet
-  OFFERS_TAB:  'Offers',     // ← tab name for the Offers sheet
-  WA_NUMBER:   '94774407066',
-  CURRENCY:    'Rs.',
+  SHEET_ID:    '1rHyu237K7jfq8WMMZgMkrU-ves5PNYUkvrS3qWQqZho',  // ← Your Google Sheet ID (from the URL)
+  SHEET_NAME:  'WebStock',   // ← product catalogue tab name in the sheet
+  OFFERS_TAB:  'Offers',     // ← deals/promotions tab name in the sheet
+  WA_NUMBER:   '94774407066',  // ← WhatsApp number WITHOUT + sign (e.g. 94XXXXXXXXX)
+  CURRENCY:    'Rs.',          // ← currency label shown before prices
   REFRESH_MIN: 5,
   // Social media — UPDATE THESE with your actual profile URLs
   SOCIAL: {
@@ -162,6 +173,11 @@ function parseTableData(table) {
 
 /* ═══════════════════════════════════════════════════════════════
    OFFERS — fetch + render from "Offers" tab
+   HOW TO ADD / REMOVE A DEAL:
+   1. Open Google Sheet → "Offers" tab
+   2. Set column A (Status) = "Active" to show the deal, or "Expired" to hide it
+   3. The Deals section on the website disappears automatically when no active offers exist
+
    Sheet columns (A–G):
      A: Status      "Active" or "Expired"
      B: Badge       e.g. "FREE DELIVERY" / "🔥 HOT DEAL"
@@ -374,7 +390,11 @@ function resolveImageUrl(raw) {
   return raw;
 }
 
-/** CSS colour map for swatches */
+/*
+  COLOUR MAP — used to render the colour dot swatches on product cards.
+  To add a new colour: add a line like  newcolour: '#hexcode',
+  The key must be lowercase and match what you type in the Google Sheet Colour column.
+*/
 const COLOUR_MAP = {
   white: '#ffffff', black: '#1a1a1a', red: '#e94560', blue: '#3498db',
   navy: '#1a1a2e', green: '#27ae60', yellow: '#f1c40f', orange: '#e67e22',
@@ -687,6 +707,21 @@ function injectExtraFilters() {
 /* ═══════════════════════════════════════════════════════════════
    HOME PAGE — 4 Adults + 4 Kids preview
 ═══════════════════════════════════════════════════════════════ */
+
+/*
+  fetchOtherImages — loads images from the "OtherImg" Google Sheet tab.
+  That tab has two columns:
+    A: ID        — a unique name you choose (e.g. "ForLadiesCategory")
+    B: Image URL — paste a Google Drive share link here
+
+  In index.html, any element with  data-img-id="ForLadiesCategory"
+  will get that image set as its background automatically.
+
+  To add/update a category photo:
+    1. Upload the photo to Google Drive → share as "Anyone with the link"
+    2. Paste the share URL in the OtherImg tab next to the matching ID
+    3. Hard-refresh the site (Ctrl+Shift+R) — image appears instantly
+*/
 async function fetchOtherImages() {
   try {
     const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&sheet=OtherImg&_=${Date.now()}`;
@@ -695,18 +730,19 @@ async function fetchOtherImages() {
     const map = {};
     (json.table.rows || []).forEach(r => {
       const id = r.c[0]?.v, img = r.c[1]?.v;
-      if (id && img) map[id] = resolveImageUrl(img);
+      if (id && img) map[id] = resolveImageUrl(img);  // resolveImageUrl converts Drive share links to direct thumbnail URLs
     });
     return map;
-  } catch { return {}; }
+  } catch { return {}; }  // if sheet fetch fails, cards fall back to their CSS gradient colour
 }
 
 async function initHome() {
   renderOffers();
+  // Load category card photos from OtherImg sheet and apply as background images
   fetchOtherImages().then(map => {
     document.querySelectorAll('[data-img-id]').forEach(el => {
       const url = map[el.dataset.imgId];
-      if (url) el.style.backgroundImage = `url('${url}')`;
+      if (url) el.style.backgroundImage = `url('${url}')`;  // overrides the CSS gradient fallback
     });
   });
 
@@ -717,6 +753,9 @@ async function initHome() {
   try {
     const products = await fetchProducts();
 
+    // Show top 4 adults + top 4 kids on the home page preview
+    // "Almost Gone" items bubble to the top (urgency tactic)
+    // To show more/fewer cards, change the .slice(0, 4) number
     const adults = products
       .filter(p => p.ageGrp === 'adults')
       .sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock))
@@ -757,6 +796,10 @@ async function initHome() {
 
 /* ═══════════════════════════════════════════════════════════════
    SHOP PAGE — full catalogue with filters
+   This runs on shop.html only (detected by #productsGrid in the DOM).
+   URL parameters auto-activate filters:
+     shop.html?age=adults&suitable=ladies  → shows Ladies Adults only
+     shop.html?age=kids                    → shows all Kids items
 ═══════════════════════════════════════════════════════════════ */
 async function initShop() {
   // Pre-select filters from URL params: ?age=adults|kids  &suitable=ladies|gents|unisex
@@ -994,10 +1037,14 @@ async function initProduct() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BOOT
+   BOOT — runs once when the page finishes loading
+   Detects which page we're on and calls the right init function:
+     index.html  → has #homeAdultsGrid → initHome()
+     shop.html   → has #productsGrid   → initShop()
+     product.html→ has #pdContent      → initProduct()
 ═══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Footer year
+  // Footer year — automatically keeps the copyright year current
   if (footerYear) footerYear.textContent = new Date().getFullYear();
 
   // Navbar scroll shrink

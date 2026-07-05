@@ -188,6 +188,14 @@
 
 <!-- ═══════════════════════════════════════════════════════
      CATEGORY GRID — 3×2 browse-by-audience sections
+     HOW TO EDIT:
+     • To change card text: edit .cat-label (heading) and .cat-sub (tagline)
+     • To change card photo: go to OtherImg tab in Google Sheet and paste
+       a Google Drive share URL next to the matching data-img-id value
+     • To change what clicking a card filters: update href="shop.html?suitable=...&age=..."
+       suitable = ladies | gents | unisex
+       age      = adults | kids
+     • data-img-id must match exactly what's in the OtherImg sheet ID column
 ════════════════════════════════════════════════════════ -->
 <section class="cat-grid-section">
   <div class="container">
@@ -198,6 +206,7 @@
     </div>
     <div class="cat-grid">
 
+      <!-- data-img-id links this card to the OtherImg sheet row with ID "ForLadiesCategory" -->
       <a href="shop.html?suitable=ladies&age=adults" class="cat-card cat-ladies" data-img-id="ForLadiesCategory">
         <div class="cat-body">
           <div class="cat-label">For Ladies</div>
