@@ -63,6 +63,11 @@
          class="social-icon" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
     </div>
 
+    <button class="cart-icon-btn" id="cartBtn" aria-label="View cart">
+      <i class="fas fa-shopping-bag"></i>
+      <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+    </button>
+
     <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20order%20%F0%9F%91%95"
        target="_blank" rel="noopener" class="nav-wa-btn">
       <i class="fab fa-whatsapp"></i> Order Now
@@ -219,6 +224,17 @@
   <span class="float-wa-pulse"></span>
   <div class="float-wa-tooltip">Chat with us!</div>
 </a>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <span>🛒 Your Cart</span>
+    <button class="cart-close" onclick="closeCart()" aria-label="Close">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody"></div>
+  <div class="cart-footer" id="cartFooter" style="display:none"></div>
+</div>
 
 <script src="js/main.js"></script>
 </body>

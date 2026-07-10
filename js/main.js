@@ -42,13 +42,13 @@ const CONFIG = {
 };
 
 /*
-  Column index map — matches WebStock sheet headers (A–P, 16 cols):
+  Column index map — matches WebStock sheet headers (A–Q, 17 cols):
   A(0): ItemID     | B(1): Type       | C(2): TeeCategory
   D(3): Size       | E(4): PrintSize  | F(5): STPrice
   G(6): DCPrice    | H(7): Age Grp    | I(8): Suitable for
-  J(9): Stock Status | K(10): Boost Status | L(11): Colour
-  M(12): Sticker/Image (Design Name)  | N(13): Material
-  O(14): Image1    | P(15): Image2
+  J(9): Stock Status | K(10): Units   | L(11): Boost Status
+  M(12): Colour    | N(13): Sticker/Image (Design Name) | O(14): Material
+  P(15): Image1    | Q(16): Image2
 */
 const COL = {
   ITEM_ID:    0,
@@ -61,13 +61,17 @@ const COL = {
   AGE_GRP:    7,  // H: Age Grp
   SUITABLE:   8,  // I: Suitable for  ("Ladies", "Gents", "Unisex")
   STOCK:      9,  // J: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
-  BOOST:     10,  // K: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  COLOUR:    11,  // L: Colour
-  DESIGN:    12,  // M: Sticker/Image — design name
-  MATERIAL:  13,  // N: Material (e.g. "100% Cotton")
-  IMAGE:     14,  // O: Image1 — primary product photo (Google Drive share link)
-  IMAGE2:    15,  // P: Image2 — second photo (optional)
+  UNITS:     10,  // K: Units  — how many physical pieces available (default 1 if blank)
+  BOOST:     11,  // L: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
+  COLOUR:    12,  // M: Colour
+  DESIGN:    13,  // N: Sticker/Image — design name
+  MATERIAL:  14,  // O: Material (e.g. "100% Cotton")
+  IMAGE:     15,  // P: Image1 — primary product photo (Google Drive share link)
+  IMAGE2:    16,  // Q: Image2 — second photo (optional)
 };
+
+/* ── PRODUCT MAP — populated by parseTableData, used by cart ── */
+const _ttProdMap = {};  // id → product object
 
 /* ── STATE ──────────────────────────────────────────────────── */
 let allProducts   = [];
@@ -165,7 +169,9 @@ function parseTableData(table) {
         image2:     val(COL.IMAGE2),
         colour:     val(COL.COLOUR),
         design,
+        units:      numVal(COL.UNITS) || 1,  // max qty customer can add to cart
       };
+      _ttProdMap[product.id] = product;  // register in lookup map for cart
       return product;
     })
     .filter(Boolean);
@@ -515,29 +521,12 @@ function createProductCard(p) {
     ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>`
     : '';
 
-  /* ── WhatsApp message ── */
-  const displayPrice = p.price !== null
-    ? `${CONFIG.CURRENCY} ${formatNum(p.price)}`
-    : (p.strike !== null ? `${CONFIG.CURRENCY} ${formatNum(p.strike)}` : 'TBC');
-
-  const waMsg = encodeURIComponent(
-    `Hi TeeTales! 👋 I'd like to order:\n\n` +
-    `• Item: ${p.type}\n` +
-    `• Size: ${p.size || 'TBD'}\n` +
-    `• Colour: ${p.colour || 'TBD'}\n` +
-    `• Price: ${displayPrice}\n` +
-    `• Item ID: ${p.id}\n\n` +
-    `Is this available? 👕`
-  );
-
-  const waBtn = isOutOfStock
-    ? `<button class="wa-quick-btn out-of-stock" disabled>
-         <i class="fas fa-times-circle"></i> Sold Out
-       </button>`
-    : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}"
-          target="_blank" rel="noopener" class="wa-quick-btn">
-         <i class="fab fa-whatsapp"></i> Order on WhatsApp
-       </a>`;
+  /* ── Add to Cart button ── */
+  const cartBtn = isOutOfStock
+    ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
+    : `<button class="card-cart-btn" onclick="cartAddFromCard('${escHtml(p.id)}')">
+         <i class="fas fa-shopping-bag"></i> Add to Cart
+       </button>`;
 
   /* ── Price block ── */
   let priceHtml = '';
@@ -586,7 +575,7 @@ function createProductCard(p) {
       <div class="card-badge-tr">
         ${audienceBadge}
       </div>
-      <div class="card-wa-hover">${waBtn}</div>
+      <div class="card-wa-hover">${cartBtn}</div>
     </div>
     <div class="card-info">
       <div class="card-type">${escHtml(p.type)}</div>
@@ -984,25 +973,45 @@ async function initProduct() {
     ].filter(Boolean);
     document.getElementById('pdMeta').innerHTML = metaItems.join('');
 
-    /* WhatsApp order button */
-    const isOut       = p.stock.toLowerCase().includes('out');
-    const displayPrice = p.price !== null
-      ? `${CONFIG.CURRENCY} ${formatNum(p.price)}`
-      : (p.strike !== null ? `${CONFIG.CURRENCY} ${formatNum(p.strike)}` : 'TBC');
-    const waMsg = encodeURIComponent(
-      `Hi TeeTales! 👋 I'd like to order:\n\n` +
-      `• Item: ${p.type}\n` +
-      `• Size: ${p.size || 'TBD'}\n` +
-      `• Colour: ${p.colour || 'TBD'}\n` +
-      `• Price: ${displayPrice}\n` +
-      `• Item ID: ${p.id}\n\n` +
-      `Is this available? 👕`
-    );
-    document.getElementById('pdOrderBtn').innerHTML = isOut
-      ? `<button class="pd-wa-btn pd-wa-btn-out" disabled><i class="fas fa-times-circle"></i> Sold Out</button>`
-      : `<a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${waMsg}" target="_blank" rel="noopener" class="pd-wa-btn">
-           <i class="fab fa-whatsapp"></i> Order on WhatsApp
-         </a>`;
+    /* Add to Cart — qty selector + button */
+    const isOut = p.stock.toLowerCase().includes('out');
+    if (isOut) {
+      document.getElementById('pdOrderBtn').innerHTML =
+        `<button class="pd-add-cart-btn" disabled>✕ Sold Out</button>`;
+    } else {
+      document.getElementById('pdOrderBtn').innerHTML = `
+        <div class="pd-qty-wrap">
+          <span class="pd-qty-label">Qty:</span>
+          <button class="qty-btn" id="pdQtyMinus" disabled>−</button>
+          <span class="qty-num" id="pdQtyVal">1</span>
+          <button class="qty-btn" id="pdQtyPlus" ${p.units <= 1 ? 'disabled' : ''}>+</button>
+          <span class="pd-qty-max">(${p.units} available)</span>
+        </div>
+        <button class="pd-add-cart-btn" id="pdAddCart">
+          <i class="fas fa-shopping-bag"></i> Add to Cart
+        </button>`;
+      let pdQty = 1;
+      document.getElementById('pdQtyPlus').addEventListener('click', () => {
+        if (pdQty < p.units) {
+          pdQty++;
+          document.getElementById('pdQtyVal').textContent = pdQty;
+          document.getElementById('pdQtyMinus').disabled = false;
+          if (pdQty >= p.units) document.getElementById('pdQtyPlus').disabled = true;
+        }
+      });
+      document.getElementById('pdQtyMinus').addEventListener('click', () => {
+        if (pdQty > 1) {
+          pdQty--;
+          document.getElementById('pdQtyVal').textContent = pdQty;
+          document.getElementById('pdQtyPlus').disabled = false;
+          if (pdQty <= 1) document.getElementById('pdQtyMinus').disabled = true;
+        }
+      });
+      document.getElementById('pdAddCart').addEventListener('click', () => {
+        cartAdd(p, pdQty);
+        openCart();
+      });
+    }
 
     /* Item ID */
     document.getElementById('pdItemId').textContent = `Item ID: ${p.id}`;
@@ -1037,6 +1046,144 @@ async function initProduct() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   CART — localStorage, no account needed
+   Stored as: [{id, type, ageGrp, colour, design, size, price, units, qty}]
+   To edit WA message format: see buildCartWAMessage()
+═══════════════════════════════════════════════════════════════ */
+const CART_KEY = 'tt_cart';
+const cartGet  = () => { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } };
+const cartSave = c  => { localStorage.setItem(CART_KEY, JSON.stringify(c)); cartBadgeUpdate(); };
+
+function cartAdd(p, qty = 1) {
+  const cart = cartGet();
+  const ex = cart.find(i => i.id === p.id);
+  if (ex) {
+    ex.qty = Math.min(ex.qty + qty, ex.units);
+  } else {
+    cart.push({ id: p.id, type: p.type, ageGrp: p.ageGrp, colour: p.colour,
+                design: p.design, size: p.size, price: p.price ?? p.strike,
+                units: p.units, qty: Math.min(qty, p.units) });
+  }
+  cartSave(cart);
+  cartToast();
+}
+
+function cartUpdateQty(id, delta) {
+  const cart = cartGet();
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty = Math.max(0, Math.min(item.qty + delta, item.units));
+  if (item.qty === 0) cart.splice(cart.indexOf(item), 1);
+  cartSave(cart);
+  renderCartDrawer();
+}
+window.cartUpdateQty = cartUpdateQty;
+
+function cartRemove(id) { cartSave(cartGet().filter(i => i.id !== id)); renderCartDrawer(); }
+window.cartRemove = cartRemove;
+
+function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
+function cartTotal() { return cartGet().reduce((s, i) => s + (i.price || 0) * i.qty, 0); }
+
+function cartBadgeUpdate() {
+  const b = document.getElementById('cartBadge');
+  if (!b) return;
+  const n = cartCount();
+  b.textContent = n;
+  b.style.display = n > 0 ? 'flex' : 'none';
+}
+
+function cartToast() {
+  let t = document.getElementById('cartToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'cartToast'; t.className = 'cart-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = '✓ Added to cart';
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// Called from product card "Add to Cart" onclick
+function cartAddFromCard(id) {
+  const p = _ttProdMap[id];
+  if (!p || p.stock.toLowerCase().includes('out')) return;
+  cartAdd(p, 1);
+  openCart();
+}
+window.cartAddFromCard = cartAddFromCard;
+
+function openCart()  {
+  renderCartDrawer();
+  document.getElementById('cartDrawer')?.classList.add('open');
+  document.getElementById('cartOverlay')?.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCart() {
+  document.getElementById('cartDrawer')?.classList.remove('open');
+  document.getElementById('cartOverlay')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.openCart  = openCart;
+window.closeCart = closeCart;
+
+function buildCartWAMessage() {
+  // Format: [ID] Adults · Navy · Cat · M · Rs. 1,299 × 2
+  const lines = cartGet().map((item, i) => {
+    const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
+    const design = item.design?.[0] || '';
+    const price  = item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '';
+    return `${i + 1}. [${item.id}] ${age} · ${item.colour} · ${design} · ${item.size} · ${price} × ${item.qty}`;
+  });
+  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
+}
+
+function renderCartDrawer() {
+  const body   = document.getElementById('cartBody');
+  const footer = document.getElementById('cartFooter');
+  if (!body) return;
+  const cart = cartGet();
+  if (!cart.length) {
+    body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Your cart is empty</p>
+      <a href="shop.html" onclick="closeCart()" class="btn btn-primary" style="margin-top:16px;display:inline-block">Browse Tees</a></div>`;
+    if (footer) footer.style.display = 'none';
+    return;
+  }
+  body.innerHTML = cart.map(item => {
+    const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
+    const design = item.design?.[0] || '';
+    const price  = item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '';
+    return `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${escHtml(item.type)}</div>
+        <div class="cart-item-meta">${escHtml(age)} · ${escHtml(item.colour)} · ${escHtml(design)} · ${escHtml(item.size)}</div>
+        <div class="cart-item-id">ID: ${escHtml(item.id)}</div>
+        <div class="cart-item-price">${price}</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',-1)">−</button>
+        <span class="qty-num">${item.qty}</span>
+        <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',1)"
+          ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
+        <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+  if (footer) {
+    footer.style.display = 'block';
+    footer.innerHTML = `
+      <div class="cart-total-row"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+        <i class="fab fa-whatsapp"></i> Order via WhatsApp
+      </a>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
      index.html  → has #homeAdultsGrid → initHome()
@@ -1046,6 +1193,10 @@ async function initProduct() {
 document.addEventListener('DOMContentLoaded', () => {
   // Footer year — automatically keeps the copyright year current
   if (footerYear) footerYear.textContent = new Date().getFullYear();
+
+  // Cart icon badge — update count on every page load
+  cartBadgeUpdate();
+  document.getElementById('cartBtn')?.addEventListener('click', openCart);
 
   // Announcement bar — rotating messages + dismiss (remembers for 24h via localStorage)
   const announceBar   = document.getElementById('announceBar');
