@@ -816,6 +816,10 @@ async function initShop() {
     }
   }
 
+  // ?design=CAT — pre-filter by design tag (used by "same design, other sizes" link on product page)
+  const designParam = (params.get('design') || '').trim();
+  if (designParam) activeTag = designParam;
+
   injectExtraFilters();
 
   // Age filter
@@ -1011,6 +1015,17 @@ async function initProduct() {
         cartAdd(p, pdQty);
         openCart();
       });
+
+      // "Same design, other sizes" prompt — shown when only 1 unit available
+      if (p.units <= 1 && p.design.length > 0) {
+        const designTag  = p.design[0];
+        const shopUrl    = `shop.html?design=${encodeURIComponent(designTag)}`;
+        const prompt     = document.createElement('p');
+        prompt.className = 'pd-design-prompt';
+        prompt.innerHTML = `⚡ Only 1 available in this size. Want <strong>${escHtml(designTag)}</strong> in a different size? `
+          + `<a href="${shopUrl}">Browse other sizes →</a>`;
+        document.getElementById('pdOrderBtn').appendChild(prompt);
+      }
     }
 
     /* Item ID */

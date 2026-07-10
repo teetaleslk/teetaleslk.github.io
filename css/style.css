@@ -181,6 +181,12 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 }
 .pd-add-cart-btn:hover:not(:disabled) { background: var(--accent); }
 .pd-add-cart-btn:disabled { background: var(--light-gray); color: var(--mid-gray); cursor: not-allowed; }
+/* "Same design, other sizes" nudge shown when only 1 unit left */
+.pd-design-prompt {
+  font-size: .8rem; color: var(--text-muted);
+  margin-top: 8px; line-height: 1.5;
+}
+.pd-design-prompt a { color: var(--accent); font-weight: 600; text-decoration: underline; }
 
 /* ── Toast ──────────────────────────────────────────────────── */
 .cart-toast {
@@ -1440,6 +1446,113 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
   box-shadow: 0 4px 16px rgba(37,211,102,.4);
 }
 .bulk-wa-btn:hover { background: #1ebe5d; transform: translateY(-2px); }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESELLER PROGRAMME SECTION
+   Deep-purple gradient — distinct from bulk section's navy blue.
+   Gold accents = money/profit theme.
+═══════════════════════════════════════════════════════════════ */
+.reseller-section {
+  padding: 70px 0;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+}
+
+.reseller-inner {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .reseller-inner { flex-direction: column; gap: 36px; }
+}
+
+/* Label above the heading */
+.reseller-label {
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.reseller-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 14px;
+  color: #fff;
+}
+@media (max-width: 600px) { .reseller-title { font-size: 1.8rem; } }
+
+.reseller-sub {
+  font-size: .92rem;
+  color: rgba(255,255,255,.75);
+  line-height: 1.75;
+  margin-bottom: 28px;
+  max-width: 460px;
+}
+
+/* 3-step numbered flow */
+.reseller-steps { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+
+.reseller-step { display: flex; align-items: center; gap: 16px; }
+
+.rs-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #1a1a2e;
+  font-size: .9rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.rs-desc { display: flex; flex-direction: column; }
+.rs-desc strong { font-size: .92rem; font-weight: 700; color: #fff; }
+.rs-desc span   { font-size: .8rem;  color: rgba(255,255,255,.65); }
+
+/* Gold CTA button — money theme, different from green WA buttons */
+.reseller-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #f5a623, #f7c948);
+  color: #1a1a2e;
+  font-size: .95rem;
+  font-weight: 700;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 20px rgba(245,166,35,.4);
+}
+.reseller-wa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(245,166,35,.55); }
+.reseller-wa-btn i { font-size: 1.1rem; }
+
+/* Right: glassmorphism benefits card */
+.reseller-card-wrap { flex-shrink: 0; }
+
+.reseller-card {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px;
+  padding: 32px 28px;
+  min-width: 280px;
+  backdrop-filter: blur(8px);
+}
+
+.rc-icon  { font-size: 2.2rem; margin-bottom: 8px; }
+.rc-title { font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: var(--gold); }
+
+.rc-list { display: flex; flex-direction: column; gap: 12px; }
+.rc-item {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .85rem; color: rgba(255,255,255,.85);
+}
+.rc-item i { color: var(--gold); width: 16px; text-align: center; flex-shrink: 0; }
 
 /* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL PAGE  (product.html)
