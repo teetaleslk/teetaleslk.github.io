@@ -1401,7 +1401,57 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cat-card:hover .cat-cta { background: rgba(255,255,255,.4); }
 
 /* ═══════════════════════════════════════════════════════════════
-   BULK ORDERS CTA
+   MORE WAYS TO SHOP — three-card persona row
+═══════════════════════════════════════════════════════════════ */
+.ways-section {
+  padding: 60px 0 80px;
+  background: var(--off-white);
+}
+.ways-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.way-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.way-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+.way-icon { font-size: 2.4rem; line-height: 1; }
+.way-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
+.way-sub   { font-size: .88rem; color: var(--text-muted); line-height: 1.65; flex: 1; margin: 0; }
+.way-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--wa-green);
+  color: var(--white);
+  padding: .6rem 1.2rem;
+  border-radius: 50px;
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 6px;
+  align-self: flex-start;
+  transition: background var(--transition);
+}
+.way-wa-btn:hover { background: var(--wa-hover); }
+
+@media (max-width: 768px) {
+  .ways-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BULK ORDERS CTA (legacy — HTML section removed, CSS kept for ref)
 ═══════════════════════════════════════════════════════════════ */
 .bulk-section { padding: 20px 0 60px; }
 
