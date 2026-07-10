@@ -1086,11 +1086,11 @@ function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
 function cartTotal() { return cartGet().reduce((s, i) => s + (i.price || 0) * i.qty, 0); }
 
 function cartBadgeUpdate() {
-  const b = document.getElementById('cartBadge');
-  if (!b) return;
-  const n = cartCount();
-  b.textContent = n;
-  b.style.display = n > 0 ? 'flex' : 'none';
+  const b   = document.getElementById('cartBadge');
+  const btn = document.getElementById('cartBtn');
+  const n   = cartCount();
+  if (b) { b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none'; }
+  if (btn) btn.title = n === 0 ? 'Your cart is empty' : `${n} item${n !== 1 ? 's' : ''} in your cart`;
 }
 
 function cartToast() {
