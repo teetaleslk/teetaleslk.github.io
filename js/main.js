@@ -1016,15 +1016,28 @@ async function initProduct() {
         openCart();
       });
 
-      // "Same design, other sizes" prompt — shown when only 1 unit available
+      // "Same design, other sizes" prompt — shown ONLY when all 3 conditions are met:
+      //   1. This product has only 1 unit left
+      //   2. This product has a design tag
+      //   3. At least one OTHER product in _ttProdMap shares the same design tag,
+      //      is a different size, and is actually in stock (not "out")
+      // _ttProdMap is fully populated before initProduct() renders, so this is safe.
       if (p.units <= 1 && p.design.length > 0) {
-        const designTag  = p.design[0];
-        const shopUrl    = `shop.html?design=${encodeURIComponent(designTag)}`;
-        const prompt     = document.createElement('p');
-        prompt.className = 'pd-design-prompt';
-        prompt.innerHTML = `⚡ Only 1 available in this size. Want <strong>${escHtml(designTag)}</strong> in a different size? `
-          + `<a href="${shopUrl}">Browse other sizes →</a>`;
-        document.getElementById('pdOrderBtn').appendChild(prompt);
+        const designTag = p.design[0];
+        const hasOtherSizes = Object.values(_ttProdMap).some(other =>
+          other.id   !== p.id &&
+          other.size !== p.size &&
+          other.design.includes(designTag) &&
+          !other.stock.toLowerCase().includes('out')
+        );
+        if (hasOtherSizes) {
+          const shopUrl    = `shop.html?design=${encodeURIComponent(designTag)}`;
+          const prompt     = document.createElement('p');
+          prompt.className = 'pd-design-prompt';
+          prompt.innerHTML = `⚡ Only 1 left in this size! <strong>${escHtml(designTag)}</strong> is available in other sizes → `
+            + `<a href="${shopUrl}">Browse other sizes</a>`;
+          document.getElementById('pdOrderBtn').appendChild(prompt);
+        }
       }
     }
 
