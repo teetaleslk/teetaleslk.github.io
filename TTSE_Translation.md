@@ -23,6 +23,12 @@
 | Contact Us | අප හා සම්බන්ධ වන්න |
 | About Us | අප ගැන |
 | More Ways to Shop | තව ගනුදෙනු ක්‍රම |
+| About | අප ගැන |
+| Contact | සම්බන්ධ වන්න |
+| Gallery | ගැලරිය |
+| Deals | විශේෂ දීමනා |
+| More Ways | තව ක්‍රම |
+| Order Now | දැන් ඇණවුම් කරන්න |
 
 ---
 
@@ -191,6 +197,14 @@
 | Get Gift Help | තෑගි උදව් ලබා ගන්න |
 | Get Bulk Pricing | තොග මිල ලබා ගන්න |
 | Become a Partner | හවුල්කාරයෙකු වන්න |
+| Limited Time | සීමිත කාලයක් |
+| Browse By | බලන්න |
+| Shop Your Style | ඔබේ රුචිකත්වයට ගන්න |
+| Fresh Picks | නව ඇතුළත්කිරීම් |
+| Who We Are | අපි කවුද |
+| See Us in Action | අපේ වැඩ බලන්න |
+| Reach Us | අප ළඟා වන්න |
+| Get In Touch | සම්බන්ධ වන්න |
 
 ---
 
@@ -201,6 +215,7 @@
 | Chat with us | අප සමඟ කතා කරන්න |
 | WhatsApp us | WhatsApp අප වෙත |
 | Order on WhatsApp | WhatsApp හරහා ඇණවුම් කරන්න |
+| Order Now | දැන් ඇණවුම් කරන්න |
 | Get a Quote | මිල ලබා ගන්න |
 | Ask a Question | ප්‍රශ්නයක් අසන්න |
 | We reply fast | අපි ඉක්මනට පිළිතුරු දෙනවා |

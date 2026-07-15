@@ -43,13 +43,13 @@
     </a>
 
     <ul class="nav-links" id="navLinks">
-      <li><a href="#home"    class="nav-link">Home</a></li>
-      <li><a href="shop.html" class="nav-link">Shop</a></li>
+      <li><a href="#home"    class="nav-link" data-i18n="Home">Home</a></li>
+      <li><a href="shop.html" class="nav-link" data-i18n="Shop">Shop</a></li>
       <li><a href="#offersSection" class="nav-link nav-link-offers">Deals 🔥</a></li>
-      <li><a href="#ways"    class="nav-link">More Ways</a></li>
-      <li><a href="#social"  class="nav-link">Gallery</a></li>
-      <li><a href="#about"   class="nav-link">About</a></li>
-      <li><a href="#contact" class="nav-link">Contact</a></li>
+      <li><a href="#ways"    class="nav-link" data-i18n="More Ways">More Ways</a></li>
+      <li><a href="#social"  class="nav-link" data-i18n="Gallery">Gallery</a></li>
+      <li><a href="#about"   class="nav-link" data-i18n="About">About</a></li>
+      <li><a href="#contact" class="nav-link" data-i18n="Contact">Contact</a></li>
     </ul>
 
     <button id="lang-toggle" onclick="Translations.toggle()" aria-label="Switch to English" title="English">EN</button>
@@ -77,7 +77,7 @@
 
     <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20order%20%F0%9F%91%95"
        target="_blank" rel="noopener" class="nav-wa-btn">
-      <i class="fab fa-whatsapp"></i> Order Now
+      <i class="fab fa-whatsapp"></i> <span data-i18n="Order Now">Order Now</span>
     </a>
 
     <button class="hamburger" id="hamburger" aria-label="Toggle menu">
@@ -87,12 +87,12 @@
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
-    <a href="#home"    class="mobile-link" onclick="closeMobileMenu()">Home</a>
-    <a href="shop.html" class="mobile-link">Shop</a>
+    <a href="#home"    class="mobile-link" onclick="closeMobileMenu()" data-i18n="Home">Home</a>
+    <a href="shop.html" class="mobile-link" data-i18n="Shop">Shop</a>
     <a href="#offersSection" class="mobile-link" onclick="closeMobileMenu()">Deals 🔥</a>
-    <a href="#ways"    class="mobile-link" onclick="closeMobileMenu()">More Ways</a>
-    <a href="#about"   class="mobile-link" onclick="closeMobileMenu()">About</a>
-    <a href="#contact" class="mobile-link" onclick="closeMobileMenu()">Contact</a>
+    <a href="#ways"    class="mobile-link" onclick="closeMobileMenu()" data-i18n="More Ways">More Ways</a>
+    <a href="#about"   class="mobile-link" onclick="closeMobileMenu()" data-i18n="About">About</a>
+    <a href="#contact" class="mobile-link" onclick="closeMobileMenu()" data-i18n="Contact">Contact</a>
     <div class="mobile-socials">
       <a href="https://facebook.com/teetales"   target="_blank" rel="noopener" class="social-icon"><i class="fab fa-facebook-f"></i></a>
       <a href="https://instagram.com/teetales.tshirt" target="_blank" rel="noopener" class="social-icon"><i class="fab fa-instagram"></i></a>
@@ -100,7 +100,7 @@
     </div>
     <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27d%20like%20to%20browse%20your%20collection."
        target="_blank" rel="noopener" class="mobile-wa-btn" onclick="closeMobileMenu()">
-      <i class="fab fa-whatsapp"></i> Order on WhatsApp
+      <i class="fab fa-whatsapp"></i> <span data-i18n="Order on WhatsApp">Order on WhatsApp</span>
     </a>
   </div>
 </nav>
@@ -181,8 +181,8 @@
   <div class="container">
 
     <div class="section-header">
-      <span class="section-label">Limited Time</span>
-      <h2 class="section-title">🔥 Current Deals</h2>
+      <span class="section-label" data-i18n="Limited Time">Limited Time</span>
+      <h2 class="section-title">🔥 <span data-i18n="Hot Deals">Hot Deals</span></h2>
       <p class="section-sub">Tap any deal to order instantly via WhatsApp — while stocks last!</p>
     </div>
 
@@ -207,8 +207,8 @@
 <section class="cat-grid-section">
   <div class="container">
     <div class="section-header">
-      <span class="section-label">Browse By</span>
-      <h2 class="section-title">Shop Your Style</h2>
+      <span class="section-label" data-i18n="Browse By">Browse By</span>
+      <h2 class="section-title" data-i18n="Shop Your Style">Shop Your Style</h2>
       <p class="section-sub">Find the perfect tee for everyone in the family.</p>
     </div>
     <div class="cat-grid">
@@ -273,8 +273,8 @@
   <div class="container">
 
     <div class="section-header">
-      <span class="section-label">Our Collection</span>
-      <h2 class="section-title">Fresh Picks</h2>
+      <span class="section-label" data-i18n="Our Collection">Our Collection</span>
+      <h2 class="section-title" data-i18n="Fresh Picks">Fresh Picks</h2>
       <p class="section-sub">Tap any tee to order instantly via WhatsApp.</p>
     </div>
 
@@ -325,38 +325,38 @@
 <section class="ways-section" id="ways">
   <div class="container">
     <div class="section-header">
-      <span class="section-label">Shop Your Way</span>
-      <h2 class="section-title">More Ways to Shop</h2>
+      <span class="section-label" data-i18n="Shop Your Way">Shop Your Way</span>
+      <h2 class="section-title" data-i18n="More Ways to Shop">More Ways to Shop</h2>
     </div>
     <div class="ways-grid">
 
       <div class="way-card">
         <div class="way-icon">🎁</div>
-        <h3 class="way-title">For Gifters</h3>
+        <h3 class="way-title" data-i18n="For Gifters">For Gifters</h3>
         <p class="way-sub">Birthdays, anniversaries, just because — we help you pick the perfect design, colour &amp; size for someone special.</p>
         <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27m%20buying%20a%20gift%20for%20someone.%20Can%20you%20help%20me%20choose%20the%20perfect%20tee%3F%20%F0%9F%8E%81"
            target="_blank" rel="noopener" class="way-wa-btn">
-          <i class="fab fa-whatsapp"></i> Get Gift Help
+          <i class="fab fa-whatsapp"></i> <span data-i18n="Get Gift Help">Get Gift Help</span>
         </a>
       </div>
 
       <div class="way-card">
         <div class="way-icon">🎽</div>
-        <h3 class="way-title">Buying in Bulk?</h3>
+        <h3 class="way-title" data-i18n="Buying in Bulk?">Buying in Bulk?</h3>
         <p class="way-sub">Corporate events, school uniforms, team sets — 10+ tees, special pricing, mix any size or design freely.</p>
         <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20interested%20in%20a%20bulk%20order.%20Here%20are%20my%20requirements%3A%0A%0A%E2%80%A2%20Quantity%3A%20%0A%E2%80%A2%20Sizes%3A%20%0A%E2%80%A2%20Colour(s)%3A%20%0A%E2%80%A2%20Design%2FPrint%3A%20%0A%0APlease%20share%20your%20best%20bulk%20pricing%20%F0%9F%99%8F"
            target="_blank" rel="noopener" class="way-wa-btn">
-          <i class="fab fa-whatsapp"></i> Get Bulk Pricing
+          <i class="fab fa-whatsapp"></i> <span data-i18n="Get Bulk Pricing">Get Bulk Pricing</span>
         </a>
       </div>
 
       <div class="way-card">
         <div class="way-icon">🤝</div>
-        <h3 class="way-title">Earn Extra Income</h3>
+        <h3 class="way-title" data-i18n="Earn Extra Income">Earn Extra Income</h3>
         <p class="way-sub">Resell under our brand, use your own label, or order unbranded wholesale. Your network is your storefront.</p>
         <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20interested%20in%20your%20wholesale%20partner%20programme.%20Can%20you%20share%20more%20about%20the%20options%20%E2%80%94%20TeeTales%20brand%2C%20private%20label%2C%20and%20unbranded%20wholesale%3F"
            target="_blank" rel="noopener" class="way-wa-btn">
-          <i class="fab fa-whatsapp"></i> Become a Partner
+          <i class="fab fa-whatsapp"></i> <span data-i18n="Become a Partner">Become a Partner</span>
         </a>
       </div>
 
@@ -371,7 +371,7 @@
   <div class="container">
     <div class="about-grid">
       <div class="about-text">
-        <span class="section-label">Who We Are</span>
+        <span class="section-label" data-i18n="Who We Are">Who We Are</span>
         <h2>About <span class="brand-tee">Tee</span><span class="brand-tales">Tales</span></h2>
         <p>
           Every t-shirt tells a story. At TeeTales, we bring you quality, comfort, and style
@@ -422,7 +422,7 @@
 <section class="social-feed" id="social">
   <div class="container">
     <div class="section-header">
-      <span class="section-label">See Us in Action</span>
+      <span class="section-label" data-i18n="See Us in Action">See Us in Action</span>
       <h2 class="section-title">Real People. Real Tees.</h2>
       <p class="section-sub">Watch our reels, see customer photos, and follow us for new arrivals &amp; behind-the-scenes content.</p>
     </div>
@@ -499,8 +499,8 @@
 <section class="contact" id="contact">
   <div class="container">
     <div class="section-header">
-      <span class="section-label light">Reach Us</span>
-      <h2 class="section-title light">Get In Touch</h2>
+      <span class="section-label light" data-i18n="Reach Us">Reach Us</span>
+      <h2 class="section-title light" data-i18n="Get In Touch">Get In Touch</h2>
       <p class="section-sub light">We're just one message away. Usually respond within an hour.</p>
     </div>
     <div class="contact-card">
