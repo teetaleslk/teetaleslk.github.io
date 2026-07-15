@@ -1,0 +1,219 @@
+# TeeTales — Sinhala / English Word Reference
+*Phase 6 — Bilingual Support*
+*Font for Sinhala: **Iskoola Pota** (iskolapotha) — Unicode Sinhala*
+*Status: Draft — please correct mistakes and add missing words*
+
+---
+
+## Navigation & UI
+
+| English | සිංහල |
+|---------|--------|
+| Home | මුල් පිටුව |
+| Shop | සාප්පුව |
+| Cart | කූඩය |
+| Search | සොයන්න |
+| Filter | පෙරහන |
+| Sort | වර්ගකරන්න |
+| View All | සියල්ල බලන්න |
+| More | තව |
+| Back | ආපසු |
+| Close | වසන්න |
+| Menu | මෙනු |
+| Contact Us | අප හා සම්බන්ධ වන්න |
+| About Us | අප ගැන |
+| More Ways to Shop | තව ගනුදෙනු ක්‍රම |
+
+---
+
+## Product & Catalogue
+
+| English | සිංහල |
+|---------|--------|
+| T-Shirt | ටී-ෂර්ට් |
+| Design | නිර්මාණය |
+| Size | ප්‍රමාණය |
+| Colour | වර්ණය |
+| Material / Fabric | ද්‍රව්‍ය / රෙදිපිළි |
+| Cotton | කපු |
+| Polyester | පොලිඑස්ටර් |
+| Blend | මිශ්‍රණය |
+| Print | මුද්‍රණය |
+| Category | ශ්‍රේණිය |
+| Collection | එකතුව |
+| New Arrivals | නව එකතු |
+| Featured | විශේෂිත |
+| Popular | ජනප්‍රිය |
+| Boosted / Promoted | ප්‍රවර්ධිත |
+
+---
+
+## Sizes
+
+| English | සිංහල |
+|---------|--------|
+| Extra Small | අතිරික්ත කුඩා |
+| Small | කුඩා |
+| Medium | මධ්‍යම |
+| Large | විශාල |
+| Extra Large | අතිරික්ත විශාල |
+| Kids | ළමා |
+| Free Size | නිදහස් ප්‍රමාණය |
+
+---
+
+## Categories / Target Groups
+
+| English | සිංහල |
+|---------|--------|
+| Men | පිරිමි |
+| Women | කාන්තා |
+| Kids | ළමයි |
+| Unisex | ස්ත්‍රී-පුරුෂ |
+| Adults | වැඩිහිටි |
+| Boys | පිරිමි ළමයි |
+| Girls | ගැහැණු ළමයි |
+
+---
+
+## Pricing & Offers
+
+| English | සිංහල |
+|---------|--------|
+| Price | මිල |
+| Original Price | මුල් මිල |
+| Sale Price | අලෙවි මිල |
+| Discount | වට්ටම |
+| Sale | මිල අඩු කිරීම |
+| Offer | පිරිනැමීම |
+| Free Delivery | නොමිලේ බෙදාහැරීම |
+| Special Price | විශේෂ මිල |
+
+---
+
+## Ordering & Actions
+
+| English | සිංහල |
+|---------|--------|
+| Order Now | දැන් ඇණවුම් කරන්න |
+| Buy Now | දැන් මිලදී ගන්න |
+| Add to Cart | කූඩයට එකතු කරන්න |
+| Remove | ඉවත් කරන්න |
+| Quantity | ප්‍රමාණය |
+| Total | එකතුව |
+| Checkout via WhatsApp | WhatsApp හරහා ඇණවුම |
+| Send Order | ඇණවුම යවන්න |
+| Confirm Order | ඇණවුම තහවුරු කරන්න |
+
+---
+
+## Stock & Availability
+
+| English | සිංහල |
+|---------|--------|
+| In Stock | තොගයේ ඇත |
+| Out of Stock | තොගය අවසන් |
+| Available | ලබා ගත හැකිය |
+| Limited Stock | සීමිත තොගය |
+| Units | ඒකක |
+| Stock | තොගය |
+
+---
+
+## Special Order Types
+
+| English | සිංහල |
+|---------|--------|
+| Bulk Order | තොග ඇණවුම |
+| Bulk Pricing | තොග මිල |
+| Custom Order | අභිරුචි ඇණවුම |
+| Gift | තෑග්ගක් |
+| Gift Wrapping | තෑගි ඔතා දෙනවා |
+| Personalised | පෞද්ගලිකකෘත |
+
+---
+
+## Reseller / Partner
+
+| English | සිංහල |
+|---------|--------|
+| Reseller | නැවත අලෙවිකරු |
+| Partner | හවුල්කාරයා |
+| Wholesale | තොග |
+| Earn Extra Income | අමතර ආදායමක් ඉපයීම |
+| Private Label | පෞද්ගලික ලේබලය |
+| Unbranded | නාම රහිත |
+| Become a Partner | හවුල්කාරයෙකු වන්න |
+
+---
+
+## Delivery & Fulfilment
+
+| English | සිංහල |
+|---------|--------|
+| Delivery | බෙදාහැරීම |
+| Express Delivery | ශීඝ්‍ර බෙදාහැරීම |
+| Delivery Address | ලිපිනය |
+| Cash on Delivery | බෙදාහැරීමේදී මුදල් |
+| Island-wide Delivery | 섬 전체 배송 — ශ්‍රී ලංකාව පුරා |
+| Track Order | ඇණවුම සොයන්න |
+| Estimated Delivery | ඇස්තමේන්තු ලබාදීම |
+
+---
+
+## Trust & Reviews
+
+| English | සිංහල |
+|---------|--------|
+| Reviews | සමාලෝචන |
+| Rating | ශ්‍රේණිගත කිරීම |
+| Customer | ගනුදෙනුකරු |
+| Happy Customers | සතුටු ගනුදෙනුකරුවන් |
+| Testimonials | සාක්ෂි / ප්‍රශංසා |
+| Trusted | විශ්වාසදායක |
+| Guarantee | ඇපකරය |
+| Exchange Policy | හුවමාරු ප්‍රතිපත්තිය |
+
+---
+
+## Homepage Section Headings
+
+| English | සිංහල |
+|---------|--------|
+| Our Collection | අපේ එකතුව |
+| More Ways to Shop | තව ගනුදෙනු ක්‍රම |
+| New Arrivals | නව ඇඳුම් |
+| Hot Deals | ලාබ දීමනා |
+| For Gifters | තෑගි සඳහා |
+| Buying in Bulk? | තොග ගන්නවාද? |
+| Earn Extra Income | අමතර ආදායමක් ඉපයීම |
+| Shop Your Way | ඔබේ ආකාරයෙන් ගන්න |
+| Get Gift Help | තෑගි උදව් ලබා ගන්න |
+| Get Bulk Pricing | තොග මිල ලබා ගන්න |
+| Become a Partner | හවුල්කාරයෙකු වන්න |
+
+---
+
+## WhatsApp CTA Phrases
+
+| English | සිංහල |
+|---------|--------|
+| Chat with us | අප සමඟ කතා කරන්න |
+| WhatsApp us | WhatsApp අප වෙත |
+| Order on WhatsApp | WhatsApp හරහා ඇණවුම් කරන්න |
+| Get a Quote | මිල ලබා ගන්න |
+| Ask a Question | ප්‍රශ්නයක් අසන්න |
+| We reply fast | අපි ඉක්මනට පිළිතුරු දෙනවා |
+
+---
+
+## Notes for Developer (Phase 6)
+
+- All Sinhala text should use **Iskoola Pota** (`font-family: 'Iskoola Pota', serif`) or **Noto Sans Sinhala** as fallback.
+- Add to CSS: `[lang="si"] { font-family: 'Iskoola Pota', 'Noto Sans Sinhala', serif; }`
+- Toggle button label: **EN | සිං**
+- Store language preference in `localStorage('lang')`.
+- All Sinhala strings go into a `translations.js` file keyed to English IDs.
+
+---
+*Please correct any mistakes and WhatsApp the corrections — this draft was generated by Claude.*
