@@ -18,7 +18,7 @@ const Translations = (() => {
 
   // ── State ──────────────────────────────────────────────────────────────────
   let dict = {};
-  let lang = localStorage.getItem('teetales_lang') || 'en';
+  let lang = localStorage.getItem('teetales_lang') || 'si';
   let loaded = false;
 
   // ── MD Parser ──────────────────────────────────────────────────────────────
@@ -103,9 +103,9 @@ const Translations = (() => {
   function updateToggleBtn() {
     const btn = document.getElementById('lang-toggle');
     if (!btn) return;
-    btn.textContent = lang === 'en' ? 'සිං' : 'EN';
-    btn.setAttribute('aria-label', lang === 'en' ? 'Switch to Sinhala' : 'Switch to English');
-    btn.setAttribute('title', lang === 'en' ? 'සිංහල' : 'English');
+    btn.textContent = lang === 'si' ? 'EN' : 'සිං';
+    btn.setAttribute('aria-label', lang === 'si' ? 'Switch to English' : 'Switch to Sinhala');
+    btn.setAttribute('title', lang === 'si' ? 'English' : 'සිංහල');
   }
 
   // ── Public: toggle language ────────────────────────────────────────────────
@@ -119,7 +119,7 @@ const Translations = (() => {
   // Call once per page — loads MD then applies saved language preference
   async function init() {
     await load();
-    if (lang === 'si') applyToPage(); // Only apply if user previously chose Sinhala
+    applyToPage(); // Always apply — default is Sinhala, user may have switched to EN
     updateToggleBtn();
   }
 
