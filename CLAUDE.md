@@ -94,7 +94,7 @@ R(17) COLOR_GROUP   ← Phase 16, not yet added
 | 1–3 | Bug Fixes, Sheet, Product Page | ✅ Done |
 | 4 | Home Page Redesign | ⏳ Partial |
 | 5 | Shop Page Improvements | ⏳ Partial |
-| 6 | Bilingual (Sinhala) | 🔲 |
+| 6 | Bilingual (Sinhala) | ❌ Dropped |
 | 7 | Polish & SEO | ⏳ Partial |
 | 8 | Advanced | 🔲 |
 | 9 | Marketing & Sales Strategy | 🔲 |

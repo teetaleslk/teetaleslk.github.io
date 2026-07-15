@@ -18,7 +18,7 @@ const Translations = (() => {
 
   // ── State ──────────────────────────────────────────────────────────────────
   let dict = {};
-  let lang = localStorage.getItem('teetales_lang') || 'si';
+  let lang = localStorage.getItem('teetales_lang') || 'en';
   let loaded = false;
 
   // ── MD Parser ──────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@
     </a>
 
     <ul class="nav-links" id="navLinks">
-      <li><a href="#home"    class="nav-link" data-i18n="Home">Home</a></li>
+      <li><a href="#home"    class="nav-link nav-link-home" aria-label="Home" title="Home"><i class="fas fa-home"></i></a></li>
       <li><a href="shop.html" class="nav-link" data-i18n="Shop">Shop</a></li>
       <li><a href="#offersSection" class="nav-link nav-link-offers">Deals 🔥</a></li>
       <li><a href="#ways"    class="nav-link" data-i18n="More Ways">More Ways</a></li>
@@ -51,8 +51,6 @@
       <li><a href="#about"   class="nav-link" data-i18n="About">About</a></li>
       <li><a href="#contact" class="nav-link" data-i18n="Contact">Contact</a></li>
     </ul>
-
-    <button id="lang-toggle" onclick="Translations.toggle()" aria-label="Switch to English" title="English">EN</button>
 
     <!-- Social icons — UPDATE THESE HREFS WITH YOUR PROFILE URLS -->
     <div class="nav-socials">
@@ -87,7 +85,7 @@
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
-    <a href="#home"    class="mobile-link" onclick="closeMobileMenu()" data-i18n="Home">Home</a>
+    <a href="#home"    class="mobile-link" onclick="closeMobileMenu()" aria-label="Home" title="Home"><i class="fas fa-home"></i> Home</a>
     <a href="shop.html" class="mobile-link" data-i18n="Shop">Shop</a>
     <a href="#offersSection" class="mobile-link" onclick="closeMobileMenu()">Deals 🔥</a>
     <a href="#ways"    class="mobile-link" onclick="closeMobileMenu()" data-i18n="More Ways">More Ways</a>
