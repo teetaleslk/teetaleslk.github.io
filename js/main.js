@@ -167,8 +167,11 @@ function parseTableData(table) {
         boost:      val(COL.BOOST),
         printLocation: val(COL.PRINT_LOCATION),
         material:      val(COL.MATERIAL),
-        image:         val(COL.IMAGE),
-        image2:        val(COL.IMAGE2),
+        /* Images: sheet link wins; if blank, auto-fallback to repo file
+           img/products/<trailing digits of ItemID>.jpg  (+ 'A' for Image2)
+           e.g. ItemID …00001 → img/products/00001.jpg & 00001A.jpg       */
+        image:         val(COL.IMAGE)  || repoImg(itemId, ''),
+        image2:        val(COL.IMAGE2) || repoImg(itemId, 'A'),
         colour:     val(COL.COLOUR),
         design,
         units:      numVal(COL.UNITS) || 1,  // max qty customer can add to cart
@@ -383,6 +386,16 @@ function buildColourFilter(products) {
 /* ═══════════════════════════════════════════════════════════════
    IMAGE HELPERS
 ═══════════════════════════════════════════════════════════════ */
+/* Repo image fallback: when the sheet has no link, look for a file in
+   img/products/ named after the ItemID's trailing digits.
+   ItemID …00001 → 00001.jpg (Image1) / 00001A.jpg (Image2)
+   Workflow: drop renamed .jpg files in img/products/, push — done.
+   Missing files fall back to the "Photo coming soon" placeholder via onerror. */
+function repoImg(itemId, suffix) {
+  const m = String(itemId || '').match(/(\d+)\s*$/);   // trailing digit run
+  return m ? `img/products/${m[1]}${suffix}.jpg` : '';
+}
+
 function resolveImageUrl(raw) {
   if (!raw) return null;
   raw = raw.trim();
