@@ -392,7 +392,9 @@ function buildColourFilter(products) {
    Workflow: drop renamed .jpg files in img/products/, push — done.
    Missing files fall back to the "Photo coming soon" placeholder via onerror. */
 function repoImg(itemId, suffix) {
-  const m = String(itemId || '').match(/(\d+)\s*$/);   // trailing digit run
+  // Rule: LAST 5 characters of ItemID are always digits = the image number
+  // e.g. KP2XLU00001 → 00001 → img/products/00001.jpg (+A for Image2)
+  const m = String(itemId || '').trim().match(/(\d{5})$/);
   return m ? `img/products/${m[1]}${suffix}.jpg` : '';
 }
 
