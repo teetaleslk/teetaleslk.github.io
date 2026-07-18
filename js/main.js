@@ -448,8 +448,8 @@ function getAudienceLabel(ageGrp, suitable) {
   const age    = (ageGrp  || '').toLowerCase();
   const suit   = (suitable || '').toLowerCase();
   const isKids = age !== 'adults';
-  if (isKids  && suit === 'ladies')  return { label: "Girl's Tee",  emoji: '👧' };
-  if (isKids  && suit === 'gents')   return { label: "Boy's Tee",   emoji: '👦' };
+  if (isKids  && suit === 'ladies')  return { label: "Girls' Tee",  emoji: '👧' };
+  if (isKids  && suit === 'gents')   return { label: "Boys' Tee",   emoji: '👦' };
   if (isKids  && suit === 'unisex')  return { label: "Kids' Tee",   emoji: '🧒' };
   if (!isKids && suit === 'ladies')  return { label: "Ladies' Tee", emoji: '👩' };
   if (!isKids && suit === 'gents')   return { label: "Gents' Tee",  emoji: '👨' };
@@ -522,6 +522,7 @@ function createProductCard(p) {
   const audienceBadge = audience.label
     ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>`
     : '';
+  if (audience.label) card.dataset.audience = audience.label;
 
   /* ── Add to Cart button ── */
   const cartBtn = isOutOfStock

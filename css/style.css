@@ -556,6 +556,11 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
   margin-bottom: 12px;
 }
 
+/* ─ Audience tints — image area bg by card type ─────────────── */
+[data-audience="Boys' Tee"] .card-img-area  { background: #dbeafe; } /* soft blue  */
+[data-audience="Girls' Tee"] .card-img-area { background: #fce7f3; } /* soft pink  */
+[data-audience="Kids' Tee"] .card-img-area  { background: linear-gradient(to right, #dbeafe, #fce7f3); } /* blue→pink */
+
 /* Square 1:1 image */
 .card-img-link {
   display: block;
