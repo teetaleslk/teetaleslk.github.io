@@ -614,7 +614,15 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .badge-trending   { background: #c0392b;         color: var(--white); }
 .badge-hot        { background: linear-gradient(135deg, #e85d04, #dc2f02); color: var(--white); }
 .badge-new        { background: #1a7a5e;         color: var(--white); }
-.badge-audience   { background: #3730a3;         color: var(--white); }
+.badge-audience   { background: #3730a3; color: var(--white); } /* default fallback */
+/* Kids — pastel */
+[data-audience="Boys' Tee"]  .badge-audience { background: #bfdbfe; color: #1d4ed8; }
+[data-audience="Girls' Tee"] .badge-audience { background: #fce7f3; color: #be185d; }
+[data-audience="Kids' Tee"]  .badge-audience { background: linear-gradient(to right, #bfdbfe, #fce7f3); color: #1a1a2e; }
+/* Adults — solid/vivid */
+[data-audience="Gents' Tee"]   .badge-audience { background: #2563eb; color: var(--white); }
+[data-audience="Ladies' Tee"]  .badge-audience { background: #db2777; color: var(--white); }
+[data-audience="Adults' Tee"]  .badge-audience { background: linear-gradient(to right, #2563eb, #db2777); color: var(--white); }
 
 /* WhatsApp Quick Order — slides up from bottom of image on hover */
 .card-wa-hover {

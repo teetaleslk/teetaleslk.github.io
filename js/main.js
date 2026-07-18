@@ -453,7 +453,7 @@ function getAudienceLabel(ageGrp, suitable) {
   if (isKids  && suit === 'unisex')  return { label: "Kids' Tee",   emoji: '🧒' };
   if (!isKids && suit === 'ladies')  return { label: "Ladies' Tee", emoji: '👩' };
   if (!isKids && suit === 'gents')   return { label: "Gents' Tee",  emoji: '👨' };
-  if (!isKids && suit === 'unisex')  return { label: "Unisex Tee",  emoji: '👕' };
+  if (!isKids && suit === 'unisex')  return { label: "Adults' Tee", emoji: '👕' };
   if (isKids)                        return { label: "Kids' Tee",   emoji: '🧒' };
   if (!isKids)                       return { label: 'Adults',      emoji: '🧑' };
   return { label: '', emoji: '' };
