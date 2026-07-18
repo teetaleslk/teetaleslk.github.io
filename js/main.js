@@ -960,6 +960,9 @@ async function initProduct() {
     } else {
       priceHtml = `<span class="pd-price-ask">Contact us for price</span>`;
     }
+    // Bulk promo (TBOS spec): show the exact bulk price when the formula applies
+    const pdBulk = (p.strike && p.price && p.strike - 151 < p.price) ? p.strike - 151 : null;
+    priceHtml += `<div class="pd-bulk-note">👨‍👩‍👧‍👦 Buying for a family or group? <strong>5+ tees switch to bulk prices automatically</strong>${pdBulk ? ` — this tee just <strong>${CONFIG.CURRENCY} ${formatNum(pdBulk)}</strong> each` : ''}. Mix any sizes & designs!</div>`;
     document.getElementById('pdPrice').innerHTML = priceHtml;
 
     /* Meta list */
@@ -1093,7 +1096,7 @@ function cartAdd(p, qty = 1) {
   } else {
     cart.push({ id: p.id, type: p.type, ageGrp: p.ageGrp, colour: p.colour,
                 design: p.design, size: p.size, price: p.price ?? p.strike,
-                units: p.units, qty: Math.min(qty, p.units) });
+                strike: p.strike, units: p.units, qty: Math.min(qty, p.units) });
   }
   cartSave(cart);
   cartToast();
@@ -1114,7 +1117,22 @@ function cartRemove(id) { cartSave(cartGet().filter(i => i.id !== id)); renderCa
 window.cartRemove = cartRemove;
 
 function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
-function cartTotal() { return cartGet().reduce((s, i) => s + (i.price || 0) * i.qty, 0); }
+
+/* ── BULK PRICING (auto-applies at BULK_MIN+ total units, mixed sizes/designs count)
+   BulkDC = STPrice − 151 (Pricing Strategy formula — holds across the whole Price List) */
+const BULK_MIN = 5;
+function bulkPriceOf(i) {
+  const b = i.strike ? i.strike - 151 : null;
+  return (b && i.price && b < i.price) ? b : null;   // only if it's a real saving
+}
+function cartBulkActive(cart) { return (cart || cartGet()).reduce((s, i) => s + i.qty, 0) >= BULK_MIN; }
+function cartEffPrice(i, bulkOn) { return (bulkOn ? bulkPriceOf(i) : null) ?? i.price ?? 0; }
+function cartSingleTotal(cart) { return cart.reduce((s, i) => s + (i.price || 0) * i.qty, 0); }
+
+function cartTotal() {
+  const cart = cartGet(), bulkOn = cartBulkActive(cart);
+  return cart.reduce((s, i) => s + cartEffPrice(i, bulkOn) * i.qty, 0);
+}
 
 function cartBadgeUpdate() {
   const b   = document.getElementById('cartBadge');
@@ -1162,13 +1180,20 @@ window.closeCart = closeCart;
 
 function buildCartWAMessage() {
   // Format: [ID] Adults · Navy · Cat · M · Rs. 1,299 × 2
-  const lines = cartGet().map((item, i) => {
+  const cart = cartGet(), bulkOn = cartBulkActive(cart);
+  const lines = cart.map((item, i) => {
     const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
     const design = item.design?.[0] || '';
-    const price  = item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '';
+    const eff    = cartEffPrice(item, bulkOn);
+    const isBulk = bulkOn && bulkPriceOf(item);
+    const price  = eff ? `${CONFIG.CURRENCY} ${formatNum(eff)}${isBulk ? ' (bulk)' : ''}` : '';
     return `${i + 1}. [${item.id}] ${age} · ${item.colour} · ${design} · ${item.size} · ${price} × ${item.qty}`;
   });
-  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
+  const saved   = cartSingleTotal(cart) - cartTotal();
+  const bulkNote = bulkOn && saved > 0
+    ? `\n🎉 Bulk price applied (${cartCount()} tees) — saving ${CONFIG.CURRENCY} ${formatNum(saved)}\n`
+    : '';
+  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
 }
 
 function renderCartDrawer() {
@@ -1182,10 +1207,37 @@ function renderCartDrawer() {
     if (footer) footer.style.display = 'none';
     return;
   }
-  body.innerHTML = cart.map(item => {
+  const bulkOn = cartBulkActive(cart);
+
+  /* Bulk banner / nudge (TBOS Bulk Pricing UX spec) */
+  const n = cart.reduce((s, i) => s + i.qty, 0);
+  let bulkHtml = '';
+  if (bulkOn) {
+    const saved = cartSingleTotal(cart) - cartTotal();
+    if (saved > 0) {
+      const pct = Math.round(saved / cartSingleTotal(cart) * 100);
+      bulkHtml = `<div class="cart-bulk-banner">🎉 <strong>Bulk price unlocked!</strong> You're saving ${CONFIG.CURRENCY} ${formatNum(saved)} (${pct}% off) on this order</div>`;
+    }
+  } else if (n >= 3) {
+    // Marginal framing: what would the 5-tee order cost vs now + what bulk saves on current tees
+    const need = BULK_MIN - n;
+    const savedIfBulk = cart.reduce((s, i) => {
+      const b = bulkPriceOf(i);
+      return s + (b ? (i.price - b) * i.qty : 0);
+    }, 0);
+    if (savedIfBulk > 0) {
+      const pct = Math.round(savedIfBulk / cartSingleTotal(cart) * 100);
+      bulkHtml = `<div class="cart-bulk-nudge">💡 Add <strong>${need} more tee${need > 1 ? 's' : ''}</strong> (any size or design) & <strong>Bulk Price unlocks on ALL ${BULK_MIN}</strong> — that's ~${pct}% off every tee already in your cart!</div>`;
+    }
+  }
+
+  body.innerHTML = bulkHtml + cart.map(item => {
     const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
     const design = item.design?.[0] || '';
-    const price  = item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '';
+    const bulk   = bulkOn ? bulkPriceOf(item) : null;
+    const price  = bulk
+      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(item.price)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
+      : (item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
     return `
     <div class="cart-item">
       <div class="cart-item-info">

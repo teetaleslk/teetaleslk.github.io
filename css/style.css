@@ -161,6 +161,12 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cart-item-meta  { font-size: .74rem; color: var(--text-muted); margin: 2px 0; }
 .cart-item-id    { font-size: .7rem; color: var(--mid-gray); font-family: monospace; }
 .cart-item-price { font-weight: 700; color: var(--accent); margin-top: 4px; font-size: .85rem; }
+/* Bulk pricing UI */
+.cart-price-strike { text-decoration: line-through; color: var(--text-muted); font-weight: 500; margin-right: 2px; }
+.cart-bulk-tag { background: #16a34a; color: #fff; font-size: .6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; vertical-align: middle; letter-spacing: .5px; }
+.cart-bulk-banner { background: #dcfce7; border: 1px solid #16a34a; color: #14532d; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; font-size: .85rem; }
+.cart-bulk-nudge  { background: #fef9c3; border: 1px solid var(--gold); color: #713f12; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; font-size: .85rem; }
+.pd-bulk-note { background: #f0fdf4; border: 1px dashed #16a34a; color: #14532d; border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 10px; font-size: .82rem; line-height: 1.5; }
 .cart-item-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 /* Shared qty button (used in drawer + product page) */
 .qty-btn {
