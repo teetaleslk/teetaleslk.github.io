@@ -396,6 +396,21 @@ function repoImg(itemId, suffix) {
   return m ? `img/products/${m[1]}${suffix}.jpg` : '';
 }
 
+/* onerror handler with extension cascade for repo images:
+   .jpg → .jpeg → .png → .webp → .JPG → .JPEG, then the fallback.
+   fallback: 'remove' = remove the element · anything else = placeholder HTML */
+const IMG_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'JPEG'];
+window.ttImgErr = function (el, fallback) {
+  const src = el.getAttribute('src') || '';
+  const m = src.match(/^(img\/products\/[^.]+)\.(\w+)$/);
+  if (m) {
+    const next = IMG_EXTS[IMG_EXTS.indexOf(m[2]) + 1];
+    if (next) { el.src = `${m[1]}.${next}`; return; }
+  }
+  if (fallback === 'remove') el.remove();
+  else el.parentElement.innerHTML = fallback || window.placeholderHtml();
+};
+
 function resolveImageUrl(raw) {
   if (!raw) return null;
   raw = raw.trim();
@@ -519,7 +534,7 @@ function createProductCard(p) {
   const imgUrl  = resolveImageUrl(p.image);
   const imgInner = imgUrl
     ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" loading="lazy"
-           onerror="this.parentElement.innerHTML=window.placeholderHtml()" />`
+           onerror="ttImgErr(this)" />`
     : `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
   /* ── Badges ── */
@@ -931,7 +946,7 @@ async function initProduct() {
     const mainImgEl = document.getElementById('pdMainImg');
     mainImgEl.innerHTML = imgUrl
       ? `<img id="pdMainImgTag" src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}"
-             onerror="this.parentElement.innerHTML='<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>'" />`
+             onerror="ttImgErr(this,'<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>')" />`
       : `<div class="pd-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
     /* Image 2 thumbnail */
@@ -941,10 +956,10 @@ async function initProduct() {
       thumb.src       = img2Url;
       thumb.alt       = `${p.type} — view 2`;
       thumb.className = 'pd-thumb';
-      thumb.onerror   = () => thumb.remove();
+      thumb.onerror   = () => ttImgErr(thumb, 'remove');
       thumb.addEventListener('click', () => {
         const main = document.getElementById('pdMainImgTag');
-        if (main) main.src = img2Url;
+        if (main) main.src = thumb.src;   // use whichever extension resolved
       });
       thumbEl.appendChild(thumb);
     }
