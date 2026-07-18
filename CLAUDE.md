@@ -33,9 +33,9 @@ A(0)  ITEM_ID       B(1)  TYPE          C(2)  CATEGORY (TeeCategory)
 D(3)  SIZE          E(4)  PRINT_SIZE    F(5)  STRIKE (STPrice — original)
 G(6)  PRICE (DCPrice — sale)            H(7)  AGE_GRP
 I(8)  SUITABLE      J(9)  STOCK         K(10) UNITS
-L(11) BOOST         M(12) COLOUR        N(13) DESIGN (Sticker/Image name)
-O(14) MATERIAL      P(15) IMAGE         Q(16) IMAGE2
-R(17) COLOR_GROUP   ← Phase 16, not yet added
+L(11) BOOST STATUS  M(12) COLOUR        N(13) DESIGN (Sticker/Image name)
+O(14) PRINT_LOCATION  P(15) MATERIAL    Q(16) IMAGE1        R(17) IMAGE2
+S(18) COLOR_GROUP   ← Phase 16, not yet added
 ```
 
 **Other sheet tabs:** OtherImg (category card photos), Offers

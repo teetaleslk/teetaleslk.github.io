@@ -63,11 +63,12 @@ const COL = {
   STOCK:      9,  // J: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
   UNITS:     10,  // K: Units  — how many physical pieces available (default 1 if blank)
   BOOST:     11,  // L: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  COLOUR:    12,  // M: Colour
-  DESIGN:    13,  // N: Sticker/Image — design name
-  MATERIAL:  14,  // O: Material (e.g. "100% Cotton")
-  IMAGE:     15,  // P: Image1 — primary product photo (Google Drive share link)
-  IMAGE2:    16,  // Q: Image2 — second photo (optional)
+  COLOUR:         12,  // M: Colour
+  DESIGN:         13,  // N: Sticker/Image — design name
+  PRINT_LOCATION: 14,  // O: Print Location (e.g. "Front", "Back", "Left Chest")
+  MATERIAL:       15,  // P: Material (e.g. "100% Cotton")
+  IMAGE:          16,  // Q: Image1 — primary product photo (Google Drive share link)
+  IMAGE2:         17,  // R: Image2 — second photo (optional)
 };
 
 /* ── PRODUCT MAP — populated by parseTableData, used by cart ── */
@@ -164,9 +165,10 @@ function parseTableData(table) {
         suitable:   val(COL.SUITABLE).toLowerCase(),
         stock:      val(COL.STOCK) || 'In Stock',
         boost:      val(COL.BOOST),
-        material:   val(COL.MATERIAL),
-        image:      val(COL.IMAGE),
-        image2:     val(COL.IMAGE2),
+        printLocation: val(COL.PRINT_LOCATION),
+        material:      val(COL.MATERIAL),
+        image:         val(COL.IMAGE),
+        image2:        val(COL.IMAGE2),
         colour:     val(COL.COLOUR),
         design,
         units:      numVal(COL.UNITS) || 1,  // max qty customer can add to cart
