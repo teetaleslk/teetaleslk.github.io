@@ -1229,6 +1229,20 @@ function cartEffPrice(i, bulkOn) { return (bulkOn ? bulkPriceOf(i) : null) ?? i.
 function cartSingleTotal(cart) { return cart.reduce((s, i) => s + (i.price || 0) * i.qty, 0); }
 function cartOrgTotal(cart)    { return cart.reduce((s, i) => s + ((i.org || i.strike || i.price || 0)) * i.qty, 0); }  // anchor total
 
+/* One price line for a cart item: ~~Org~~ price + DISCOUNT/BULK tag + percent off.
+   <5: ~~Org~~ DC [DISCOUNT] −9%  ·  ≥5: ~~Org~~ Bulk [BULK] −14%  ·  no cut: plain Org */
+function cartItemPriceHtml(item, bulk) {
+  const anchor = item.org || item.strike;
+  const shown  = bulk ?? item.price;
+  if (!shown) return '';
+  const hasCut = anchor && anchor > shown;
+  const strike = hasCut ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ` : '';
+  const tag    = bulk   ? `<span class="cart-bulk-tag">BULK</span>`
+               : hasCut ? `<span class="cart-bulk-tag cart-disc-tag">DISCOUNT</span>` : '';
+  const pct    = hasCut ? ` <span class="cart-pct">−${Math.round((anchor - shown) / anchor * 100)}%</span>` : '';
+  return `${strike}${CONFIG.CURRENCY} ${formatNum(shown)} ${tag}${pct}`;
+}
+
 function cartTotal() {
   const cart = cartGet(), bulkOn = cartBulkActive(cart);
   return cart.reduce((s, i) => s + cartEffPrice(i, bulkOn) * i.qty, 0);
@@ -1334,14 +1348,8 @@ function renderCartDrawer() {
   body.innerHTML = bulkHtml + cart.map(item => {
     const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
     const design = item.design?.[0] || '';
-    const bulk   = bulkOn ? bulkPriceOf(item) : null;
-    const anchor = item.org || item.strike;   // ORIGINAL price — the consistent anchor at every stage
-    /* <5 units: ~~Org~~ DC (discounted) or plain Org · ≥5: ~~Org~~ Bulk — anchor never changes */
-    const strikeHtml = anchor && anchor > (bulk ?? item.price)
-      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ` : '';
-    const price = bulk
-      ? `${strikeHtml}${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
-      : (item.price ? `${strikeHtml}${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
+    const bulk  = bulkOn ? bulkPriceOf(item) : null;
+    const price = cartItemPriceHtml(item, bulk);
     return `
     <div class="cart-item">
       <img class="cart-item-img" src="${escHtml(repoImg(item.id, ''))}" alt=""
@@ -1410,14 +1418,9 @@ function renderCartPage() {
   const rows = cart.map(item => {
     const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
     const design = item.design?.[0] || '';
-    const bulk   = bulkOn ? bulkPriceOf(item) : null;
-    const eff    = cartEffPrice(item, bulkOn);
-    const anchor = item.org || item.strike;   // ORIGINAL price — the consistent anchor at every stage
-    const strikeHtml = anchor && anchor > (bulk ?? item.price)
-      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ` : '';
-    const priceHtml = bulk
-      ? `${strikeHtml}${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
-      : (item.price ? `${strikeHtml}${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
+    const bulk      = bulkOn ? bulkPriceOf(item) : null;
+    const eff       = cartEffPrice(item, bulkOn);
+    const priceHtml = cartItemPriceHtml(item, bulk);
     return `
     <div class="cart-page-item">
       <a href="product.html?id=${encodeURIComponent(item.id)}">
@@ -1451,7 +1454,7 @@ function renderCartPage() {
     <div class="cart-page-list">${rows}</div>
     <div class="cart-page-summary">
       <div class="cart-summary-row"><span>Items (${n})</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
-      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>${bulkOn ? 'Bulk savings' : 'Discount'}</span><span>− ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
+      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>${bulkOn ? 'Bulk savings' : 'Discount'}</span><span>− ${CONFIG.CURRENCY} ${formatNum(saved)} (${Math.round(saved / orgTot * 100)}%)</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
