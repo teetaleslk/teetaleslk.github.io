@@ -1454,7 +1454,7 @@ function renderCartPage() {
     <div class="cart-page-list">${rows}</div>
     <div class="cart-page-summary">
       <div class="cart-summary-row"><span>Items (${n})</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
-      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>${bulkOn ? 'Bulk savings' : 'Discount'}</span><span>− ${CONFIG.CURRENCY} ${formatNum(saved)} (${Math.round(saved / orgTot * 100)}%)</span></div>` : ''}
+      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>${bulkOn ? 'Bulk savings' : 'Discount'}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
