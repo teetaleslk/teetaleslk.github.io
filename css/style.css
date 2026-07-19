@@ -161,6 +161,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cart-item-meta  { font-size: .74rem; color: var(--text-muted); margin: 2px 0; }
 .cart-item-id    { font-size: .7rem; color: var(--mid-gray); font-family: monospace; }
 .cart-item-price { font-weight: 700; color: var(--accent); margin-top: 4px; font-size: .85rem; }
+/* Footer privacy promise */
+.privacy-promise { font-size: .78rem; color: var(--text-muted); max-width: 640px; margin: 0 auto 8px; line-height: 1.5; }
+
 /* Cart item thumbnails (drawer) */
 .cart-item-img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; border: 1px solid var(--border); }
 .cart-view-full { display: block; text-align: center; margin-top: 10px; font-size: .85rem; color: var(--primary); font-weight: 600; text-decoration: none; }
