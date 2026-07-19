@@ -1036,7 +1036,10 @@ async function initProduct() {
       `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock)} ${audBadge}`;
 
     /* Title */
-    document.getElementById('pdTitle').textContent = p.type;
+    /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
+    document.getElementById('pdTitle').textContent = p.design?.[0]
+      ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ')
+      : p.type;
 
     /* Price */
     let priceHtml = '';
