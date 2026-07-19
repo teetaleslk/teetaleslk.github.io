@@ -1236,11 +1236,11 @@ function cartItemPriceHtml(item, bulk) {
   const shown  = bulk ?? item.price;
   if (!shown) return '';
   const hasCut = anchor && anchor > shown;
-  const strike = hasCut ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ` : '';
-  const tag    = bulk   ? `<span class="cart-bulk-tag">BULK</span>`
-               : hasCut ? `<span class="cart-bulk-tag cart-disc-tag">DISCOUNT</span>` : '';
-  const pct    = hasCut ? ` <span class="cart-pct">−${Math.round((anchor - shown) / anchor * 100)}%</span>` : '';
-  return `${strike}${CONFIG.CURRENCY} ${formatNum(shown)} ${tag}${pct}`;
+  const now    = `<span class="cart-price-now">${CONFIG.CURRENCY} ${formatNum(shown)}</span>`;
+  const strike = hasCut ? ` <span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span>` : '';
+  const pct    = hasCut ? ` <span class="cart-pct-chip">-${Math.round((anchor - shown) / anchor * 100)}%</span>` : '';
+  const tag    = bulk   ? ` <span class="cart-bulk-tag">BULK</span>` : '';
+  return `${now}${strike}${pct}${tag}`;
 }
 
 function cartTotal() {
@@ -1453,9 +1453,9 @@ function renderCartPage() {
     ${bulkHtml}
     <div class="cart-page-list">${rows}</div>
     <div class="cart-page-summary">
-      <div class="cart-summary-row"><span>Items (${n})</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
-      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>${bulkOn ? 'Bulk savings' : 'Discount'}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
-      <div class="cart-summary-row cart-summary-total"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
+      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
+      <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp

@@ -199,9 +199,12 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 /* Bulk pricing UI */
 .cart-price-strike { text-decoration: line-through; color: var(--text-muted); font-weight: 500; margin-right: 2px; }
 .cart-bulk-tag { background: #16a34a; color: #fff; font-size: .6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; vertical-align: middle; letter-spacing: .5px; }
-.cart-disc-tag { background: var(--accent); }
-.cart-pct { color: #16a34a; font-size: .72rem; font-weight: 800; }
+/* SHEIN-style price presentation */
+.cart-price-now { color: #fa6338; font-weight: 800; font-size: .95rem; }
+.cart-pct-chip { background: #ffece5; color: #fa6338; font-size: .68rem; font-weight: 700; padding: 1px 5px; border-radius: 3px; vertical-align: middle; }
 .cart-pct-label { background: var(--accent); color: #fff; font-size: .68rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; margin-right: 6px; letter-spacing: .3px; vertical-align: middle; }
+.cart-summary-save { color: #fa6338; font-weight: 700; }
+.cart-total-now { color: #fa6338; font-size: 1.15rem; font-weight: 800; }
 .cart-bulk-banner { background: #dcfce7; border: 1px solid #16a34a; color: #14532d; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; font-size: .85rem; }
 .cart-bulk-nudge  { background: #fef9c3; border: 1px solid var(--gold); color: #713f12; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 12px; font-size: .85rem; }
 .pd-bulk-note { background: #f0fdf4; border: 1px dashed #16a34a; color: #14532d; border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 10px; font-size: .82rem; line-height: 1.5; }
