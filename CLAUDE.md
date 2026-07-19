@@ -20,23 +20,29 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 | `index.html` | Homepage — hero, offers, category grid, collection preview, "More Ways to Shop" |
 | `shop.html` | Full catalogue — URL filtering, badges, dynamic filters |
 | `product.html` | Product detail — full info, qty selector, "You May Also Like" |
+| `cart.html` | Full cart page — images, qty, bulk pricing, WA order |
 | `js/main.js` | All JS — GViz fetch, parsers, renderers, cart, WA message builder |
 | `css/style.css` | All styles — mobile-first, CSS variables at top |
 | `IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
 
 ---
 
-## GOOGLE SHEET — WebStock tab (17 columns A–Q)
+## GOOGLE SHEET — WebStock tab (16 columns A–P, updated 2026-07-19)
 
 ```
 A(0)  ITEM_ID       B(1)  TYPE          C(2)  CATEGORY (TeeCategory)
-D(3)  SIZE          E(4)  PRINT_SIZE    F(5)  STRIKE (STPrice — original)
-G(6)  PRICE (DCPrice — sale)            H(7)  AGE_GRP
-I(8)  SUITABLE      J(9)  STOCK         K(10) UNITS
-L(11) BOOST STATUS  M(12) COLOUR        N(13) DESIGN (Sticker/Image name)
-O(14) PRINT_LOCATION  P(15) MATERIAL    Q(16) IMAGE1        R(17) IMAGE2
-S(18) COLOR_GROUP   ← Phase 16, not yet added
+D(3)  SIZE          E(4)  PRINT_SIZE    F(5)  DISCOUNTED (Yes/No)
+G(6)  ORG_PRICE     H(7)  DC_PRICE      I(8)  AGE_GRP
+J(9)  SUITABLE      K(10) STOCK         L(11) UNITS
+M(12) BOOST STATUS (incl. "Stock Clearance")  N(13) COLOUR
+O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 ```
+
+**Price logic:** Discounted=Yes → sell DCPrice, OrgPrice struck · No → sell OrgPrice, no strike.
+**Bulk price:** OrgPrice − 151, auto-applied at 5+ cart units (Pricing Strategy formula).
+**Images:** repo files `img/products/<last 5 digits of ItemID>.jpg` (+`A` = Image2). Extensions jpg/jpeg/png/webp auto-tried. No sheet columns.
+**Material:** always "Single Jersey" (hardcoded, no column).
+**COLOR_GROUP** (Phase 16): would be Q(16) when added.
 
 **Other sheet tabs:** OtherImg (category card photos), Offers
 

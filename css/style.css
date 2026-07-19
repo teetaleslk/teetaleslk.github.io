@@ -161,6 +161,33 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cart-item-meta  { font-size: .74rem; color: var(--text-muted); margin: 2px 0; }
 .cart-item-id    { font-size: .7rem; color: var(--mid-gray); font-family: monospace; }
 .cart-item-price { font-weight: 700; color: var(--accent); margin-top: 4px; font-size: .85rem; }
+/* Cart item thumbnails (drawer) */
+.cart-item-img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; border: 1px solid var(--border); }
+.cart-view-full { display: block; text-align: center; margin-top: 10px; font-size: .85rem; color: var(--primary); font-weight: 600; text-decoration: none; }
+.cart-view-full:hover { color: var(--accent); }
+
+/* Cart page (cart.html) */
+.cart-page-item { display: flex; gap: 14px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.cart-page-img { width: 90px; height: 90px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.cart-page-item .cart-item-info { flex: 1; }
+.cart-page-item .cart-item-name a { color: var(--text); text-decoration: none; font-weight: 700; }
+.cart-page-item .cart-item-name a:hover { color: var(--accent); }
+.cart-page-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.cart-line-total { font-weight: 800; color: var(--primary); }
+.cart-page-item .cart-item-remove { font-size: .75rem; }
+.cart-page-summary { max-width: 420px; margin: 24px 0 0 auto; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
+.cart-summary-row { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 8px; }
+.cart-summary-save { color: #16a34a; font-weight: 700; }
+.cart-summary-total { font-size: 1.05rem; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
+.cart-summary-note { font-size: .75rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
+.cart-page-actions { margin-top: 24px; }
+.cart-trust-strip { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 28px; padding: 14px 18px; background: var(--off-white); border-radius: var(--radius-sm); font-size: .82rem; color: var(--text-muted); }
+.cart-page-empty { padding: 60px 0; text-align: center; }
+@media (max-width: 560px) {
+  .cart-page-img { width: 64px; height: 64px; }
+  .cart-page-summary { max-width: none; }
+}
+
 /* Bulk pricing UI */
 .cart-price-strike { text-decoration: line-through; color: var(--text-muted); font-weight: 500; margin-right: 2px; }
 .cart-bulk-tag { background: #16a34a; color: #fff; font-size: .6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; vertical-align: middle; letter-spacing: .5px; }
@@ -620,6 +647,7 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .badge-trending   { background: #c0392b;         color: var(--white); }
 .badge-hot        { background: linear-gradient(135deg, #e85d04, #dc2f02); color: var(--white); }
 .badge-new        { background: #1a7a5e;         color: var(--white); }
+.badge-clearance  { background: #b91c1c;         color: var(--white); }
 .badge-audience   { background: #3730a3; color: var(--white); } /* default fallback */
 /* Kids — pastel */
 [data-audience="Boys' Tee"]  .badge-audience { background: #bfdbfe; color: #1d4ed8; }

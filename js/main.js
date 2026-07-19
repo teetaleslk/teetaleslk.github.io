@@ -42,13 +42,15 @@ const CONFIG = {
 };
 
 /*
-  Column index map — matches WebStock sheet headers (A–Q, 17 cols):
+  Column index map — matches WebStock sheet headers (A–P, 16 cols, updated 2026-07-19):
   A(0): ItemID     | B(1): Type       | C(2): TeeCategory
-  D(3): Size       | E(4): PrintSize  | F(5): STPrice
-  G(6): DCPrice    | H(7): Age Grp    | I(8): Suitable for
-  J(9): Stock Status | K(10): Units   | L(11): Boost Status
-  M(12): Colour    | N(13): Sticker/Image (Design Name) | O(14): Material
-  P(15): Image1    | Q(16): Image2
+  D(3): Size       | E(4): PrintSize  | F(5): Discounted (Yes/No)
+  G(6): OrgPrice   | H(7): DCPrice    | I(8): Age Grp
+  J(9): Suitable for | K(10): Stock Status | L(11): Units
+  M(12): Boost Status | N(13): Colour | O(14): Sticker/Image (Design Name)
+  P(15): Print Location
+  Images come from the repo (img/products/<last5>.jpg) — no sheet columns.
+  Material is always "Single Jersey" — no sheet column.
 */
 const COL = {
   ITEM_ID:    0,
@@ -56,20 +58,19 @@ const COL = {
   CATEGORY:   2,  // C: TeeCategory (e.g. "Round Neck", "Polo")
   SIZE:       3,  // D: Size
   PRINT_SIZE: 4,  // E: PrintSize
-  STRIKE:     5,  // F: STPrice  (strikethrough / original price)
-  PRICE:      6,  // G: DCPrice  (discounted / sale price)
-  AGE_GRP:    7,  // H: Age Grp
-  SUITABLE:   8,  // I: Suitable for  ("Ladies", "Gents", "Unisex")
-  STOCK:      9,  // J: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
-  UNITS:     10,  // K: Units  — how many physical pieces available (default 1 if blank)
-  BOOST:     11,  // L: Boost Status  ("New", "Hot", "Trending", "Best Seller"…)
-  COLOUR:         12,  // M: Colour
-  DESIGN:         13,  // N: Sticker/Image — design name
-  PRINT_LOCATION: 14,  // O: Print Location (e.g. "Front", "Back", "Left Chest")
-  MATERIAL:       15,  // P: Material (e.g. "100% Cotton")
-  IMAGE:          16,  // Q: Image1 — primary product photo (Google Drive share link)
-  IMAGE2:         17,  // R: Image2 — second photo (optional)
+  DISCOUNTED: 5,  // F: "Yes" = DCPrice applies (OrgPrice struck) · "No" = sell at OrgPrice
+  ORG_PRICE:  6,  // G: OrgPrice — original/anchor price
+  DC_PRICE:   7,  // H: DCPrice  — discounted price (used only when Discounted = Yes)
+  AGE_GRP:    8,  // I: Age Grp
+  SUITABLE:   9,  // J: Suitable for  ("Ladies", "Gents", "Unisex")
+  STOCK:     10,  // K: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
+  UNITS:     11,  // L: Units  — how many physical pieces available (default 1 if blank)
+  BOOST:     12,  // M: Boost Status  ("New", "Hot", "Trending", "Stock Clearance"…)
+  COLOUR:         13,  // N: Colour
+  DESIGN:         14,  // O: Sticker/Image — design name
+  PRINT_LOCATION: 15,  // P: Print Location (e.g. "Front", "Back", "Left Chest")
 };
+const MATERIAL_DEFAULT = 'Single Jersey';
 
 /* ── PRODUCT MAP — populated by parseTableData, used by cart ── */
 const _ttProdMap = {};  // id → product object
@@ -153,25 +154,30 @@ function parseTableData(table) {
         ? rawDesign.split(',').map(t => t.trim()).filter(Boolean)
         : [];
 
+      /* Price logic (2026-07-19): Discounted=Yes → sell at DCPrice, OrgPrice struck.
+         Discounted=No → sell at OrgPrice, no strike-through. */
+      const discounted = val(COL.DISCOUNTED).toLowerCase().startsWith('y');
+      const orgPrice   = numVal(COL.ORG_PRICE);
+      const dcPrice    = numVal(COL.DC_PRICE);
+
       const product = {
         id:         itemId || `item-${idx + 1}`,
         type:       type   || 'T-Shirt',
         category:   val(COL.CATEGORY),
         size:       val(COL.SIZE),
         printSize:  val(COL.PRINT_SIZE),
-        strike:     numVal(COL.STRIKE),
-        price:      numVal(COL.PRICE),
+        org:        orgPrice,                                        // bulk-price base
+        price:      (discounted && dcPrice) ? dcPrice : orgPrice,    // selling price
+        strike:     (discounted && dcPrice && orgPrice > dcPrice) ? orgPrice : null,
         ageGrp:     val(COL.AGE_GRP).toLowerCase(),
         suitable:   val(COL.SUITABLE).toLowerCase(),
         stock:      val(COL.STOCK) || 'In Stock',
         boost:      val(COL.BOOST),
         printLocation: val(COL.PRINT_LOCATION),
-        material:      val(COL.MATERIAL),
-        /* Images: sheet link wins; if blank, auto-fallback to repo file
-           img/products/<trailing digits of ItemID>.jpg  (+ 'A' for Image2)
-           e.g. ItemID …00001 → img/products/00001.jpg & 00001A.jpg       */
-        image:         val(COL.IMAGE)  || repoImg(itemId, ''),
-        image2:        val(COL.IMAGE2) || repoImg(itemId, 'A'),
+        material:      MATERIAL_DEFAULT,
+        /* Images always from repo: img/products/<last 5 digits of ItemID>.jpg (+A) */
+        image:         repoImg(itemId, ''),
+        image2:        repoImg(itemId, 'A'),
         colour:     val(COL.COLOUR),
         design,
         units:      numVal(COL.UNITS) || 1,  // max qty customer can add to cart
@@ -499,6 +505,7 @@ function getBoostBadgeHtml(boostStatus) {
   if (b.includes('best seller') || b.includes('bestseller'))
                                  return `<span class="badge badge-trending">⭐ Best Seller</span>`;
   if (b.includes('featured'))    return `<span class="badge badge-new">Featured</span>`;
+  if (b.includes('clearance'))   return `<span class="badge badge-clearance">💥 Stock Clearance</span>`;
   return '';
 }
 
@@ -991,7 +998,7 @@ async function initProduct() {
       priceHtml = `<span class="pd-price-ask">Contact us for price</span>`;
     }
     // Bulk promo (TBOS spec): show the exact bulk price when the formula applies
-    const pdBulk = (p.strike && p.price && p.strike - 151 < p.price) ? p.strike - 151 : null;
+    const pdBulk = (p.org && p.price && p.org - 151 < p.price) ? p.org - 151 : null;
     priceHtml += `<div class="pd-bulk-note">👨‍👩‍👧‍👦 Buying for a family or group? <strong>5+ tees switch to bulk prices automatically</strong>${pdBulk ? ` — this tee just <strong>${CONFIG.CURRENCY} ${formatNum(pdBulk)}</strong> each` : ''}. Mix any sizes & designs!</div>`;
     document.getElementById('pdPrice').innerHTML = priceHtml;
 
@@ -1126,7 +1133,7 @@ function cartAdd(p, qty = 1) {
   } else {
     cart.push({ id: p.id, type: p.type, ageGrp: p.ageGrp, colour: p.colour,
                 design: p.design, size: p.size, price: p.price ?? p.strike,
-                strike: p.strike, units: p.units, qty: Math.min(qty, p.units) });
+                strike: p.strike, org: p.org, units: p.units, qty: Math.min(qty, p.units) });
   }
   cartSave(cart);
   cartToast();
@@ -1139,12 +1146,18 @@ function cartUpdateQty(id, delta) {
   item.qty = Math.max(0, Math.min(item.qty + delta, item.units));
   if (item.qty === 0) cart.splice(cart.indexOf(item), 1);
   cartSave(cart);
-  renderCartDrawer();
+  refreshCartViews();
 }
 window.cartUpdateQty = cartUpdateQty;
 
-function cartRemove(id) { cartSave(cartGet().filter(i => i.id !== id)); renderCartDrawer(); }
+function cartRemove(id) { cartSave(cartGet().filter(i => i.id !== id)); refreshCartViews(); }
 window.cartRemove = cartRemove;
+
+/* Re-render whichever cart views exist (drawer always; cart.html page if present) */
+function refreshCartViews() {
+  renderCartDrawer();
+  if (document.getElementById('cartPage')) renderCartPage();
+}
 
 function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
 
@@ -1152,7 +1165,8 @@ function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
    BulkDC = STPrice − 151 (Pricing Strategy formula — holds across the whole Price List) */
 const BULK_MIN = 5;
 function bulkPriceOf(i) {
-  const b = i.strike ? i.strike - 151 : null;
+  const base = i.org || i.strike;            // OrgPrice (fallback: legacy strike)
+  const b = base ? base - 151 : null;        // BulkDC = OrgPrice − 151 (Pricing Strategy)
   return (b && i.price && b < i.price) ? b : null;   // only if it's a real saving
 }
 function cartBulkActive(cart) { return (cart || cartGet()).reduce((s, i) => s + i.qty, 0) >= BULK_MIN; }
@@ -1270,6 +1284,8 @@ function renderCartDrawer() {
       : (item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
     return `
     <div class="cart-item">
+      <img class="cart-item-img" src="${escHtml(repoImg(item.id, ''))}" alt=""
+           loading="lazy" onerror="ttImgErr(this,'remove')" />
       <div class="cart-item-info">
         <div class="cart-item-name">${escHtml(item.type)}</div>
         <div class="cart-item-meta">${escHtml(age)} · ${escHtml(item.colour)} · ${escHtml(design)} · ${escHtml(item.size)}</div>
@@ -1292,8 +1308,92 @@ function renderCartDrawer() {
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
-      </a>`;
+      </a>
+      <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
   }
+}
+
+/* ── CART PAGE (cart.html) — full-page version of the drawer ── */
+function renderCartPage() {
+  const el = document.getElementById('cartPage');
+  if (!el) return;
+  const cart = cartGet();
+  if (!cart.length) {
+    el.innerHTML = `<div class="cart-empty cart-page-empty"><div class="cart-empty-icon">🛒</div>
+      <p>Your cart is empty</p>
+      <a href="shop.html" class="btn btn-primary" style="margin-top:16px;display:inline-block">Browse Tees</a></div>`;
+    return;
+  }
+  const bulkOn = cartBulkActive(cart);
+  const n = cart.reduce((s, i) => s + i.qty, 0);
+
+  /* Bulk banner / nudge — same logic as drawer */
+  let bulkHtml = '';
+  const singleTot = cartSingleTotal(cart);
+  if (bulkOn) {
+    const saved = singleTot - cartTotal();
+    if (saved > 0) {
+      const pct = Math.round(saved / singleTot * 100);
+      bulkHtml = `<div class="cart-bulk-banner">🎉 <strong>Bulk price unlocked!</strong> You're saving ${CONFIG.CURRENCY} ${formatNum(saved)} (${pct}% off) on this order</div>`;
+    }
+  } else if (n >= 3) {
+    const need = BULK_MIN - n;
+    const savedIfBulk = cart.reduce((s, i) => {
+      const b = bulkPriceOf(i); return s + (b ? (i.price - b) * i.qty : 0);
+    }, 0);
+    if (savedIfBulk > 0) {
+      const pct = Math.round(savedIfBulk / singleTot * 100);
+      bulkHtml = `<div class="cart-bulk-nudge">💡 Add <strong>${need} more tee${need > 1 ? 's' : ''}</strong> (any size or design) & <strong>Bulk Price unlocks on ALL ${BULK_MIN}</strong> — that's ~${pct}% off every tee already in your cart!</div>`;
+    }
+  }
+
+  const rows = cart.map(item => {
+    const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
+    const design = item.design?.[0] || '';
+    const bulk   = bulkOn ? bulkPriceOf(item) : null;
+    const eff    = cartEffPrice(item, bulkOn);
+    const priceHtml = bulk
+      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(item.price)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
+      : (item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
+    return `
+    <div class="cart-page-item">
+      <a href="product.html?id=${encodeURIComponent(item.id)}">
+        <img class="cart-page-img" src="${escHtml(repoImg(item.id, ''))}" alt="${escHtml(item.type)}"
+             loading="lazy" onerror="ttImgErr(this,'remove')" />
+      </a>
+      <div class="cart-item-info">
+        <div class="cart-item-name"><a href="product.html?id=${encodeURIComponent(item.id)}">${escHtml(item.type)}</a></div>
+        <div class="cart-item-meta">${escHtml(age)} · ${escHtml(item.colour)} · ${escHtml(design)} · ${escHtml(item.size)}</div>
+        <div class="cart-item-id">ID: ${escHtml(item.id)}</div>
+        <div class="cart-item-price">${priceHtml}</div>
+      </div>
+      <div class="cart-page-right">
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',1)"
+            ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
+        </div>
+        <div class="cart-line-total">${CONFIG.CURRENCY} ${formatNum(eff * item.qty)}</div>
+        <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')" title="Remove">✕ Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const saved = singleTot - cartTotal();
+  el.innerHTML = `
+    ${bulkHtml}
+    <div class="cart-page-list">${rows}</div>
+    <div class="cart-page-summary">
+      <div class="cart-summary-row"><span>Items (${n})</span><span>${CONFIG.CURRENCY} ${formatNum(singleTot)}</span></div>
+      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Bulk savings</span><span>− ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
+      <div class="cart-summary-row cart-summary-total"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+        <i class="fab fa-whatsapp"></i> Order via WhatsApp
+      </a>
+      <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you. 😊</p>
+    </div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1377,5 +1477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initShop();
   } else if (document.getElementById('pdContent')) {
     initProduct();
+  } else if (document.getElementById('cartPage')) {
+    renderCartPage();
   }
 });
