@@ -397,11 +397,32 @@ function buildColourFilter(products) {
    ItemID …00001 → 00001.jpg (Image1) / 00001A.jpg (Image2)
    Workflow: drop renamed .jpg files in img/products/, push — done.
    Missing files fall back to the "Photo coming soon" placeholder via onerror. */
-function repoImg(itemId, suffix) {
+function repoImgBase(itemId, suffix) {
   // Rule: LAST 5 characters of ItemID are always digits = the image number
-  // e.g. KP2XLU00001 → 00001 → img/products/00001.jpg (+A for Image2)
+  // e.g. KP2XLU00001 → 00001 → img/products/00001.jpg
+  // Extra views: 00001A, 00001B … 00001Z (sequential — stop at first gap)
   const m = String(itemId || '').trim().match(/(\d{5})$/);
-  return m ? `img/products/${m[1]}${suffix}.jpg` : '';
+  return m ? `img/products/${m[1]}${suffix}` : '';
+}
+function repoImg(itemId, suffix) {
+  const b = repoImgBase(itemId, suffix);
+  return b ? `${b}.jpg` : '';
+}
+
+/* Probe a repo image (no extension) across IMG_EXTS; call onFound(url) with
+   the first extension that actually loads. Silent if none exist. */
+function probeImg(base, onFound) {
+  if (!base) return;
+  let i = 0;
+  const tryNext = () => {
+    if (i >= IMG_EXTS.length) return;
+    const url = `${base}.${IMG_EXTS[i++]}`;
+    const im = new Image();
+    im.onload  = () => onFound(url);
+    im.onerror = tryNext;
+    im.src = url;
+  };
+  tryNext();
 }
 
 /* onerror handler with extension cascade for repo images:
@@ -767,11 +788,16 @@ async function fetchOtherImages() {
 
 async function initHome() {
   renderOffers();
-  // Load category card photos from OtherImg sheet and apply as background images
+  /* Category card photos — repo file wins, OtherImg sheet is the fallback.
+     Repo naming: img/categories/<data-img-id>.jpg (any ext), e.g.
+     img/categories/ForLadiesCategory.jpg — just drop the file & push. */
   fetchOtherImages().then(map => {
     document.querySelectorAll('[data-img-id]').forEach(el => {
-      const url = map[el.dataset.imgId];
-      if (url) el.style.backgroundImage = `url('${url}')`;  // overrides the CSS gradient fallback
+      const sheetUrl = map[el.dataset.imgId];
+      if (sheetUrl) el.style.backgroundImage = `url('${sheetUrl}')`;  // sheet fallback (legacy)
+      probeImg(`img/categories/${el.dataset.imgId}`, url => {
+        el.style.backgroundImage = `url('${url}')`;                   // repo image overrides
+      });
     });
   });
 
@@ -958,20 +984,49 @@ async function initProduct() {
              onerror="ttImgErr(this,'<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>')" />`
       : `<div class="pd-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
-    /* Image 2 thumbnail */
-    if (img2Url) {
+    /* Extra image thumbnails: <num>A … <num>Z — sequential, stops at first missing.
+       Add as many views as you like: 00001A.jpg, 00001B.jpg, 00001C.jpg … */
+    {
       const thumbEl = document.getElementById('pdThumbRow');
-      const thumb   = document.createElement('img');
-      thumb.src       = img2Url;
-      thumb.alt       = `${p.type} — view 2`;
-      thumb.className = 'pd-thumb';
-      thumb.onerror   = () => ttImgErr(thumb, 'remove');
-      thumb.addEventListener('click', () => {
-        const main = document.getElementById('pdMainImgTag');
-        if (main) main.src = thumb.src;   // use whichever extension resolved
+      const makeThumb = (url, label) => {
+        const thumb = document.createElement('img');
+        thumb.src = url;
+        thumb.alt = `${p.type} — ${label}`;
+        thumb.className = 'pd-thumb';
+        thumb.addEventListener('click', () => {
+          const main = document.getElementById('pdMainImgTag');
+          if (main) main.src = url;
+          thumbEl.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('active'));
+          thumb.classList.add('active');
+        });
+        thumbEl.appendChild(thumb);
+        return thumb;
+      };
+      const addThumb = (letterIdx) => {
+        if (letterIdx >= 26 || !thumbEl) return;
+        const suffix = String.fromCharCode(65 + letterIdx); // A, B, C …
+        probeImg(repoImgBase(p.id, suffix), url => {
+          makeThumb(url, `view ${letterIdx + 2}`);
+          addThumb(letterIdx + 1);   // found → try the next letter
+        });
+      };
+      /* Main image first (highlighted), then extra views A, B, C … */
+      probeImg(repoImgBase(p.id, ''), url => {
+        makeThumb(url, 'main view').classList.add('active');
       });
-      thumbEl.appendChild(thumb);
+      if (thumbEl) addThumb(0);
     }
+
+    /* Size guide image by product type: img/sizeguide/kids.jpg / adults.jpg
+       (any extension — jpg/jpeg/png/webp). Shown only if the file exists. */
+    probeImg(`img/sizeguide/${(p.type || '').trim().toLowerCase()}`, url => {
+      const sg = document.getElementById('pdSizeGuide');
+      if (sg) sg.innerHTML = `
+        <details class="pd-sizeguide">
+          <summary>📏 Size Guide — tap to view</summary>
+          <img src="${url}" alt="Size guide" loading="lazy" />
+        </details>`;
+    });
 
     /* Badges */
     const audience = getAudienceLabel(p.ageGrp, p.suitable);
