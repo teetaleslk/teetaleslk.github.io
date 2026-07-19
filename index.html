@@ -46,7 +46,9 @@
     <ul class="nav-links" id="navLinks">
       <li><a href="#home"    class="nav-link nav-link-home" aria-label="Home" title="Home"><i class="fas fa-home"></i></a></li>
       <li><a href="shop.html" class="nav-link" data-i18n="Shop">Shop</a></li>
-      <li><a href="#offersSection" class="nav-link nav-link-offers">Deals 🔥</a></li>
+      <li><a href="shop.html?boost=new" class="nav-link">New In</a></li>
+      <li><a href="shop.html?boost=hot" class="nav-link nav-link-offers">Deals 🔥</a></li>
+      <li><a href="shop.html?age=kids" class="nav-link">Kids</a></li>
       <li><a href="#ways"    class="nav-link" data-i18n="More Ways">More Ways</a></li>
       <li><a href="#social"  class="nav-link" data-i18n="Gallery">Gallery</a></li>
       <li><a href="#about"   class="nav-link" data-i18n="About">About</a></li>
@@ -88,7 +90,9 @@
   <div class="mobile-menu" id="mobileMenu">
     <a href="#home"    class="mobile-link" onclick="closeMobileMenu()" aria-label="Home" title="Home"><i class="fas fa-home"></i> Home</a>
     <a href="shop.html" class="mobile-link" data-i18n="Shop">Shop</a>
-    <a href="#offersSection" class="mobile-link" onclick="closeMobileMenu()">Deals 🔥</a>
+    <a href="shop.html?boost=new" class="mobile-link">New In</a>
+    <a href="shop.html?boost=hot" class="mobile-link" onclick="closeMobileMenu()">Deals 🔥</a>
+    <a href="shop.html?age=kids" class="mobile-link">Kids</a>
     <a href="#ways"    class="mobile-link" onclick="closeMobileMenu()" data-i18n="More Ways">More Ways</a>
     <a href="#about"   class="mobile-link" onclick="closeMobileMenu()" data-i18n="About">About</a>
     <a href="#contact" class="mobile-link" onclick="closeMobileMenu()" data-i18n="Contact">Contact</a>
@@ -268,6 +272,28 @@
 <!-- ═══════════════════════════════════════════════════════
      COLLECTION PREVIEW — live 4+4 from Google Sheets
 ════════════════════════════════════════════════════════ -->
+<!-- ═══ NEW ARRIVALS STRIP (4.4) — filled by main.js, hidden when empty ═══ -->
+<section class="strip-section" id="newArrivalsSection" style="display:none">
+  <div class="container">
+    <div class="strip-head">
+      <h2 class="section-title">🏷️ New Arrivals</h2>
+      <a href="shop.html?boost=new" class="strip-see-all">See All →</a>
+    </div>
+    <div class="h-strip" id="newArrivalsStrip"></div>
+  </div>
+</section>
+
+<!-- ═══ HOT DEALS STRIP (4.5) — filled by main.js, hidden when empty ═══ -->
+<section class="strip-section" id="hotDealsSection" style="display:none">
+  <div class="container">
+    <div class="strip-head">
+      <h2 class="section-title">🔥 Hot Deals</h2>
+      <a href="shop.html?boost=hot" class="strip-see-all">See All →</a>
+    </div>
+    <div class="h-strip" id="hotDealsStrip"></div>
+  </div>
+</section>
+
 <section class="collection-preview" id="shop">
   <div class="container">
 

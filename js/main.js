@@ -81,6 +81,9 @@ let activeAge     = 'all';
 let activeGender  = 'all';
 let activeTag     = 'all';
 let activeColour  = 'all';
+let activeSize    = 'all';
+let activeBoost   = 'all';      // 'all' | 'new' | 'hot'  (?boost= URL param)
+let activeSort    = 'featured'; // 'featured' | 'newest' | 'price-asc' | 'price-desc'
 let searchQuery   = '';
 
 /* ── DOM REFS ───────────────────────────────────────────────── */
@@ -639,7 +642,7 @@ function createProductCard(p) {
       <div class="card-wa-hover">${cartBtn}</div>
     </div>
     <div class="card-info">
-      <div class="card-type">${escHtml(p.type)}</div>
+      <div class="card-type">${escHtml((p.design?.[0] ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ') : p.type) + (p.size ? ` (${p.size})` : ''))}</div>
       ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
       ${priceHtml}
       ${metaBar}
@@ -694,6 +697,10 @@ function applyFilters() {
   }
   if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
   if (activeColour !== 'all') f = f.filter(p => p.colour.toLowerCase().includes(activeColour));
+  if (activeSize   !== 'all') f = f.filter(p => (p.size || '').toLowerCase() === activeSize);
+  if (activeBoost === 'new')  f = f.filter(p => (p.boost || '').toLowerCase().includes('new'));
+  else if (activeBoost === 'hot')
+    f = f.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike);
 
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
@@ -706,8 +713,13 @@ function applyFilters() {
     );
   }
 
-  // Sort: Almost Gone → In Stock → Sold Out
-  f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
+  // Sort (5.4): price sorts override; otherwise stock priority (Almost Gone → In Stock → Sold Out)
+  if      (activeSort === 'price-asc')  f = [...f].sort((a, b) => (a.price || 0) - (b.price || 0));
+  else if (activeSort === 'price-desc') f = [...f].sort((a, b) => (b.price || 0) - (a.price || 0));
+  else {
+    if (activeSort === 'newest') f = [...f].reverse();  // newest rows are added at the sheet bottom
+    f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
+  }
 
   renderProducts(f);
   updateFilterSummary();
@@ -720,6 +732,8 @@ function updateFilterSummary() {
   if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
   if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${activeTag}</span>`);
   if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
+  if (activeSize   !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-ruler"></i> Size ${activeSize.toUpperCase()}</span>`);
+  if (activeBoost  !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-fire"></i> ${activeBoost === 'new' ? 'New Arrivals' : 'Hot Deals'}</span>`);
   if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
   filterSummary.innerHTML = tags.join('');
 }
@@ -742,6 +756,17 @@ function injectExtraFilters() {
     bar.appendChild(tagGroup);
   }
 
+  if (!document.getElementById('sizeFilterGroup')) {
+    const sizeGroup = document.createElement('div');
+    sizeGroup.className = 'filter-group';
+    sizeGroup.id = 'sizeFilterGroup';
+    sizeGroup.style.display = 'none';
+    sizeGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-ruler"></i> Size</span>
+      <div class="filter-pills" id="sizeFilter"></div>`;
+    bar.appendChild(sizeGroup);
+  }
+
   if (!document.getElementById('colourFilterGroup')) {
     const colGroup = document.createElement('div');
     colGroup.className = 'filter-group';
@@ -752,6 +777,28 @@ function injectExtraFilters() {
       <div class="colour-filter-wrap" id="colourFilter"></div>`;
     bar.appendChild(colGroup);
   }
+}
+
+/* Size filter pills — sizes that actually exist in the data, S→3XL order */
+function buildSizeFilter(products) {
+  const order = ['xs','s','m','l','xl','2xl','3xl'];
+  const sizes = [...new Set(products.map(p => (p.size || '').toLowerCase()).filter(Boolean))]
+    .sort((a, b) => (order.indexOf(a) + 99 * (order.indexOf(a) < 0)) - (order.indexOf(b) + 99 * (order.indexOf(b) < 0)));
+  if (!sizes.length) return;
+  const group = document.getElementById('sizeFilterGroup');
+  const pills = document.getElementById('sizeFilter');
+  if (!group || !pills) return;
+  pills.innerHTML = `<button class="pill active" data-size="all">All</button>` +
+    sizes.map(sz => `<button class="pill" data-size="${sz}">${sz.toUpperCase()}</button>`).join('');
+  group.style.display = 'flex';
+  pills.addEventListener('click', (e) => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    pills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeSize = pill.dataset.size;
+    applyFilters();
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -807,6 +854,24 @@ async function initHome() {
 
   try {
     const products = await fetchProducts();
+
+    /* New Arrivals + Hot Deals horizontal strips (4.4 / 4.5) — hidden when empty */
+    const strip = (sectionId, gridId, items) => {
+      const sec  = document.getElementById(sectionId);
+      const grid = document.getElementById(gridId);
+      if (!sec || !grid) return;
+      if (!items.length) { sec.style.display = 'none'; return; }
+      sec.style.display = '';
+      const frag = document.createDocumentFragment();
+      items.slice(0, 10).forEach(p => frag.appendChild(createProductCard(p)));
+      grid.innerHTML = '';
+      grid.appendChild(frag);
+    };
+    const inStock = products.filter(p => !p.stock.toLowerCase().includes('out'));
+    strip('newArrivalsSection', 'newArrivalsStrip',
+      inStock.filter(p => (p.boost || '').toLowerCase().includes('new')).reverse());
+    strip('hotDealsSection', 'hotDealsStrip',
+      inStock.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike));
 
     // Show top 4 adults + top 4 kids on the home page preview
     // "Almost Gone" items bubble to the top (urgency tactic)
@@ -886,6 +951,17 @@ async function initShop() {
   const designParam = (params.get('design') || '').trim();
   if (designParam) activeTag = designParam;
 
+  // ?boost=new|hot — navbar "New In" / "Hot Deals" deep links (4.2 / 5.2)
+  const boostParam = (params.get('boost') || '').toLowerCase();
+  if (boostParam === 'new' || boostParam === 'hot') activeBoost = boostParam;
+
+  // Sort dropdown (5.4)
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) sortSelect.addEventListener('change', () => {
+    activeSort = sortSelect.value;
+    applyFilters();
+  });
+
   injectExtraFilters();
 
   // Age filter
@@ -937,6 +1013,7 @@ async function initShop() {
     allProducts = await fetchProducts();
     buildTagFilter(allProducts);
     buildColourFilter(allProducts);
+    buildSizeFilter(allProducts);
     applyFilters();
   } catch (err) {
     if (loadingState) {
@@ -1038,9 +1115,9 @@ async function initProduct() {
 
     /* Title */
     /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
-    document.getElementById('pdTitle').textContent = p.design?.[0]
+    document.getElementById('pdTitle').textContent = (p.design?.[0]
       ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ')
-      : p.type;
+      : p.type) + (p.size ? ` (${p.size})` : '');
 
     /* Price */
     let priceHtml = '';
