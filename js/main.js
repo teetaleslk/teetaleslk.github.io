@@ -1334,8 +1334,9 @@ function renderCartDrawer() {
     const age    = item.ageGrp === 'adults' ? 'Adults' : 'Kids';
     const design = item.design?.[0] || '';
     const bulk   = bulkOn ? bulkPriceOf(item) : null;
+    const anchor = item.org || item.strike || item.price;   // strike the ORIGINAL price (biggest honest anchor)
     const price  = bulk
-      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(item.price)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
+      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
       : (item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
     return `
     <div class="cart-item">
@@ -1407,8 +1408,9 @@ function renderCartPage() {
     const design = item.design?.[0] || '';
     const bulk   = bulkOn ? bulkPriceOf(item) : null;
     const eff    = cartEffPrice(item, bulkOn);
+    const anchor = item.org || item.strike || item.price;   // strike the ORIGINAL price (biggest honest anchor)
     const priceHtml = bulk
-      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(item.price)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
+      ? `<span class="cart-price-strike">${CONFIG.CURRENCY} ${formatNum(anchor)}</span> ${CONFIG.CURRENCY} ${formatNum(bulk)} <span class="cart-bulk-tag">BULK</span>`
       : (item.price ? `${CONFIG.CURRENCY} ${formatNum(item.price)}` : '');
     return `
     <div class="cart-page-item">
