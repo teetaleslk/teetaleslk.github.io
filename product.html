@@ -129,6 +129,7 @@
 
     <!-- Product content (shown after load) -->
     <div id="pdContent" style="display:none">
+      <div id="pdBulkBanner"></div>
       <div class="pd-layout">
 
         <!-- LEFT: Images -->
@@ -141,7 +142,6 @@
         <div class="pd-info">
           <div id="pdBadges" class="pd-badges"></div>
           <h1 id="pdTitle" class="pd-title"></h1>
-          <p id="pdItemId" class="pd-item-id"></p>
           <div id="pdPrice" class="pd-price-block"></div>
 
           <hr class="pd-divider" />
@@ -150,13 +150,12 @@
 
           <hr class="pd-divider" />
 
+          <div id="pdOrderBtn" class="pd-order-wrap"></div>
+
           <div class="pd-delivery-strip">
             <span><i class="fas fa-truck"></i> Islandwide Delivery</span>
-            <span><i class="fas fa-money-bill-wave"></i> Cash on Delivery</span>
             <span><i class="fas fa-shield-alt"></i> Quality Guaranteed</span>
           </div>
-
-          <div id="pdOrderBtn" class="pd-order-wrap"></div>
 
           <div id="pdSizeGuide"><!-- size guide image injected by main.js if img/sizeguide/<type>.jpg exists --></div>
         </div>

@@ -973,7 +973,8 @@ async function initProduct() {
     /* Page title & breadcrumb */
     document.title = `TeeTales — ${p.type}`;
     const bcEl = document.getElementById('pdBcName');
-    if (bcEl) bcEl.textContent = p.type;
+    const ageSlug = (p.type || '').toLowerCase() === 'kids' ? 'kids' : 'adults';
+    if (bcEl) bcEl.innerHTML = `<a class="pd-bc-type" href="shop.html?age=${ageSlug}">${escHtml(p.type)}</a>`;
 
     /* Main image */
     const imgUrl  = resolveImageUrl(p.image);
@@ -1033,7 +1034,7 @@ async function initProduct() {
     const audBadge = audience.label
       ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>` : '';
     document.getElementById('pdBadges').innerHTML =
-      `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock)} ${audBadge}`;
+      `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock)}`;
 
     /* Title */
     /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
@@ -1055,10 +1056,13 @@ async function initProduct() {
     } else {
       priceHtml = `<span class="pd-price-ask">Contact us for price</span>`;
     }
-    // Bulk promo (TBOS spec): show the exact bulk price when the formula applies
-    const pdBulk = (p.org && p.price && p.org - 151 < p.price) ? p.org - 151 : null;
-    priceHtml += `<div class="pd-bulk-note">👨‍👩‍👧‍👦 Buying for a family or group? <strong>5+ tees switch to bulk prices automatically</strong>${pdBulk ? ` — this tee just <strong>${CONFIG.CURRENCY} ${formatNum(pdBulk)}</strong> each` : ''}. Mix any sizes & designs!</div>`;
     document.getElementById('pdPrice').innerHTML = priceHtml;
+
+    // Bulk promo banner (TBOS spec) — full-width line above image + details
+    const pdBulk = (p.org && p.price && p.org - 151 < p.price) ? p.org - 151 : null;
+    const bulkBannerEl = document.getElementById('pdBulkBanner');
+    if (bulkBannerEl) bulkBannerEl.innerHTML =
+      `<div class="pd-bulk-note pd-bulk-banner">👨‍👩‍👧‍👦 Buying for a family or group? <strong>5+ tees switch to bulk prices automatically</strong>${pdBulk ? ` — this tee just <strong>${CONFIG.CURRENCY} ${formatNum(pdBulk)}</strong> each` : ''}. Mix any sizes & designs!</div>`;
 
     /* Meta list */
     const swatchColor = getSwatchColor(p.colour);
@@ -1067,7 +1071,7 @@ async function initProduct() {
     const ageIsKids   = p.ageGrp && p.ageGrp !== 'adults';
     const metaItems   = [
       p.colour     ? `<div class="pd-meta-item"><dt>Colour</dt><dd>${swatchDot}${escHtml(p.colour)}</dd></div>` : '',
-      p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd>${escHtml(p.size)}</dd></div>` : '',
+      p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd><span class="pd-size-chip">${escHtml(p.size)}</span></dd></div>` : '',
       p.category   ? `<div class="pd-meta-item"><dt>Style</dt><dd>${escHtml(p.category)}</dd></div>` : '',
       p.printSize  ? `<div class="pd-meta-item"><dt>Print Size</dt><dd>${escHtml(p.printSize)}</dd></div>` : '',
       ageIsKids    ? `<div class="pd-meta-item"><dt>Age Group</dt><dd>🎂 ${escHtml(p.ageGrp)}</dd></div>` : '',
@@ -1082,7 +1086,8 @@ async function initProduct() {
     const isOut = p.stock.toLowerCase().includes('out');
     if (isOut) {
       document.getElementById('pdOrderBtn').innerHTML =
-        `<button class="pd-add-cart-btn" disabled>✕ Sold Out</button>`;
+        `<button class="pd-add-cart-btn" disabled>✕ Sold Out</button>
+         <p class="pd-qty-itemid" style="margin-top:8px">Item ID: ${p.id}</p>`;
     } else {
       document.getElementById('pdOrderBtn').innerHTML = `
         <div class="pd-qty-wrap">
@@ -1091,6 +1096,7 @@ async function initProduct() {
           <span class="qty-num" id="pdQtyVal">1</span>
           <button class="qty-btn" id="pdQtyPlus" ${p.units <= 1 ? 'disabled' : ''}>+</button>
           <span class="pd-qty-max">(${p.units} available)</span>
+          <span class="pd-qty-itemid">Item ID: ${p.id}</span>
         </div>
         <button class="pd-add-cart-btn" id="pdAddCart">
           <i class="fas fa-shopping-bag"></i> Add to Cart
@@ -1142,8 +1148,6 @@ async function initProduct() {
       }
     }
 
-    /* Item ID */
-    document.getElementById('pdItemId').textContent = `Item ID: ${p.id}`;
 
     /* Show content */
     loadEl.style.display = 'none';

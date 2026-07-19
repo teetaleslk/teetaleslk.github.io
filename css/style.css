@@ -161,6 +161,13 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cart-item-meta  { font-size: .74rem; color: var(--text-muted); margin: 2px 0; }
 .cart-item-id    { font-size: .7rem; color: var(--mid-gray); font-family: monospace; }
 .cart-item-price { font-weight: 700; color: var(--accent); margin-top: 4px; font-size: .85rem; }
+/* Product page — SHEIN-style refinements */
+.pd-bulk-banner { margin: 0 0 16px; }                                     /* full-width line above image + details */
+.pd-bc-type { color: var(--accent); font-weight: 700; text-decoration: none; }
+.pd-bc-type:hover { text-decoration: underline; }
+.pd-size-chip { background: var(--primary); color: #fff; font-weight: 800; font-size: .85rem; padding: 3px 12px; border-radius: 6px; }
+.pd-qty-itemid { font-size: .72rem; color: var(--text-muted); margin-left: auto; }
+
 /* Product page size guide — below image thumbnails, always visible */
 .pd-sizeguide { margin: 14px 0 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
 .pd-sizeguide-title { padding: 10px 14px; font-weight: 600; font-size: .88rem; background: var(--off-white); border-bottom: 1px solid var(--border); }
@@ -1738,8 +1745,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 
 /* Meta grid */
 .pd-meta-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin: 0; padding: 0; }
-.pd-meta-item { display: flex; flex-direction: column; }
-.pd-meta-item dt { font-size: .65rem; text-transform: uppercase; letter-spacing: .7px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
+.pd-meta-item { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+.pd-meta-item dt { font-size: .78rem; color: var(--text-muted); font-weight: 600; }
+.pd-meta-item dt::after { content: ':'; }
 .pd-meta-item dd { font-size: .85rem; font-weight: 600; color: var(--text); margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pd-meta-full { grid-column: 1 / -1; }
 
