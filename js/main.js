@@ -1022,10 +1022,10 @@ async function initProduct() {
     probeImg(`img/sizeguide/${(p.type || '').trim().toLowerCase()}`, url => {
       const sg = document.getElementById('pdSizeGuide');
       if (sg) sg.innerHTML = `
-        <details class="pd-sizeguide">
-          <summary>📏 Size Guide — tap to view</summary>
+        <div class="pd-sizeguide">
+          <div class="pd-sizeguide-title">📏 Size Guide</div>
           <img src="${url}" alt="Size guide" loading="lazy" />
-        </details>`;
+        </div>`;
     });
 
     /* Badges */

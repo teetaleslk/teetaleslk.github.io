@@ -161,11 +161,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .cart-item-meta  { font-size: .74rem; color: var(--text-muted); margin: 2px 0; }
 .cart-item-id    { font-size: .7rem; color: var(--mid-gray); font-family: monospace; }
 .cart-item-price { font-weight: 700; color: var(--accent); margin-top: 4px; font-size: .85rem; }
-/* Product page size guide */
-.pd-sizeguide { margin: 14px 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
-.pd-sizeguide summary { cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: .88rem; background: var(--off-white); list-style: none; }
-.pd-sizeguide summary::-webkit-details-marker { display: none; }
-.pd-sizeguide[open] summary { border-bottom: 1px solid var(--border); }
+/* Product page size guide — below image thumbnails, always visible */
+.pd-sizeguide { margin: 16px 0 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.pd-sizeguide-title { padding: 10px 14px; font-weight: 600; font-size: .88rem; background: var(--off-white); border-bottom: 1px solid var(--border); }
 .pd-sizeguide img { display: block; width: 100%; height: auto; }
 
 /* Footer privacy promise */
