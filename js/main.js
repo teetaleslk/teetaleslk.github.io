@@ -709,6 +709,10 @@ function createProductCard(p) {
       <div class="card-badge-tr">
         ${audienceBadge}
       </div>
+      <button class="card-wish${wishHas(p.id) ? ' saved' : ''}" aria-label="Save for later"
+        onclick="event.stopPropagation(); wishToggle('${escHtml(p.id)}', this)">
+        <i class="${wishHas(p.id) ? 'fas' : 'far'} fa-heart"></i>
+      </button>
       <div class="card-wa-hover">${cartBtn}</div>
     </div>
     <div class="card-info">
@@ -1142,6 +1146,18 @@ async function initShop() {
   try {
     allProducts = await fetchProducts();
     applyFilters();
+
+    /* 8.4 Freshness note — reassures stock is live */
+    const freshEl = document.getElementById('freshNote');
+    if (freshEl) {
+      const loadedAt = Date.now();
+      const tick = () => {
+        const m = Math.round((Date.now() - loadedAt) / 60000);
+        freshEl.textContent = m < 1 ? '● Stock live — updated just now' : `● Stock live — updated ${m} min ago`;
+      };
+      tick();
+      setInterval(tick, 60000);
+    }
   } catch (err) {
     if (loadingState) {
       loadingState.innerHTML = `
@@ -1175,7 +1191,6 @@ async function initProduct() {
     if (!p) { loadEl.style.display = 'none'; errEl.style.display = 'block'; return; }
 
     /* Page title & breadcrumb */
-    document.title = `TeeTales — ${p.type}`;
     const bcEl = document.getElementById('pdBcName');
     const ageSlug = (p.type || '').toLowerCase() === 'kids' ? 'kids' : 'adults';
     if (bcEl) bcEl.innerHTML = `<a class="pd-bc-type" href="shop.html?age=${ageSlug}">${escHtml(p.type)}</a>`;
@@ -1188,6 +1203,13 @@ async function initProduct() {
       ? `<img id="pdMainImgTag" src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" data-lead="${escHtml(p.leadNum || '')}"
              onerror="ttImgErr(this,'<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>')" />`
       : `<div class="pd-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
+
+    /* 8.1 Lightbox — click the main image to zoom fullscreen */
+    mainImgEl.style.cursor = 'zoom-in';
+    mainImgEl.addEventListener('click', () => {
+      const img = document.getElementById('pdMainImgTag');
+      if (img) openLightbox(img.src);
+    });
 
     /* Extra image thumbnails: <num>A … <num>Z — sequential, stops at first missing.
        Add as many views as you like: 00001A.jpg, 00001B.jpg, 00001C.jpg … */
@@ -1242,9 +1264,29 @@ async function initProduct() {
 
     /* Title */
     /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
-    document.getElementById('pdTitle').textContent = (p.design?.[0]
+    const pdTitleText = (p.design?.[0]
       ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ')
       : p.type) + (p.size ? ` (${p.size})` : '');
+    document.getElementById('pdTitle').textContent = pdTitleText;
+
+    /* 7.2 SEO: unique title + meta description + Product JSON-LD */
+    document.title = `${pdTitleText} — TeeTales`;
+    document.querySelector('meta[name="description"]')?.setAttribute('content',
+      `${pdTitleText}${p.price ? ` — ${CONFIG.CURRENCY} ${formatNum(p.price)}` : ''}. Premium DTF-printed tee. Order via WhatsApp, islandwide delivery in Sri Lanka.`);
+    const ldEl = document.createElement('script');
+    ldEl.type = 'application/ld+json';
+    ldEl.textContent = JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'Product',
+      name: pdTitleText, sku: p.id,
+      image: p.image ? `${location.origin}/${p.image}` : undefined,
+      brand: { '@type': 'Brand', name: 'TeeTales' },
+      offers: {
+        '@type': 'Offer', priceCurrency: 'LKR', price: p.price || p.org || 0,
+        availability: p.stock.toLowerCase().includes('out')
+          ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      },
+    });
+    document.head.appendChild(ldEl);
 
     /* Price */
     let priceHtml = '';
@@ -1676,6 +1718,117 @@ function renderCartPage() {
     </div>`;
 }
 
+/* ═══ 8.1 LIGHTBOX — simple fullscreen image zoom, no library ═══ */
+function openLightbox(src) {
+  let lb = document.getElementById('ttLightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'ttLightbox'; lb.className = 'tt-lightbox';
+    lb.innerHTML = `<img alt="Zoomed product photo" /><span class="tt-lightbox-close">✕</span>`;
+    lb.addEventListener('click', () => lb.classList.remove('open'));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('open'); });
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = src;
+  lb.classList.add('open');
+}
+
+/* ═══ 8.2 WISHLIST — ❤ save for later, localStorage, WA "order all" ═══
+   Stores product snapshots so the wishlist works on every page. */
+const WISH_KEY = 'tt_wishlist';
+const wishGet  = () => { try { return JSON.parse(localStorage.getItem(WISH_KEY)) || []; } catch { return []; } };
+const wishSave = w => { localStorage.setItem(WISH_KEY, JSON.stringify(w)); wishBadgeUpdate(); };
+const wishHas  = id => wishGet().some(i => i.id === id);
+
+function wishToggle(id, btn) {
+  const w = wishGet();
+  const i = w.findIndex(x => x.id === id);
+  if (i > -1) w.splice(i, 1);
+  else {
+    const p = _ttProdMap[id];
+    if (!p) return;
+    w.push({ id: p.id, name: (p.design?.[0] ? `${p.design[0]} — ` : '') + `${p.type} ${p.category || ''}`.trim() + (p.size ? ` (${p.size})` : ''), price: p.price, lead: p.leadNum || '' });
+  }
+  wishSave(w);
+  if (btn) {
+    const ic = btn.querySelector('i');
+    if (ic) ic.className = (i > -1 ? 'far' : 'fas') + ' fa-heart';
+    btn.classList.toggle('saved', i === -1);
+  }
+  if (document.getElementById('wishDrawer')?.classList.contains('open')) renderWishDrawer();
+}
+window.wishToggle = wishToggle;
+
+function wishBadgeUpdate() {
+  const b = document.getElementById('wishBadge');
+  const n = wishGet().length;
+  if (b) { b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none'; }
+}
+
+function buildWishWAMessage() {
+  const lines = wishGet().map((i, n) =>
+    `${n + 1}. [${i.id}] ${i.name}${i.price ? ` · ${CONFIG.CURRENCY} ${formatNum(i.price)}` : ''}`);
+  return `Hi TeeTales! 💛 I've saved these tees — are they available?\n\n${lines.join('\n')}\n\nPlease let me know! 👕`;
+}
+
+function renderWishDrawer() {
+  const body = document.getElementById('wishBody');
+  const foot = document.getElementById('wishFooter');
+  if (!body) return;
+  const w = wishGet();
+  if (!w.length) {
+    body.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">💛</div><p>No saved tees yet</p>
+      <p style="font-size:.8rem;color:var(--text-muted);margin-top:6px">Tap the ♡ on any tee to save it for later</p></div>`;
+    if (foot) foot.style.display = 'none';
+    return;
+  }
+  body.innerHTML = w.map(i => `
+    <div class="cart-item">
+      <img class="cart-item-img" src="img/products/${(String(i.id).match(/(\d{5})$/) || ['', ''])[1]}.jpg"
+           data-lead="${escHtml(i.lead || '')}" loading="lazy" onerror="ttImgErr(this,'remove')" />
+      <div class="cart-item-info">
+        <div class="cart-item-name"><a href="product.html?id=${encodeURIComponent(i.id)}">${escHtml(i.name)}</a></div>
+        <div class="cart-item-price">${i.price ? `${CONFIG.CURRENCY} ${formatNum(i.price)}` : ''}</div>
+      </div>
+      <button class="cart-item-remove" onclick="wishToggle('${escHtml(i.id)}')">✕</button>
+    </div>`).join('');
+  if (foot) {
+    foot.style.display = 'block';
+    foot.innerHTML = `
+      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildWishWAMessage())}"
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+        <i class="fab fa-whatsapp"></i> Ask About All (${w.length})
+      </a>`;
+  }
+}
+
+function openWishlist() {
+  let d = document.getElementById('wishDrawer');
+  if (!d) {
+    const ov = document.createElement('div');
+    ov.className = 'cart-overlay'; ov.id = 'wishOverlay';
+    ov.onclick = closeWishlist;
+    d = document.createElement('div');
+    d.className = 'cart-drawer'; d.id = 'wishDrawer';
+    d.innerHTML = `<div class="cart-header"><span>💛 Saved Tees</span>
+      <button class="cart-close" onclick="closeWishlist()" aria-label="Close">✕</button></div>
+      <div class="cart-body" id="wishBody"></div>
+      <div class="cart-footer" id="wishFooter" style="display:none"></div>`;
+    document.body.appendChild(ov); document.body.appendChild(d);
+  }
+  renderWishDrawer();
+  document.getElementById('wishOverlay').classList.add('open');
+  d.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWishlist() {
+  document.getElementById('wishDrawer')?.classList.remove('open');
+  document.getElementById('wishOverlay')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.openWishlist = openWishlist;
+window.closeWishlist = closeWishlist;
+
 /* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
@@ -1690,6 +1843,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cart icon badge — update count on every page load
   cartBadgeUpdate();
   document.getElementById('cartBtn')?.addEventListener('click', openCart);
+  wishBadgeUpdate();
+  document.getElementById('wishBtn')?.addEventListener('click', openWishlist);
 
   // Announcement bar — rotating messages + dismiss (remembers for 24h via localStorage)
   const announceBar   = document.getElementById('announceBar');

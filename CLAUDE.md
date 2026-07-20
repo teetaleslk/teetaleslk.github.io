@@ -102,8 +102,8 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 | 4 | Home Page Redesign | ✅ Done (2026-07-19) |
 | 5 | Shop Page Improvements | ✅ Done (2026-07-19) |
 | 6 | Bilingual (Sinhala) | ❌ Dropped |
-| 7 | Polish & SEO | ⏳ Partial |
-| 8 | Advanced | 🔲 |
+| 7 | Polish & SEO | ✅ Done (2026-07-19) |
+| 8 | Advanced | ✅ Done (2026-07-19) |
 | 9 | Marketing & Sales Strategy | 🔲 |
 | 10 | Customer Experience (Size Guide, Mobile Nav) | 🔲 |
 | 11 | Trust & Conversion | ⏳ |

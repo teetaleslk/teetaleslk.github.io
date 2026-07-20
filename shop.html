@@ -11,6 +11,7 @@
   <meta property="og:image"       content="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH" />
 
   <!-- Fonts -->
+  <link rel="preconnect" href="https://docs.google.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -77,6 +78,11 @@
         <i class="fab fa-tiktok"></i>
       </a>
     </div>
+
+    <button class="cart-icon-btn" id="wishBtn" aria-label="View saved tees">
+      <i class="far fa-heart"></i>
+      <span class="cart-badge wish-badge" id="wishBadge" style="display:none">0</span>
+    </button>
 
     <button class="cart-icon-btn" id="cartBtn" aria-label="View cart">
       <i class="fas fa-shopping-bag"></i>
@@ -191,6 +197,7 @@
 
     <div class="results-row">
       <div class="results-bar" id="resultsBar"></div>
+      <span class="fresh-note" id="freshNote"></span>
       <select id="sortSelect" class="sort-select" aria-label="Sort products">
         <option value="featured">Sort: Featured</option>
         <option value="newest">Newest First</option>

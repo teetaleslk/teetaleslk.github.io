@@ -8,6 +8,7 @@
   <meta name="description" content="View product details and order instantly via WhatsApp." />
 
   <!-- Fonts -->
+  <link rel="preconnect" href="https://docs.google.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -66,6 +67,11 @@
       <a href="https://tiktok.com/@tee.tales.tshirt" target="_blank" rel="noopener"
          class="social-icon" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
     </div>
+
+    <button class="cart-icon-btn" id="wishBtn" aria-label="View saved tees">
+      <i class="far fa-heart"></i>
+      <span class="cart-badge wish-badge" id="wishBadge" style="display:none">0</span>
+    </button>
 
     <button class="cart-icon-btn" id="cartBtn" aria-label="View cart">
       <i class="fas fa-shopping-bag"></i>
