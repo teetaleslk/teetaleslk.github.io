@@ -129,7 +129,25 @@ async function fetchSheetTab(tabName) {
 
 async function fetchProducts() {
   const table = await fetchSheetTab(CONFIG.SHEET_NAME);
-  return parseTableData(table);
+  const products = parseTableData(table);
+  assignFamilyImages(products);
+  return products;
+}
+
+/* Family image inheritance: items without their own image file fall back to the
+   image of the LOWEST-numbered item in their family (own file always wins). */
+function assignFamilyImages(products) {
+  const fams = {};
+  products.forEach(p => {
+    if (!p.design?.length) return;
+    const k = familyKeyOf(p);
+    (fams[k] = fams[k] || []).push(p);
+  });
+  Object.values(fams).forEach(list => {
+    const nums = list.map(p => (String(p.id).match(/(\d{5})$/) || [])[1]).filter(Boolean).sort();
+    if (!nums.length) return;
+    list.forEach(p => { p.leadNum = nums[0]; });
+  });
 }
 
 function parseTableData(table) {
@@ -385,11 +403,20 @@ function repoImg(itemId, suffix) {
 
 /* Probe a repo image (no extension) across IMG_EXTS; call onFound(url) with
    the first extension that actually loads. Silent if none exist. */
-function probeImg(base, onFound) {
-  if (!base) return;
+/* Probe an item's image: its OWN number first, then the family lead's (inheritance) */
+function probeFam(p, suffix, onFound) {
+  const own = repoImgBase(p.id, suffix);
+  const ownNum = (String(p.id).match(/(\d{5})$/) || [])[1];
+  probeImg(own, onFound, () => {
+    if (p.leadNum && p.leadNum !== ownNum) probeImg(`img/products/${p.leadNum}${suffix}`, onFound);
+  });
+}
+
+function probeImg(base, onFound, onFail) {
+  if (!base) { if (onFail) onFail(); return; }
   let i = 0;
   const tryNext = () => {
-    if (i >= IMG_EXTS.length) return;
+    if (i >= IMG_EXTS.length) { if (onFail) onFail(); return; }
     const url = `${base}.${IMG_EXTS[i++]}`;
     const im = new Image();
     im.onload  = () => onFound(url);
@@ -405,10 +432,18 @@ function probeImg(base, onFound) {
 const IMG_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'JPEG'];
 window.ttImgErr = function (el, fallback) {
   const src = el.getAttribute('src') || '';
-  const m = src.match(/^(img\/products\/[^.]+)\.(\w+)$/);
+  const m = src.match(/^(img\/products\/)(\d{5})([A-Z]?)\.(\w+)$/);
   if (m) {
-    const next = IMG_EXTS[IMG_EXTS.indexOf(m[2]) + 1];
-    if (next) { el.src = `${m[1]}.${next}`; return; }
+    const next = IMG_EXTS[IMG_EXTS.indexOf(m[4]) + 1];
+    if (next) { el.src = `${m[1]}${m[2]}${m[3]}.${next}`; return; }
+    const lead = el.dataset.lead;                      // family fallback: lowest-numbered sibling
+    if (lead && lead !== m[2]) { el.dataset.lead = ''; el.src = `${m[1]}${lead}${m[3]}.${IMG_EXTS[0]}`; return; }
+  } else {
+    const g = src.match(/^(img\/[^.]+)\.(\w+)$/);   // other repo images (categories etc.)
+    if (g) {
+      const next = IMG_EXTS[IMG_EXTS.indexOf(g[2]) + 1];
+      if (next) { el.src = `${g[1]}.${next}`; return; }
+    }
   }
   if (fallback === 'remove') el.remove();
   else el.parentElement.innerHTML = fallback || window.placeholderHtml();
@@ -447,9 +482,9 @@ const COLOUR_MAP = {
 /* ── SIZE-FAMILY GROUPING (Phase 16, no sheet change) ──
    Rows are "the same tee in another size" when Design+Colour+Type+Category+PrintSize match. */
 function familyKeyOf(p) {
+  // Same sticker design + same colour + same Type (Kids/Adults) + same TeeCategory → one family
   return [(p.design[0] || '').trim().toLowerCase(), (p.colour || '').toLowerCase(),
-          (p.type || '').toLowerCase(), (p.category || '').toLowerCase(),
-          (p.printSize || '').toLowerCase()].join('|');
+          (p.type || '').toLowerCase(), (p.category || '').toLowerCase()].join('|');
 }
 function familyMembers(p) {
   if (!p.design?.length) return [];
@@ -578,7 +613,7 @@ function createProductCard(p) {
   const imgUrl  = resolveImageUrl(p.image);
   const imgInner = imgUrl
     ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" loading="lazy"
-           onerror="ttImgErr(this)" />`
+           data-lead="${escHtml(p.leadNum || '')}" onerror="ttImgErr(this)" />`
     : `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
   /* ── Badges ── */
@@ -1079,7 +1114,7 @@ async function initProduct() {
     const img2Url = resolveImageUrl(p.image2);
     const mainImgEl = document.getElementById('pdMainImg');
     mainImgEl.innerHTML = imgUrl
-      ? `<img id="pdMainImgTag" src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}"
+      ? `<img id="pdMainImgTag" src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" data-lead="${escHtml(p.leadNum || '')}"
              onerror="ttImgErr(this,'<div class=\\'pd-img-placeholder\\'><span>👕</span><small>Photo coming soon</small></div>')" />`
       : `<div class="pd-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
@@ -1104,13 +1139,13 @@ async function initProduct() {
       const addThumb = (letterIdx) => {
         if (letterIdx >= 26 || !thumbEl) return;
         const suffix = String.fromCharCode(65 + letterIdx); // A, B, C …
-        probeImg(repoImgBase(p.id, suffix), url => {
+        probeFam(p, suffix, url => {
           makeThumb(url, `view ${letterIdx + 2}`);
           addThumb(letterIdx + 1);   // found → try the next letter
         });
       };
       /* Main image first (highlighted), then extra views A, B, C … */
-      probeImg(repoImgBase(p.id, ''), url => {
+      probeFam(p, '', url => {
         makeThumb(url, 'main view').classList.add('active');
       });
       if (thumbEl) addThumb(0);
@@ -1291,7 +1326,8 @@ function cartAdd(p, qty = 1) {
   } else {
     cart.push({ id: p.id, type: p.type, ageGrp: p.ageGrp, colour: p.colour,
                 design: p.design, size: p.size, price: p.price ?? p.strike,
-                strike: p.strike, org: p.org, units: p.units, qty: Math.min(qty, p.units) });
+                strike: p.strike, org: p.org, lead: p.leadNum || '',
+                units: p.units, qty: Math.min(qty, p.units) });
   }
   cartSave(cart);
   cartToast();
@@ -1456,7 +1492,7 @@ function renderCartDrawer() {
     return `
     <div class="cart-item">
       <img class="cart-item-img" src="${escHtml(repoImg(item.id, ''))}" alt=""
-           loading="lazy" onerror="ttImgErr(this,'remove')" />
+           data-lead="${escHtml(item.lead || '')}" loading="lazy" onerror="ttImgErr(this,'remove')" />
       <div class="cart-item-info">
         <div class="cart-item-name">${escHtml(item.type)}</div>
         <div class="cart-item-meta">${escHtml(age)} · ${escHtml(item.colour)} · ${escHtml(design)} · ${escHtml(item.size)}</div>
@@ -1528,7 +1564,7 @@ function renderCartPage() {
     <div class="cart-page-item">
       <a href="product.html?id=${encodeURIComponent(item.id)}">
         <img class="cart-page-img" src="${escHtml(repoImg(item.id, ''))}" alt="${escHtml(item.type)}"
-             loading="lazy" onerror="ttImgErr(this,'remove')" />
+             data-lead="${escHtml(item.lead || '')}" loading="lazy" onerror="ttImgErr(this,'remove')" />
       </a>
       <div class="cart-item-info">
         <div class="cart-item-name"><a href="product.html?id=${encodeURIComponent(item.id)}">${escHtml(item.type)}</a></div>
