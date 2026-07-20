@@ -321,7 +321,6 @@ async function renderOffers() {
 ═══════════════════════════════════════════════════════════════ */
 
 /** Collect all unique tags from products and render tag pills */
-/* Design pills — only designs that exist in the current context (deduped) */
 function buildTagFilter(base) {
   const group = document.getElementById('tagFilterGroup');
   const pills = document.getElementById('tagFilter');
@@ -342,8 +341,7 @@ function buildTagFilter(base) {
   };
 }
 
-/* Colour swatches — basic colour GROUPS only (Blue covers sky/navy/royal…),
-   and only groups that exist in the current context */
+/** Collect all unique colours and render colour swatch buttons */
 function buildColourFilter(base) {
   const group = document.getElementById('colourFilterGroup');
   const wrap  = document.getElementById('colourFilter');
@@ -365,8 +363,429 @@ function buildColourFilter(base) {
   };
 }
 
-/* Size pills — the FULL ladder XS→3XL is always shown;
-   sizes missing from the current context are greyed out and unclickable */
+/* ═══════════════════════════════════════════════════════════════
+   IMAGE HELPERS
+═══════════════════════════════════════════════════════════════ */
+/* Repo image fallback: when the sheet has no link, look for a file in
+   img/products/ named after the ItemID's trailing digits.
+   ItemID …00001 → 00001.jpg (Image1) / 00001A.jpg (Image2)
+   Workflow: drop renamed .jpg files in img/products/, push — done.
+   Missing files fall back to the "Photo coming soon" placeholder via onerror. */
+function repoImgBase(itemId, suffix) {
+  // Rule: LAST 5 characters of ItemID are always digits = the image number
+  // e.g. KP2XLU00001 → 00001 → img/products/00001.jpg
+  // Extra views: 00001A, 00001B … 00001Z (sequential — stop at first gap)
+  const m = String(itemId || '').trim().match(/(\d{5})$/);
+  return m ? `img/products/${m[1]}${suffix}` : '';
+}
+function repoImg(itemId, suffix) {
+  const b = repoImgBase(itemId, suffix);
+  return b ? `${b}.jpg` : '';
+}
+
+/* Probe a repo image (no extension) across IMG_EXTS; call onFound(url) with
+   the first extension that actually loads. Silent if none exist. */
+function probeImg(base, onFound) {
+  if (!base) return;
+  let i = 0;
+  const tryNext = () => {
+    if (i >= IMG_EXTS.length) return;
+    const url = `${base}.${IMG_EXTS[i++]}`;
+    const im = new Image();
+    im.onload  = () => onFound(url);
+    im.onerror = tryNext;
+    im.src = url;
+  };
+  tryNext();
+}
+
+/* onerror handler with extension cascade for repo images:
+   .jpg → .jpeg → .png → .webp → .JPG → .JPEG, then the fallback.
+   fallback: 'remove' = remove the element · anything else = placeholder HTML */
+const IMG_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'JPG', 'JPEG'];
+window.ttImgErr = function (el, fallback) {
+  const src = el.getAttribute('src') || '';
+  const m = src.match(/^(img\/products\/[^.]+)\.(\w+)$/);
+  if (m) {
+    const next = IMG_EXTS[IMG_EXTS.indexOf(m[2]) + 1];
+    if (next) { el.src = `${m[1]}.${next}`; return; }
+  }
+  if (fallback === 'remove') el.remove();
+  else el.parentElement.innerHTML = fallback || window.placeholderHtml();
+};
+
+function resolveImageUrl(raw) {
+  if (!raw) return null;
+  raw = raw.trim();
+  // Already a non-Drive URL — use as-is
+  if (raw.startsWith('http') && !raw.includes('drive.google.com') && !raw.includes('docs.google.com')) return raw;
+  // Extract file ID from any Drive share link format
+  const fileMatch = raw.match(/\/file\/d\/([^/?]+)/);
+  if (fileMatch) return `https://drive.google.com/thumbnail?id=${fileMatch[1]}&sz=w600`;
+  const idMatch   = raw.match(/[?&]id=([^&]+)/);
+  if (idMatch)   return `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w600`;
+  const openMatch = raw.match(/open\?id=([^&]+)/);
+  if (openMatch) return `https://drive.google.com/thumbnail?id=${openMatch[1]}&sz=w600`;
+  return raw;
+}
+
+/*
+  COLOUR MAP — used to render the colour dot swatches on product cards.
+  To add a new colour: add a line like  newcolour: '#hexcode',
+  The key must be lowercase and match what you type in the Google Sheet Colour column.
+*/
+const COLOUR_MAP = {
+  white: '#ffffff', black: '#1a1a1a', red: '#e94560', blue: '#3498db',
+  navy: '#1a1a2e', green: '#27ae60', yellow: '#f1c40f', orange: '#e67e22',
+  purple: '#9b59b6', pink: '#fd79a8', grey: '#95a5a6', gray: '#95a5a6',
+  brown: '#8b5e3c', maroon: '#6d1f1f', cream: '#f5f0e0', beige: '#f5f0e0',
+  teal: '#00b5a5', cyan: '#00cec9', lime: '#a3cb38', khaki: '#bda55d',
+  coral: '#ff7675', lavender: '#a29bfe', gold: '#f5a623', silver: '#b2bec3',
+  rose: '#e84393', sky: '#74b9ff', mint: '#55efc4', peach: '#ffeaa7',
+  charcoal: '#2d3436', olive: '#6d8b74', wine: '#722f37', mustard: '#e3aa00',
+};
+/* Basic colour groups — any shade maps to one group (faceted colour filter) */
+const COLOUR_GROUPS = [
+  ['Black',  '#1a1a1a', ['black', 'charcoal']],
+  ['White',  '#ffffff', ['white', 'cream', 'ivory']],
+  ['Grey',   '#95a5a6', ['grey', 'gray', 'silver', 'ash']],
+  ['Blue',   '#3498db', ['blue', 'navy', 'sky', 'royal', 'teal', 'cyan', 'denim', 'turquoise']],
+  ['Pink',   '#fd79a8', ['pink', 'rose', 'coral', 'peach', 'magenta', 'fuchsia']],
+  ['Purple', '#9b59b6', ['purple', 'lavender', 'lavendar', 'violet', 'plum', 'lilac', 'mauve', 'tauve']],
+  ['Red',    '#e94560', ['red', 'maroon', 'wine', 'burgundy']],
+  ['Yellow', '#f1c40f', ['yellow', 'gold', 'mustard']],
+  ['Green',  '#27ae60', ['green', 'olive', 'lime', 'mint']],
+  ['Orange', '#e67e22', ['orange', 'rust']],
+  ['Brown',  '#8b5e3c', ['brown', 'beige', 'khaki', 'tan', 'sand']],
+];
+function colourGroupOf(name) {
+  const n = (name || '').toLowerCase();
+  if (!n) return null;
+  for (const [g, , keys] of COLOUR_GROUPS) if (keys.some(k => n.includes(k))) return g;
+  return 'Other';
+}
+
+function getSwatchColor(colourName) {
+  if (!colourName) return null;
+  const key = colourName.toLowerCase().replace(/\s+/g, '');
+  if (COLOUR_MAP[key]) return COLOUR_MAP[key];
+  for (const [k, v] of Object.entries(COLOUR_MAP)) {
+    if (key.includes(k)) return v;
+  }
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BADGE HELPERS  (Stock Status + Boost Status)
+═══════════════════════════════════════════════════════════════ */
+
+/** Column H — stock availability badge */
+function getStockBadgeHtml(stockStatus) {
+  const s = (stockStatus || '').toLowerCase();
+  if (s.includes('out'))  return `<span class="badge badge-out">✕ Sold Out</span>`;
+  if (s.includes('low') || s.includes('few') || s.includes('almost')) return `<span class="badge badge-low">⚡ Almost Gone</span>`;
+  return `<span class="badge badge-in-stock">✓ In Stock</span>`;
+}
+
+/** Stock sort priority — Almost Gone first, In Stock second, Sold Out last */
+function stockPriority(stock) {
+  const s = (stock || '').toLowerCase();
+  if (s.includes('low') || s.includes('few') || s.includes('almost')) return 0;
+  if (s.includes('out')) return 2;
+  return 1;
+}
+
+/** Combined audience label from Age Grp + Suitable For */
+function getAudienceLabel(ageGrp, suitable) {
+  const age    = (ageGrp  || '').toLowerCase();
+  const suit   = (suitable || '').toLowerCase();
+  const isKids = age !== 'adults';
+  if (isKids  && suit === 'ladies')  return { label: "Girls' Tee",  emoji: '👧' };
+  if (isKids  && suit === 'gents')   return { label: "Boys' Tee",   emoji: '👦' };
+  if (isKids  && suit === 'unisex')  return { label: "Kids' Tee",   emoji: '🧒' };
+  if (!isKids && suit === 'ladies')  return { label: "Ladies' Tee", emoji: '👩' };
+  if (!isKids && suit === 'gents')   return { label: "Gents' Tee",  emoji: '👨' };
+  if (!isKids && suit === 'unisex')  return { label: "Adults' Tee", emoji: '👕' };
+  if (isKids)                        return { label: "Kids' Tee",   emoji: '🧒' };
+  if (!isKids)                       return { label: 'Adults',      emoji: '🧑' };
+  return { label: '', emoji: '' };
+}
+
+/** Column I — marketing/urgency boost (New, Hot, Trending, Best Seller…) */
+function getBoostBadgeHtml(boostStatus) {
+  // Boost Status is multi-select (comma-separated, e.g. "Hot, Gifts").
+  // Shows up to 2 badges: urgency first, suitability (Gifts) second.
+  const b = (boostStatus || '').toLowerCase();
+  if (!b) return '';
+  const out = [];
+  if (b.includes('clearance'))   out.push(`<span class="badge badge-clearance">💥 Stock Clearance</span>`);
+  if (b.includes('hot'))         out.push(`<span class="badge badge-hot">🔥 Hot Pick</span>`);
+  if (b.includes('new'))         out.push(`<span class="badge badge-new">🏷️ New In</span>`);
+  if (b.includes('trending'))    out.push(`<span class="badge badge-trending">📈 Trending</span>`);
+  if (b.includes('best seller') || b.includes('bestseller'))
+                                 out.push(`<span class="badge badge-trending">⭐ Best Seller</span>`);
+  if (b.includes('featured'))    out.push(`<span class="badge badge-new">Featured</span>`);
+  if (b.includes('gift'))        out.push(`<span class="badge badge-gift">🎁 Gift Pick</span>`);
+  return out.slice(0, 2).join(' ');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════ */
+function renderProducts(products) {
+  grid.querySelectorAll('.product-card').forEach(el => el.remove());
+
+  if (products.length === 0) {
+    loadingState.style.display = 'none';
+    emptyState.style.display = 'block';
+    resultsBar.textContent = '';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  loadingState.style.display = 'none';
+
+  const count = products.length;
+  resultsBar.textContent = `Showing ${count} item${count !== 1 ? 's' : ''}`;
+
+  const frag = document.createDocumentFragment();
+  products.forEach(p => frag.appendChild(createProductCard(p)));
+  grid.appendChild(frag);
+}
+
+function createProductCard(p) {
+  const card = document.createElement('div');
+  card.className = 'product-card';
+
+  const isOutOfStock = p.stock.toLowerCase().includes('out');
+
+  /* ── Image ── */
+  const imgUrl  = resolveImageUrl(p.image);
+  const imgInner = imgUrl
+    ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" loading="lazy"
+           onerror="ttImgErr(this)" />`
+    : `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
+
+  /* ── Badges ── */
+  const saleBadge = (p.strike && p.price && p.price < p.strike)
+    ? (() => {
+        const disc = Math.round((1 - p.price / p.strike) * 100);
+        return `<span class="badge badge-sale">Save ${disc}%</span>`;
+      })()
+    : '';
+  const stockBadge  = getStockBadgeHtml(p.stock);
+  const boostBadge  = getBoostBadgeHtml(p.boost);
+  const audience    = getAudienceLabel(p.ageGrp, p.suitable);
+  const audienceBadge = audience.label
+    ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>`
+    : '';
+  if (audience.label) card.dataset.audience = audience.label;
+
+  /* ── Add to Cart button ── */
+  const cartBtn = isOutOfStock
+    ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
+    : `<button class="card-cart-btn" onclick="cartAddFromCard('${escHtml(p.id)}')">
+         <i class="fas fa-shopping-bag"></i> Add to Cart
+       </button>`;
+
+  /* ── Price block ── */
+  let priceHtml = '';
+  if (p.price !== null && p.strike !== null && p.strike > p.price) {
+    const disc = Math.round((1 - p.price / p.strike) * 100);
+    priceHtml = `<div class="card-price">
+      <span class="price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>
+      <span class="price-original">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>
+      <span class="price-badge">-${disc}%</span>
+    </div>`;
+  } else if (p.price !== null) {
+    priceHtml = `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.price)}</span></div>`;
+  } else if (p.strike !== null) {
+    priceHtml = `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span></div>`;
+  } else {
+    priceHtml = `<div class="card-price"><span style="font-size:.83rem;color:var(--mid-gray)">Ask for price</span></div>`;
+  }
+
+  /* ── Tags ── */
+  const tagsHtml = p.design.length
+    ? `<div class="card-tags">${p.design.slice(0, 3).map(t => `<span class="card-tag-chip">${t}</span>`).join('')}</div>`
+    : '';
+
+  /* ── Colour swatch + size bar (always visible) ── */
+  const swatchColor = getSwatchColor(p.colour);
+  const swatchDot   = p.colour
+    ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}" title="${escHtml(p.colour)}"></span>`
+    : '';
+  const colourLabel = p.colour ? `<span class="card-meta-colour">${escHtml(p.colour)}</span>` : '';
+  const ageIsRange  = p.ageGrp && p.ageGrp !== 'adults';
+  const ageLabel    = ageIsRange ? `<span class="card-meta-age">🎂 ${escHtml(p.ageGrp)}</span>` : '';
+  const sizeLabel   = p.size   ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong></span>` : '';
+
+  const metaParts   = [colourLabel, ageLabel, sizeLabel].filter(Boolean);
+  const metaBar     = metaParts.length
+    ? `<div class="card-meta-bar">${swatchDot}${metaParts.join('<span class="card-meta-sep">·</span>')}</div>`
+    : '';
+
+  /* ── Assemble ── */
+  card.innerHTML = `
+    <div class="card-img-area">
+      <div class="card-img-link">${imgInner}</div>
+      <div class="card-badges">
+        ${boostBadge}
+      </div>
+      <div class="card-badge-tr">
+        ${audienceBadge}
+      </div>
+      <div class="card-wa-hover">${cartBtn}</div>
+    </div>
+    <div class="card-info">
+      <div class="card-type">${escHtml((p.design?.[0] ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ') : p.type) + (p.size ? ` (${p.size})` : ''))}</div>
+      ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
+      ${priceHtml}
+      ${metaBar}
+      ${tagsHtml}
+    </div>`;
+
+  /* ── Navigate to product page on card click (but not on WA button) ── */
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('a, button')) return;
+    window.location.href = `product.html?id=${encodeURIComponent(p.id)}`;
+  });
+  card.style.cursor = 'pointer';
+
+  return card;
+}
+
+window.placeholderHtml = () =>
+  `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
+
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════ */
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function capitalize(s) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+}
+function formatNum(n) {
+  return Number(n).toLocaleString('en-LK');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTERING
+═══════════════════════════════════════════════════════════════ */
+function applyFilters() {
+  /* Step 1 — context base: Category + Suitable For + boost deep-link.
+     Design / Colour / Size option groups rebuild from THIS subset. */
+  let base = allProducts;
+  if (activeAge === 'adults') base = base.filter(p => p.ageGrp === 'adults');
+  else if (activeAge === 'kids') base = base.filter(p => p.ageGrp !== 'adults');
+  if (activeGender === 'ladies' || activeGender === 'gents') {
+    base = base.filter(p => p.suitable === activeGender || p.suitable === 'unisex');
+  } else if (activeGender !== 'all') {
+    base = base.filter(p => p.suitable === activeGender);
+  }
+  if (activeBoost === 'new')  base = base.filter(p => (p.boost || '').toLowerCase().includes('new'));
+  else if (activeBoost === 'hot')
+    base = base.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike);
+  else if (activeBoost === 'gifts')
+    base = base.filter(p => (p.boost || '').toLowerCase().includes('gift'));
+
+  /* Step 2 — rebuild dependent option groups (a selection resets only if it vanished) */
+  buildTagFilter(base);
+  buildColourFilter(base);
+  buildSizeFilter(base);
+
+  /* Step 3 — apply the remaining selections (all AND-combined) */
+  let f = base;
+  if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
+  if (activeColour !== 'all') f = f.filter(p => colourGroupOf(p.colour) === activeColour);
+  if (activeSize   !== 'all') f = f.filter(p => (p.size || '').toLowerCase() === activeSize);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    f = f.filter(p =>
+      p.type.toLowerCase().includes(q)   ||
+      p.colour.toLowerCase().includes(q) ||
+      p.size.toLowerCase().includes(q)   ||
+      p.id.toLowerCase().includes(q)     ||
+      p.design.some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort (5.4): price sorts override; otherwise stock priority
+  if      (activeSort === 'price-asc')  f = [...f].sort((a, b) => (a.price || 0) - (b.price || 0));
+  else if (activeSort === 'price-desc') f = [...f].sort((a, b) => (b.price || 0) - (a.price || 0));
+  else {
+    if (activeSort === 'newest') f = [...f].reverse();
+    f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
+  }
+
+  renderProducts(f);
+  updateFilterSummary();
+}
+
+function updateFilterSummary() {
+  if (!filterSummary) return;
+  const tags = [];
+  if (activeAge    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-users"></i> ${capitalize(activeAge)}</span>`);
+  if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
+  if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${activeTag}</span>`);
+  if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
+  if (activeSize   !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-ruler"></i> Size ${activeSize.toUpperCase()}</span>`);
+  if (activeBoost  !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-fire"></i> ${({new: 'New Arrivals', hot: 'Hot Deals', gifts: 'Gift Picks'})[activeBoost]}</span>`);
+  if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
+  filterSummary.innerHTML = tags.join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXTRA FILTER INJECTION  (Tag + Colour rows — injected once)
+═══════════════════════════════════════════════════════════════ */
+function injectExtraFilters() {
+  const bar = document.querySelector('.filters-bar .filters-row');
+  if (!bar) return;
+
+  if (!document.getElementById('tagFilterGroup')) {
+    const tagGroup = document.createElement('div');
+    tagGroup.className = 'filter-group';
+    tagGroup.id = 'tagFilterGroup';
+    tagGroup.style.display = 'none';
+    tagGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-tag"></i> Design</span>
+      <div class="filter-pills" id="tagFilter"></div>`;
+    bar.appendChild(tagGroup);
+  }
+
+  if (!document.getElementById('sizeFilterGroup')) {
+    const sizeGroup = document.createElement('div');
+    sizeGroup.className = 'filter-group';
+    sizeGroup.id = 'sizeFilterGroup';
+    sizeGroup.style.display = 'none';
+    sizeGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-ruler"></i> Size</span>
+      <div class="filter-pills" id="sizeFilter"></div>`;
+    bar.appendChild(sizeGroup);
+  }
+
+  if (!document.getElementById('colourFilterGroup')) {
+    const colGroup = document.createElement('div');
+    colGroup.className = 'filter-group';
+    colGroup.id = 'colourFilterGroup';
+    colGroup.style.display = 'none';
+    colGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-palette"></i> Colour</span>
+      <div class="colour-filter-wrap" id="colourFilter"></div>`;
+    bar.appendChild(colGroup);
+  }
+}
+
+/* Size filter pills — sizes that actually exist in the data, S→3XL order */
 const SIZE_LADDER = ['xs', 's', 'm', 'l', 'xl', '2xl', '3xl'];
 function buildSizeFilter(base) {
   const group = document.getElementById('sizeFilterGroup');
@@ -457,6 +876,8 @@ async function initHome() {
       inStock.filter(p => (p.boost || '').toLowerCase().includes('new')).reverse());
     strip('hotDealsSection', 'hotDealsStrip',
       inStock.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike));
+    strip('giftPicksSection', 'giftPicksStrip',
+      inStock.filter(p => (p.boost || '').toLowerCase().includes('gift')));
 
     // Show top 4 adults + top 4 kids on the home page preview
     // "Almost Gone" items bubble to the top (urgency tactic)
@@ -538,7 +959,7 @@ async function initShop() {
 
   // ?boost=new|hot — navbar "New In" / "Hot Deals" deep links (4.2 / 5.2)
   const boostParam = (params.get('boost') || '').toLowerCase();
-  if (boostParam === 'new' || boostParam === 'hot') activeBoost = boostParam;
+  if (['new', 'hot', 'gifts'].includes(boostParam)) activeBoost = boostParam;
 
   // Sort dropdown (5.4)
   const sortSelect = document.getElementById('sortSelect');

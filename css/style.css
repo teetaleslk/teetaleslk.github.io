@@ -688,6 +688,7 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .badge-hot        { background: linear-gradient(135deg, #e85d04, #dc2f02); color: var(--white); }
 .badge-new        { background: #1a7a5e;         color: var(--white); }
 .badge-clearance  { background: #b91c1c;         color: var(--white); }
+.badge-gift       { background: var(--gold);     color: #3d2b00; }
 .badge-audience   { background: #3730a3; color: var(--white); } /* default fallback */
 /* Kids — pastel */
 [data-audience="Boys' Tee"]  .badge-audience { background: #bfdbfe; color: #1d4ed8; }
