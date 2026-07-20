@@ -1206,7 +1206,9 @@ async function initProduct() {
       p.colour     ? `<div class="pd-meta-item"><dt>Colour</dt><dd>${swatchDot}${escHtml(p.colour)}</dd></div>` : '',
       p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd><span class="pd-size-chip">${escHtml(p.size)}</span></dd></div>` : '',
       p.category   ? `<div class="pd-meta-item"><dt>Style</dt><dd>${escHtml(p.category)}</dd></div>` : '',
-      p.printSize  ? `<div class="pd-meta-item"><dt>Print Size</dt><dd>${escHtml(p.printSize)}</dd></div>` : '',
+      /* Print Size: adults only (kids is always NA) */
+      (p.printSize && p.printSize.toLowerCase() !== 'na' && (p.type || '').toLowerCase() !== 'kids')
+                   ? `<div class="pd-meta-item"><dt>Print Size</dt><dd>${escHtml(p.printSize)}</dd></div>` : '',
       ageIsKids    ? `<div class="pd-meta-item"><dt>Age Group</dt><dd>🎂 ${escHtml(p.ageGrp)}</dd></div>` : '',
       p.material   ? `<div class="pd-meta-item"><dt>Material</dt><dd>${escHtml(p.material)}</dd></div>` : '',
       p.design.length
