@@ -445,18 +445,20 @@ const COLOUR_MAP = {
   charcoal: '#2d3436', olive: '#6d8b74', wine: '#722f37', mustard: '#e3aa00',
 };
 /* Basic colour groups — any shade maps to one group (faceted colour filter) */
+/* Order = display order: rainbow flow (R→O→Y→G→B→V→pink), then neutrals.
+   A new colour shade auto-joins its group's fixed rainbow position. */
 const COLOUR_GROUPS = [
-  ['Black',  '#1a1a1a', ['black', 'charcoal']],
-  ['White',  '#ffffff', ['white', 'cream', 'ivory']],
-  ['Grey',   '#95a5a6', ['grey', 'gray', 'silver', 'ash']],
-  ['Blue',   '#3498db', ['blue', 'navy', 'sky', 'royal', 'teal', 'cyan', 'denim', 'turquoise']],
-  ['Pink',   '#fd79a8', ['pink', 'rose', 'coral', 'peach', 'magenta', 'fuchsia']],
-  ['Purple', '#9b59b6', ['purple', 'lavender', 'lavendar', 'violet', 'plum', 'lilac', 'mauve', 'tauve']],
   ['Red',    '#e94560', ['red', 'maroon', 'wine', 'burgundy']],
+  ['Orange', '#e67e22', ['orange', 'rust']],
   ['Yellow', '#f1c40f', ['yellow', 'gold', 'mustard']],
   ['Green',  '#27ae60', ['green', 'olive', 'lime', 'mint']],
-  ['Orange', '#e67e22', ['orange', 'rust']],
+  ['Blue',   '#3498db', ['blue', 'navy', 'sky', 'royal', 'teal', 'cyan', 'denim', 'turquoise']],
+  ['Purple', '#9b59b6', ['purple', 'lavender', 'lavendar', 'violet', 'plum', 'lilac', 'mauve', 'tauve']],
+  ['Pink',   '#fd79a8', ['pink', 'rose', 'coral', 'peach', 'magenta', 'fuchsia']],
   ['Brown',  '#8b5e3c', ['brown', 'beige', 'khaki', 'tan', 'sand']],
+  ['Black',  '#1a1a1a', ['black', 'charcoal']],
+  ['Grey',   '#95a5a6', ['grey', 'gray', 'silver', 'ash']],
+  ['White',  '#ffffff', ['white', 'cream', 'ivory']],
 ];
 function colourGroupOf(name) {
   const n = (name || '').toLowerCase();
