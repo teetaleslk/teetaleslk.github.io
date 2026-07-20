@@ -444,6 +444,19 @@ const COLOUR_MAP = {
   rose: '#e84393', sky: '#74b9ff', mint: '#55efc4', peach: '#ffeaa7',
   charcoal: '#2d3436', olive: '#6d8b74', wine: '#722f37', mustard: '#e3aa00',
 };
+/* ── SIZE-FAMILY GROUPING (Phase 16, no sheet change) ──
+   Rows are "the same tee in another size" when Design+Colour+Type+Category+PrintSize match. */
+function familyKeyOf(p) {
+  return [(p.design[0] || '').trim().toLowerCase(), (p.colour || '').toLowerCase(),
+          (p.type || '').toLowerCase(), (p.category || '').toLowerCase(),
+          (p.printSize || '').toLowerCase()].join('|');
+}
+function familyMembers(p) {
+  if (!p.design?.length) return [];
+  const k = familyKeyOf(p);
+  return Object.values(_ttProdMap).filter(q => q.design?.length && familyKeyOf(q) === k);
+}
+
 /* Basic colour groups — any shade maps to one group (faceted colour filter) */
 /* Order = display order: rainbow flow (R→O→Y→G→B→V→pink), then neutrals.
    A new colour shade auto-joins its group's fixed rainbow position. */
@@ -620,7 +633,10 @@ function createProductCard(p) {
   const colourLabel = p.colour ? `<span class="card-meta-colour">${escHtml(p.colour)}</span>` : '';
   const ageIsRange  = p.ageGrp && p.ageGrp !== 'adults';
   const ageLabel    = ageIsRange ? `<span class="card-meta-age">🎂 ${escHtml(p.ageGrp)}</span>` : '';
-  const sizeLabel   = p.size   ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong></span>` : '';
+  const moreSizes   = familyMembers(p).filter(q => q.id !== p.id && !q.stock.toLowerCase().includes('out')).length;
+  const sizeLabel   = p.size
+    ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong>${moreSizes ? ` <span class="card-more-sizes">+${moreSizes} more size${moreSizes > 1 ? 's' : ''}</span>` : ''}</span>`
+    : '';
 
   const metaParts   = [colourLabel, ageLabel, sizeLabel].filter(Boolean);
   const metaBar     = metaParts.length
@@ -1164,6 +1180,27 @@ async function initProduct() {
     ].filter(Boolean);
     document.getElementById('pdMeta').innerHTML = metaItems.join('');
 
+    /* Available Sizes — same design+colour tee in other sizes (Phase 16) */
+    const fam = familyMembers(p);
+    const sizeRowEl = document.getElementById('pdSizeRow');
+    if (sizeRowEl && fam.length > 1) {
+      const bySize = {};
+      fam.forEach(q => { bySize[(q.size || '').toLowerCase()] = q; });
+      const ordered = [...SIZE_LADDER.filter(sz => bySize[sz]),
+                       ...Object.keys(bySize).filter(sz => !SIZE_LADDER.includes(sz))];
+      sizeRowEl.innerHTML = `
+        <div class="pd-sizerow">
+          <span class="pd-sizerow-label">Available Sizes</span>
+          <div class="pd-sizerow-chips">${ordered.map(sz => {
+            const q = bySize[sz], label = sz.toUpperCase();
+            if (q.id === p.id) return `<span class="pd-size-opt current" title="You're viewing this size">${label}</span>`;
+            if (q.stock.toLowerCase().includes('out')) return `<span class="pd-size-opt out" title="Sold out">${label}</span>`;
+            return `<a class="pd-size-opt" href="product.html?id=${encodeURIComponent(q.id)}" title="View ${label}">${label}</a>`;
+          }).join('')}</div>
+          <span class="pd-sizerow-hint">Tap a size to switch</span>
+        </div>`;
+    }
+
     /* Add to Cart — qty selector + button */
     const isOut = p.stock.toLowerCase().includes('out');
     if (isOut) {
@@ -1205,31 +1242,8 @@ async function initProduct() {
         openCart();
       });
 
-      // "Same design, other sizes" prompt — shown ONLY when all 3 conditions are met:
-      //   1. This product has only 1 unit left
-      //   2. This product has a design tag
-      //   3. At least one OTHER product in _ttProdMap shares the same design tag,
-      //      is a different size, and is actually in stock (not "out")
-      // _ttProdMap is fully populated before initProduct() renders, so this is safe.
-      if (p.units <= 1 && p.design.length > 0) {
-        const designTag = p.design[0];
-        const hasOtherSizes = Object.values(_ttProdMap).some(other =>
-          other.id   !== p.id &&
-          other.size !== p.size &&
-          other.design.includes(designTag) &&
-          !other.stock.toLowerCase().includes('out')
-        );
-        if (hasOtherSizes) {
-          const shopUrl    = `shop.html?design=${encodeURIComponent(designTag)}`;
-          const prompt     = document.createElement('p');
-          prompt.className = 'pd-design-prompt';
-          prompt.innerHTML = `⚡ Only 1 left in this size! <strong>${escHtml(designTag)}</strong> is available in other sizes → `
-            + `<a href="${shopUrl}">Browse other sizes</a>`;
-          document.getElementById('pdOrderBtn').appendChild(prompt);
-        }
-      }
+      // (12.7 "other sizes" prompt removed — superseded by the Available Sizes row)
     }
-
 
     /* Show content */
     loadEl.style.display = 'none';
