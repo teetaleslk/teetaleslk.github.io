@@ -175,6 +175,10 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 /* Unavailable size pills — visible but clearly inactive */
 .pill:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
 
+/* "+N more / Show less" design-list toggle */
+.tag-more { background: transparent; border: 1.5px dashed var(--border); color: var(--text-muted); font-weight: 700; }
+.tag-more:hover { border-color: var(--accent); color: var(--accent); }
+
 /* Shop sort dropdown (5.4) */
 .results-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .sort-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-family: inherit; font-size: .85rem; font-weight: 600; color: var(--text); cursor: pointer; }

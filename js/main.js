@@ -339,21 +339,42 @@ async function renderOffers() {
 ═══════════════════════════════════════════════════════════════ */
 
 /** Collect all unique tags from products and render tag pills */
+let tagShowAll = false;
 function buildTagFilter(base) {
   const group = document.getElementById('tagFilterGroup');
   const pills = document.getElementById('tagFilter');
   if (!group || !pills) return;
-  const seen = new Map();  // lowercase → original label (dedupes case/space variants)
-  base.forEach(p => p.design.forEach(t => { const k = t.trim().toLowerCase(); if (k && !seen.has(k)) seen.set(k, t.trim()); }));
-  if (!seen.size) { group.style.display = 'none'; activeTag = 'all'; return; }
-  if (activeTag !== 'all' && !seen.has(activeTag.trim().toLowerCase())) activeTag = 'all';
+  const counts = new Map();  // lowercase → {label, n} (dedupes, counts popularity)
+  base.forEach(p => p.design.forEach(t => {
+    const k = t.trim().toLowerCase();
+    if (!k) return;
+    const e = counts.get(k) || { label: t.trim(), n: 0 };
+    e.n++; counts.set(k, e);
+  }));
+  if (!counts.size) { group.style.display = 'none'; activeTag = 'all'; return; }
+  if (activeTag !== 'all' && !counts.has(activeTag.trim().toLowerCase())) activeTag = 'all';
+
+  const TAG_MAX = 10;
+  const all = [...counts.values()].sort((a, b) => b.n - a.n || a.label.localeCompare(b.label));
+  let show = all;
+  if (!tagShowAll && all.length > TAG_MAX) {
+    show = all.slice(0, TAG_MAX);
+    if (activeTag !== 'all' && !show.some(e => e.label === activeTag)) {
+      const sel = all.find(e => e.label === activeTag);
+      if (sel) show = [...show, sel];   // selected design always stays visible
+    }
+  }
   pills.innerHTML = `<button class="tag-pill${activeTag === 'all' ? ' active' : ''}" data-tag="all">All Designs</button>` +
-    [...seen.values()].sort((a, b) => a.localeCompare(b)).map(t =>
-      `<button class="tag-pill${activeTag === t ? ' active' : ''}" data-tag="${escHtml(t)}">${escHtml(t)}</button>`).join('');
+    show.map(e =>
+      `<button class="tag-pill${activeTag === e.label ? ' active' : ''}" data-tag="${escHtml(e.label)}">${escHtml(e.label)}</button>`).join('') +
+    (all.length > TAG_MAX
+      ? `<button class="tag-pill tag-more">${tagShowAll ? 'Show less ▲' : `+${all.length - show.length} more ▾`}</button>`
+      : '');
   group.style.display = 'flex';
   pills.onclick = (e) => {
     const pill = e.target.closest('.tag-pill');
     if (!pill) return;
+    if (pill.classList.contains('tag-more')) { tagShowAll = !tagShowAll; applyFilters(); return; }
     activeTag = pill.dataset.tag;
     applyFilters();
   };
@@ -733,34 +754,27 @@ function formatNum(n) {
 /* ═══════════════════════════════════════════════════════════════
    FILTERING
 ═══════════════════════════════════════════════════════════════ */
-function applyFilters() {
-  /* Step 1 — context base: Category + Suitable For + boost deep-link.
-     Design / Colour / Size option groups rebuild from THIS subset. */
-  let base = allProducts;
-  if (activeAge === 'adults') base = base.filter(p => p.ageGrp === 'adults');
-  else if (activeAge === 'kids') base = base.filter(p => p.ageGrp !== 'adults');
-  if (activeGender === 'ladies' || activeGender === 'gents') {
-    base = base.filter(p => p.suitable === activeGender || p.suitable === 'unisex');
-  } else if (activeGender !== 'all') {
-    base = base.filter(p => p.suitable === activeGender);
+/* Cross-faceted filtering: every group's options come from products matching
+   all OTHER active filters ("exclude self") — click order never matters. */
+function contextFor(except) {
+  let f = allProducts;
+  if (except !== 'age') {
+    if (activeAge === 'adults') f = f.filter(p => p.ageGrp === 'adults');
+    else if (activeAge === 'kids') f = f.filter(p => p.ageGrp !== 'adults');
   }
-  if (activeBoost === 'new')  base = base.filter(p => (p.boost || '').toLowerCase().includes('new'));
+  if (except !== 'gender') {
+    if (activeGender === 'ladies' || activeGender === 'gents')
+      f = f.filter(p => p.suitable === activeGender || p.suitable === 'unisex');
+    else if (activeGender !== 'all') f = f.filter(p => p.suitable === activeGender);
+  }
+  if (activeBoost === 'new')  f = f.filter(p => (p.boost || '').toLowerCase().includes('new'));
   else if (activeBoost === 'hot')
-    base = base.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike);
+    f = f.filter(p => /hot|trending|clearance/i.test(p.boost || '') || p.strike);
   else if (activeBoost === 'gifts')
-    base = base.filter(p => (p.boost || '').toLowerCase().includes('gift'));
-
-  /* Step 2 — rebuild dependent option groups (a selection resets only if it vanished) */
-  buildTagFilter(base);
-  buildColourFilter(base);
-  buildSizeFilter(base);
-
-  /* Step 3 — apply the remaining selections (all AND-combined) */
-  let f = base;
-  if (activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
-  if (activeColour !== 'all') f = f.filter(p => colourGroupOf(p.colour) === activeColour);
-  if (activeSize   !== 'all') f = f.filter(p => (p.size || '').toLowerCase() === activeSize);
-
+    f = f.filter(p => (p.boost || '').toLowerCase().includes('gift'));
+  if (except !== 'tag'    && activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
+  if (except !== 'colour' && activeColour !== 'all') f = f.filter(p => colourGroupOf(p.colour) === activeColour);
+  if (except !== 'size'   && activeSize   !== 'all') f = f.filter(p => (p.size || '').toLowerCase() === activeSize);
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     f = f.filter(p =>
@@ -771,6 +785,18 @@ function applyFilters() {
       p.design.some(t => t.toLowerCase().includes(q))
     );
   }
+  return f;
+}
+
+function applyFilters() {
+  /* Rebuild every option group from its own "all others" context */
+  updateStaticPillAvailability();
+  buildTagFilter(contextFor('tag'));
+  buildColourFilter(contextFor('colour'));
+  buildSizeFilter(contextFor('size'));
+
+  /* Final result = all filters applied */
+  let f = contextFor(null);
 
   // Sort (5.4): price sorts override; otherwise stock priority
   if      (activeSort === 'price-asc')  f = [...f].sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -782,6 +808,25 @@ function applyFilters() {
 
   renderProducts(f);
   updateFilterSummary();
+}
+
+/* Category + Suitable For pills: grey out choices with no products in the
+   current cross-context (never hidden — greyed keeps the layout stable). */
+function updateStaticPillAvailability() {
+  const ageCtx = contextFor('age');
+  document.querySelectorAll('#ageFilter .pill').forEach(pill => {
+    const v = pill.dataset.age;
+    pill.disabled = v !== 'all' &&
+      !ageCtx.some(p => v === 'adults' ? p.ageGrp === 'adults' : p.ageGrp !== 'adults');
+    pill.classList.toggle('active', v === activeAge);
+  });
+  const genCtx = contextFor('gender');
+  document.querySelectorAll('#genderFilter .pill').forEach(pill => {
+    const v = pill.dataset.gender;
+    pill.disabled = v !== 'all' &&
+      !genCtx.some(p => (v === 'ladies' || v === 'gents') ? (p.suitable === v || p.suitable === 'unisex') : p.suitable === v);
+    pill.classList.toggle('active', v === activeGender);
+  });
 }
 
 function updateFilterSummary() {
