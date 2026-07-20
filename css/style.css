@@ -619,7 +619,14 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
   display: inline-flex; align-items: center; gap: 5px;
   background: rgba(233,69,96,.1); color: var(--accent);
   padding: 4px 10px; border-radius: 50px; font-size: .78rem; font-weight: 600;
+  border: none; cursor: pointer; font-family: inherit;
+  transition: background var(--transition);
 }
+.filter-tag:hover { background: rgba(233,69,96,.22); }
+.filter-tag-x { font-weight: 800; margin-left: 2px; opacity: .7; }
+.filter-tag:hover .filter-tag-x { opacity: 1; }
+.filter-clear-all { background: var(--accent); color: #fff; }
+.filter-clear-all:hover { background: #d63652; }
 .results-bar { font-size: .86rem; color: var(--text-muted); margin-bottom: 18px; padding: 0 4px; min-height: 22px; }
 
 /* Products grid — 4 col desktop, responsive */

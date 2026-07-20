@@ -831,15 +831,41 @@ function updateStaticPillAvailability() {
 
 function updateFilterSummary() {
   if (!filterSummary) return;
+  const chip = (key, icon, label) =>
+    `<button class="filter-tag" data-clear="${key}" title="Remove this filter"><i class="fas ${icon}"></i> ${label} <span class="filter-tag-x">✕</span></button>`;
   const tags = [];
-  if (activeAge    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-users"></i> ${capitalize(activeAge)}</span>`);
-  if (activeGender !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-filter"></i> ${capitalize(activeGender)}</span>`);
-  if (activeTag    !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${activeTag}</span>`);
-  if (activeColour !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-palette"></i> ${capitalize(activeColour)}</span>`);
-  if (activeSize   !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-ruler"></i> Size ${activeSize.toUpperCase()}</span>`);
-  if (activeBoost  !== 'all') tags.push(`<span class="filter-tag"><i class="fas fa-fire"></i> ${({new: 'New Arrivals', hot: 'Hot Deals', gifts: 'Gift Picks'})[activeBoost]}</span>`);
-  if (searchQuery)             tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${escHtml(searchQuery)}"</span>`);
+  if (activeAge    !== 'all') tags.push(chip('age',    'fa-users',   capitalize(activeAge)));
+  if (activeGender !== 'all') tags.push(chip('gender', 'fa-filter',  capitalize(activeGender)));
+  if (activeTag    !== 'all') tags.push(chip('tag',    'fa-tag',     escHtml(activeTag)));
+  if (activeColour !== 'all') tags.push(chip('colour', 'fa-palette', capitalize(activeColour)));
+  if (activeSize   !== 'all') tags.push(chip('size',   'fa-ruler',   `Size ${activeSize.toUpperCase()}`));
+  if (activeBoost  !== 'all') tags.push(chip('boost',  'fa-fire',    ({new: 'New Arrivals', hot: 'Hot Deals', gifts: 'Gift Picks'})[activeBoost]));
+  if (searchQuery)            tags.push(chip('search', 'fa-search',  `"${escHtml(searchQuery)}"`));
+  if (tags.length >= 2)
+    tags.push(`<button class="filter-tag filter-clear-all" data-clear="all" title="Remove all filters">Clear all ✕</button>`);
   filterSummary.innerHTML = tags.join('');
+  filterSummary.onclick = (e) => {
+    const btn = e.target.closest('[data-clear]');
+    if (!btn) return;
+    clearFilter(btn.dataset.clear);
+  };
+}
+
+/* Remove one filter (or all) and re-run */
+function clearFilter(key) {
+  const clearSearch = () => {
+    searchQuery = '';
+    if (searchInput) searchInput.value = '';
+    if (searchClear) searchClear.style.display = 'none';
+  };
+  if (key === 'age'    || key === 'all') activeAge    = 'all';
+  if (key === 'gender' || key === 'all') activeGender = 'all';
+  if (key === 'tag'    || key === 'all') activeTag    = 'all';
+  if (key === 'colour' || key === 'all') activeColour = 'all';
+  if (key === 'size'   || key === 'all') activeSize   = 'all';
+  if (key === 'boost'  || key === 'all') activeBoost  = 'all';
+  if (key === 'search' || key === 'all') clearSearch();
+  applyFilters();
 }
 
 /* ═══════════════════════════════════════════════════════════════
