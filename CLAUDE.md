@@ -64,6 +64,7 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 
 - **NEVER reveal margins or profit figures publicly.** Wholesale pricing discussed via WhatsApp only. Frame as "set your own price" not "earn Rs. X per tee."
 - **Edit tool only — never full rewrites.** Edit only the specific part needed.
+- **Discuss before implementing.** When Ashirwadh proposes a change, first share analysis, comments, and alternatives — implement only after he agrees. Don't build first and comment after.
 - **After every decision/discussion → update IMPROVEMENTS.md** in BOTH locations immediately.
 
 ---
@@ -98,8 +99,8 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 | Phase | Title | Status |
 |-------|-------|--------|
 | 1–3 | Bug Fixes, Sheet, Product Page | ✅ Done |
-| 4 | Home Page Redesign | ⏳ Partial |
-| 5 | Shop Page Improvements | ⏳ Partial |
+| 4 | Home Page Redesign | ✅ Done (2026-07-19) |
+| 5 | Shop Page Improvements | ✅ Done (2026-07-19) |
 | 6 | Bilingual (Sinhala) | ❌ Dropped |
 | 7 | Polish & SEO | ⏳ Partial |
 | 8 | Advanced | 🔲 |

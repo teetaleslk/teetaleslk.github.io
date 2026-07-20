@@ -172,6 +172,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .h-strip::-webkit-scrollbar { height: 6px; }
 .h-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* Unavailable size pills — visible but clearly inactive */
+.pill:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+
 /* Shop sort dropdown (5.4) */
 .results-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .sort-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; font-family: inherit; font-size: .85rem; font-weight: 600; color: var(--text); cursor: pointer; }
@@ -327,8 +330,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
   display: flex; gap: 4px; align-items: center; flex: 1;
 }
 .nav-link {
-  padding: 6px 12px; border-radius: 8px;
-  font-weight: 500; font-size: .87rem; color: var(--text);
+  padding: 6px 9px; border-radius: 8px;
+  font-weight: 500; font-size: .84rem; color: var(--text);
+  white-space: nowrap;   /* never wrap a link onto two lines */
   transition: background var(--transition), color var(--transition);
 }
 .nav-link:hover { background: var(--off-white); color: var(--accent); }
@@ -1126,6 +1130,15 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
   .social-feed-grid { grid-template-columns: 1fr; }
   .fb-embed-wrap { min-height: 400px; }
   .products-grid { grid-template-columns: repeat(3, 1fr); }
+}
+/* Navbar squeeze: drop socials first, then collapse to hamburger earlier (8 links need room) */
+@media (max-width: 1180px) {
+  .nav-socials { display: none; }
+  .nav-link { padding: 6px 7px; }
+}
+@media (max-width: 992px) {
+  .nav-links, .nav-wa-btn, .nav-socials { display: none; }
+  .hamburger { display: flex; }
 }
 @media (max-width: 768px) {
   .nav-links, .nav-wa-btn, .nav-socials { display: none; }
