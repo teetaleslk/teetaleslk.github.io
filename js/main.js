@@ -292,7 +292,7 @@ function createOfferCard(offer) {
     ? `<div class="offer-price-row">
         ${strikeHtml}
         <span class="offer-price">${CONFIG.CURRENCY} ${formatNum(offer.price)}</span>
-        ${offer.strike ? `<span class="offer-save">Save ${CONFIG.CURRENCY} ${formatNum(offer.strike - offer.price)}</span>` : ''}
+        ${offer.strike ? `<span class="offer-save">💰 Save ${CONFIG.CURRENCY} ${formatNum(offer.strike - offer.price)}</span>` : ''}
        </div>`
     : '';
 
@@ -1503,12 +1503,43 @@ function cartTotal() {
 }
 
 function cartBadgeUpdate() {
-  const b   = document.getElementById('cartBadge');
+  const n = cartCount();
+  document.querySelectorAll('#cartBadge, #cartBadgeMobile').forEach(b => {
+    b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none';
+  });
   const btn = document.getElementById('cartBtn');
-  const n   = cartCount();
-  if (b) { b.textContent = n; b.style.display = n > 0 ? 'flex' : 'none'; }
   if (btn) btn.title = n === 0 ? 'Your cart is empty' : `${n} item${n !== 1 ? 's' : ''} in your cart`;
 }
+
+/* 10.4 Mobile bottom nav needs the same live badge — id collision avoided via querySelectorAll above */
+
+/* ── 9.2 Delivery note / occasion date (optional) — appended to WA order message ── */
+const CART_NOTE_KEY = 'tt_cart_note';
+const cartNoteGet  = () => localStorage.getItem(CART_NOTE_KEY) || '';
+const cartNoteSave = v  => localStorage.setItem(CART_NOTE_KEY, v);
+window.cartNoteSave = cartNoteSave;
+function cartNoteFieldHtml() {
+  return `<div class="cart-note-field">
+    <label for="cartNoteInput">📝 Delivery note / occasion (optional)</label>
+    <input type="text" id="cartNoteInput" maxlength="120" placeholder="e.g. Need by Friday — birthday gift"
+           value="${escHtml(cartNoteGet())}" oninput="cartNoteSave(this.value)" />
+  </div>`;
+}
+
+/* ── Cart → Wishlist: "Save for later" moves one item out of the cart ── */
+function cartSaveForLater(id) {
+  const cart = cartGet();
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  const w = wishGet();
+  if (!w.some(x => x.id === id)) {
+    const name = `${item.design?.[0] ? item.design[0] + ' — ' : ''}${item.type} ${item.colour || ''}`.trim() + (item.size ? ` (${item.size})` : '');
+    w.push({ id: item.id, name, price: item.price, lead: item.lead || '' });
+    wishSave(w);
+  }
+  cartRemove(id);
+}
+window.cartSaveForLater = cartSaveForLater;
 
 function cartToast() {
   let t = document.getElementById('cartToast');
@@ -1561,7 +1592,9 @@ function buildCartWAMessage() {
   const bulkNote = bulkOn && saved > 0
     ? `\n🎉 Bulk price applied (${cartCount()} tees) — saving ${CONFIG.CURRENCY} ${formatNum(saved)}\n`
     : '';
-  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
+  const note = cartNoteGet().trim();
+  const noteLine = note ? `\n📝 Note: ${note}\n` : '';
+  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}${noteLine}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
 }
 
 function renderCartDrawer() {
@@ -1619,16 +1652,25 @@ function renderCartDrawer() {
         <span class="qty-num">${item.qty}</span>
         <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',1)"
           ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
+        <button class="cart-item-save" onclick="cartSaveForLater('${escHtml(item.id)}')" title="Save for later"><i class="far fa-heart"></i></button>
         <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')">✕</button>
       </div>
     </div>`;
   }).join('');
   if (footer) {
     footer.style.display = 'block';
+    /* Retail / Saved / Total breakdown — same as cart.html, so the savings are
+       visible even to shoppers who never open the full cart page */
+    const orgTot = cartOrgTotal(cart);
+    const saved  = orgTot - cartTotal();
     footer.innerHTML = `
-      <div class="cart-total-row"><span>Total</span><strong>${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      ${cartNoteFieldHtml()}
+      <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
+      ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
+      <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
@@ -1695,6 +1737,7 @@ function renderCartPage() {
             ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
         </div>
         <div class="cart-line-total">${CONFIG.CURRENCY} ${formatNum(eff * item.qty)}</div>
+        <button class="cart-item-save" onclick="cartSaveForLater('${escHtml(item.id)}')" title="Save for later"><i class="far fa-heart"></i> Save for later</button>
         <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')" title="Remove">✕ Remove</button>
       </div>
     </div>`;
@@ -1706,16 +1749,38 @@ function renderCartPage() {
   el.innerHTML = `
     ${bulkHtml}
     <div class="cart-page-list">${rows}</div>
+    <div id="cartUpsellWrap"></div>
     <div class="cart-page-summary">
+      ${cartNoteFieldHtml()}
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
+      <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you. 😊</p>
     </div>`;
+
+  /* 9.1 Upsell — "You may also like", excludes items already in cart */
+  const upsellWrap = document.getElementById('cartUpsellWrap');
+  if (upsellWrap && allProducts.length) {
+    const inCart = new Set(cart.map(i => i.id));
+    const modeAge = (() => {
+      const c = {}; cart.forEach(i => c[i.ageGrp] = (c[i.ageGrp] || 0) + i.qty);
+      return Object.keys(c).sort((a, b) => c[b] - c[a])[0];
+    })();
+    const upsell = allProducts
+      .filter(p => !inCart.has(p.id) && !p.stock.toLowerCase().includes('out'))
+      .sort((a, b) => (b.ageGrp === modeAge) - (a.ageGrp === modeAge) || stockPriority(a.stock) - stockPriority(b.stock))
+      .slice(0, 4);
+    if (upsell.length) {
+      upsellWrap.innerHTML = `<div class="strip-head"><h3>You may also like</h3></div><div class="h-strip" id="cartUpsellGrid"></div>`;
+      const g = document.getElementById('cartUpsellGrid');
+      upsell.forEach(p => g.appendChild(createProductCard(p)));
+    }
+  }
 }
 
 /* ═══ 8.1 LIGHTBOX — simple fullscreen image zoom, no library ═══ */
@@ -1913,6 +1978,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (document.getElementById('pdContent')) {
     initProduct();
   } else if (document.getElementById('cartPage')) {
-    renderCartPage();
+    // Fetch the catalogue first so the "You may also like" upsell row has data
+    fetchProducts().then(products => { allProducts = products; renderCartPage(); }).catch(() => renderCartPage());
   }
 });

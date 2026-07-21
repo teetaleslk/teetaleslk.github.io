@@ -228,6 +228,32 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
   .footer { padding-bottom: 96px; }
 }
 
+/* ── 10.4 Mobile bottom navigation bar ── */
+.mobile-bottom-nav { display: none; }
+@media (max-width: 768px) {
+  .float-wa { display: none; }  /* redundant once the bottom nav has its own WhatsApp tab */
+  .mobile-bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 500;
+    background: #fff; border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0,0,0,.08);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .mbn-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; padding: 8px 4px 6px; font-size: .64rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none; position: relative;
+  }
+  .mbn-item i { font-size: 1.05rem; }
+  .mbn-item.active { color: var(--accent); }
+  .mbn-item.mbn-wa { color: var(--wa-green); }
+  .mbn-badge {
+    position: absolute; top: 2px; right: calc(50% - 20px);
+    background: var(--accent); color: #fff; font-size: .58rem; font-weight: 800;
+    min-width: 15px; height: 15px; border-radius: 8px; display: none;
+    align-items: center; justify-content: center; padding: 0 3px;
+  }
+}
+
 /* Footer privacy promise */
 .privacy-promise { font-size: .78rem; color: var(--text-muted); max-width: 640px; margin: 0 auto 8px; line-height: 1.5; }
 
@@ -284,6 +310,18 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
 .qty-num { font-weight: 700; min-width: 20px; text-align: center; font-size: .9rem; }
 .cart-item-remove { color: var(--mid-gray); font-size: .8rem; padding: 4px 6px; }
 .cart-item-remove:hover { color: var(--accent); }
+.cart-item-save { color: var(--mid-gray); font-size: .8rem; padding: 4px 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.cart-item-save:hover { color: var(--gold); }
+.cart-page-item .cart-item-save { font-size: .75rem; }
+.cart-cod-note { font-size: .76rem; color: var(--text-muted); text-align: center; margin: 4px 0 10px; }
+.cart-note-field { margin-bottom: 12px; }
+.cart-note-field label { display: block; font-size: .76rem; color: var(--text-muted); margin-bottom: 4px; }
+.cart-note-field input {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: .82rem; font-family: inherit; color: var(--text);
+}
+.cart-note-field input:focus { outline: none; border-color: var(--accent); }
+.cart-upsell #cartUpsellWrap, #cartUpsellWrap { margin-top: 32px; }
 .cart-footer { padding: 16px 20px 20px; border-top: 1px solid var(--border); }
 .cart-total-row {
   display: flex; justify-content: space-between; align-items: center;
@@ -1421,13 +1459,14 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
   color: var(--accent);
 }
 .offer-save {
-  background: #fff3cd;
-  color: #856404;
-  font-size: .74rem;
-  font-weight: 700;
-  padding: 3px 8px;
+  background: #16a34a;
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 800;
+  padding: 5px 12px;
   border-radius: 20px;
-  border: 1px solid #ffc107;
+  letter-spacing: .2px;
+  box-shadow: 0 2px 8px rgba(22,163,74,.35);
 }
 
 /* WhatsApp CTA */

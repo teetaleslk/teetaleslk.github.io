@@ -20,10 +20,13 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 | `index.html` | Homepage — hero, offers, category grid, collection preview, "More Ways to Shop" |
 | `shop.html` | Full catalogue — URL filtering, badges, dynamic filters |
 | `product.html` | Product detail — full info, qty selector, "You May Also Like" |
-| `cart.html` | Full cart page — images, qty, bulk pricing, WA order |
+| `cart.html` | Full cart page — images, qty, bulk pricing, upsell, WA order |
+| `policy.html` | Delivery timelines, payment (bank transfer), exchange policy |
+| `order-sent.html` | Thank-you page after cart → WhatsApp order |
 | `js/main.js` | All JS — GViz fetch, parsers, renderers, cart, WA message builder |
 | `css/style.css` | All styles — mobile-first, CSS variables at top |
 | `IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
+| `CHANGELOG.md` | Dated log of every change made — git-ignored, local only |
 
 ---
 
@@ -66,6 +69,7 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 - **Edit tool only — never full rewrites.** Edit only the specific part needed.
 - **Discuss before implementing.** When Ashirwadh proposes a change, first share analysis, comments, and alternatives — implement only after he agrees. Don't build first and comment after.
 - **After every decision/discussion → update IMPROVEMENTS.md** in BOTH locations immediately.
+- **After every change/addition/removal → log it in `CHANGELOG.md`** (repo root, git-ignored). One heading per change session: `## YYYY-MM-DD HH:MM — Major theme`, then one bullet per distinct change (5 changes = 5 bullets). Newest entries at the top. Link to `IMPROVEMENTS.md` and any files touched.
 
 ---
 
@@ -79,18 +83,19 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 
 ---
 
-## IMPROVEMENTS.md — TWO SYNC LOCATIONS
+## IMPROVEMENTS.md + CHANGELOG.md — TWO SYNC LOCATIONS
 
 | Location | Path |
 |----------|------|
-| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\IMPROVEMENTS.md` |
-| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\IMPROVEMENTS.md` |
+| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\IMPROVEMENTS.md` + `CHANGELOG.md` |
+| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\IMPROVEMENTS.md` + `CHANGELOG.md` |
 
 **Rules:**
 - Repo is always edited first.
 - Obsidian must be synced after every change.
 - Use **Edit tool only** on Obsidian path (Write tool fails there).
 - Status icons: ✅ done · ⏳ in progress · 🔲 not started
+- `sync-improvements.bat` (repo root) copies BOTH files to Obsidian in one run — double-click locally (Claude can't run it directly).
 
 ---
 
@@ -105,7 +110,7 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 | 7 | Polish & SEO | ✅ Done (2026-07-19) |
 | 8 | Advanced | ✅ Done (2026-07-19) |
 | 9 | Marketing & Sales Strategy | 🔲 |
-| 10 | Customer Experience (Size Guide, Mobile Nav) | 🔲 |
+| 10 | Customer Experience (Size Guide, Mobile Nav) | ✅ Done (2026-07-21) |
 | 11 | Trust & Conversion | ⏳ |
 | 12 | Discovery & Engagement | ⏳ |
 | 13 | Business Growth | ⏳ |
@@ -114,8 +119,7 @@ O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
 | 16 | Colour & Size Variant Selector | 🔲 — architecture decided, not built |
 
 **Next priority items:**
-- 16.1: Add Color Group column R to WebStock sheet
-- 10.1: Size guide
-- 10.4: Mobile bottom nav bar
+- 9.1–9.4: Marketing & Sales Strategy (WA templates, brand story)
 - 13.1: Custom Order page (custom.html)
 - 14.1: Google Analytics 4
+- 16.4+: remaining colour swatcher polish

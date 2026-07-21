@@ -3,4 +3,11 @@ README.md
 IMPROVEMENTS.md
 CLAUDE.md
 BUSINESS-MAP.md
+CHANGELOG.md
+sync-improvements.bat
 ReferenceSite/
+
+# Internal tools / abandoned scripts — not loaded by the live site
+sync-translations.bat
+TTSE_Translation.md
+tools/
