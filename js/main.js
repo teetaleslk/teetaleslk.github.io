@@ -42,15 +42,19 @@ const CONFIG = {
 };
 
 /*
-  Column index map — matches WebStock sheet headers (A–P, 16 cols, updated 2026-07-19):
+  Column index map — matches WebStock sheet headers (A–Q, 17 cols, updated 2026-07-21):
   A(0): ItemID     | B(1): Type       | C(2): TeeCategory
   D(3): Size       | E(4): PrintSize  | F(5): Discounted (Yes/No)
-  G(6): OrgPrice   | H(7): DCPrice    | I(8): Age Grp
-  J(9): Suitable for | K(10): Stock Status | L(11): Units
-  M(12): Boost Status | N(13): Colour | O(14): Sticker/Image (Design Name)
-  P(15): Print Location
+  G(6): OrgPrice   | H(7): DCPrice    | I(8): BulkPrice
+  J(9): Age Grp    | K(10): Suitable for | L(11): Stock Status
+  M(12): Units     | N(13): Boost Status | O(14): Colour
+  P(15): Sticker/Image (Design Name) | Q(16): Print Location
   Images come from the repo (img/products/<last5>.jpg) — no sheet columns.
   Material is always "Single Jersey" — no sheet column.
+  BulkPrice (I) is the per-item 5+ price, sheet formula (2026-07-21):
+    =IF(AND(B2="Kids",D2="S"), G2-101, IF(AND(B2="Kids",D2="M"), G2-125, G2-151))
+  — standard items get OrgPrice−151; Kids S/M get a smaller gap so bulk price
+  never sells below unit cost (see TBOS Break-even Analysis).
 */
 const COL = {
   ITEM_ID:    0,
@@ -61,14 +65,15 @@ const COL = {
   DISCOUNTED: 5,  // F: "Yes" = DCPrice applies (OrgPrice struck) · "No" = sell at OrgPrice
   ORG_PRICE:  6,  // G: OrgPrice — original/anchor price
   DC_PRICE:   7,  // H: DCPrice  — discounted price (used only when Discounted = Yes)
-  AGE_GRP:    8,  // I: Age Grp
-  SUITABLE:   9,  // J: Suitable for  ("Ladies", "Gents", "Unisex")
-  STOCK:     10,  // K: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
-  UNITS:     11,  // L: Units  — how many physical pieces available (default 1 if blank)
-  BOOST:     12,  // M: Boost Status  ("New", "Hot", "Trending", "Stock Clearance"…)
-  COLOUR:         13,  // N: Colour
-  DESIGN:         14,  // O: Sticker/Image — design name
-  PRINT_LOCATION: 15,  // P: Print Location (e.g. "Front", "Back", "Left Chest")
+  BULK_PRICE: 8,  // I: BulkPrice — per-item 5+ bulk price (formula above)
+  AGE_GRP:    9,  // J: Age Grp
+  SUITABLE:  10,  // K: Suitable for  ("Ladies", "Gents", "Unisex")
+  STOCK:     11,  // L: Stock Status  ("In Stock", "Almost Gone", "Sold Out")
+  UNITS:     12,  // M: Units  — how many physical pieces available (default 1 if blank)
+  BOOST:     13,  // N: Boost Status  ("New", "Hot", "Trending", "Stock Clearance"…)
+  COLOUR:         14,  // O: Colour
+  DESIGN:         15,  // P: Sticker/Image — design name
+  PRINT_LOCATION: 16,  // Q: Print Location (e.g. "Front", "Back", "Left Chest")
 };
 const MATERIAL_DEFAULT = 'Single Jersey';
 
@@ -180,6 +185,7 @@ function parseTableData(table) {
       const discounted = val(COL.DISCOUNTED).toLowerCase().startsWith('y');
       const orgPrice   = numVal(COL.ORG_PRICE);
       const dcPrice    = numVal(COL.DC_PRICE);
+      const bulkPrice  = numVal(COL.BULK_PRICE);
 
       const product = {
         id:         itemId || `item-${idx + 1}`,
@@ -187,9 +193,10 @@ function parseTableData(table) {
         category:   val(COL.CATEGORY),
         size:       val(COL.SIZE),
         printSize:  val(COL.PRINT_SIZE),
-        org:        orgPrice,                                        // bulk-price base
+        org:        orgPrice,                                        // retail anchor (struck-through)
         price:      (discounted && dcPrice) ? dcPrice : orgPrice,    // selling price
         strike:     (discounted && dcPrice && orgPrice > dcPrice) ? orgPrice : null,
+        bulkPrice:  bulkPrice,                                       // per-item 5+ price straight from the sheet
         ageGrp:     val(COL.AGE_GRP).toLowerCase(),
         suitable:   val(COL.SUITABLE).toLowerCase(),
         stock:      val(COL.STOCK) || 'In Stock',
@@ -1305,7 +1312,7 @@ async function initProduct() {
     document.getElementById('pdPrice').innerHTML = priceHtml;
 
     // Bulk promo banner (TBOS spec) — full-width line above image + details
-    const pdBulk = (p.org && p.price && p.org - 151 < p.price) ? p.org - 151 : null;
+    const pdBulk = (p.bulkPrice && p.price && p.bulkPrice < p.price) ? p.bulkPrice : null;
     const bulkBannerEl = document.getElementById('pdBulkBanner');
     if (bulkBannerEl) bulkBannerEl.innerHTML =
       `<div class="pd-bulk-note pd-bulk-banner">👨‍👩‍👧‍👦 Buying for a family or group? <strong>5+ tees switch to bulk prices automatically</strong>${pdBulk ? ` — this tee just <strong>${CONFIG.CURRENCY} ${formatNum(pdBulk)}</strong> each` : ''}. Mix any sizes & designs!</div>`;
@@ -1441,7 +1448,7 @@ function cartAdd(p, qty = 1) {
   } else {
     cart.push({ id: p.id, type: p.type, ageGrp: p.ageGrp, colour: p.colour,
                 design: p.design, size: p.size, price: p.price ?? p.strike,
-                strike: p.strike, org: p.org, lead: p.leadNum || '',
+                strike: p.strike, org: p.org, bulkPrice: p.bulkPrice, lead: p.leadNum || '',
                 units: p.units, qty: Math.min(qty, p.units) });
   }
   cartSave(cart);
@@ -1471,11 +1478,13 @@ function refreshCartViews() {
 function cartCount() { return cartGet().reduce((s, i) => s + i.qty, 0); }
 
 /* ── BULK PRICING (auto-applies at BULK_MIN+ total units, mixed sizes/designs count)
-   BulkDC = STPrice − 151 (Pricing Strategy formula — holds across the whole Price List) */
+   BulkPrice now comes straight from WebStock column I (2026-07-21) — set per item by the
+   sheet formula =IF(AND(Type="Kids",Size="S"),OrgPrice-101,IF(AND(Type="Kids",Size="M"),
+   OrgPrice-125,OrgPrice-151)) — standard items get the flat Rs.151 gap, Kids S/M get a
+   smaller gap so bulk price never sells below unit cost (see TBOS Break-even Analysis). */
 const BULK_MIN = 5;
 function bulkPriceOf(i) {
-  const base = i.org || i.strike;            // OrgPrice (fallback: legacy strike)
-  const b = base ? base - 151 : null;        // BulkDC = OrgPrice − 151 (Pricing Strategy)
+  const b = i.bulkPrice;
   return (b && i.price && b < i.price) ? b : null;   // only if it's a real saving
 }
 function cartBulkActive(cart) { return (cart || cartGet()).reduce((s, i) => s + i.qty, 0) >= BULK_MIN; }

@@ -30,19 +30,19 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 
 ---
 
-## GOOGLE SHEET — WebStock tab (16 columns A–P, updated 2026-07-19)
+## GOOGLE SHEET — WebStock tab (17 columns A–Q, updated 2026-07-21)
 
 ```
 A(0)  ITEM_ID       B(1)  TYPE          C(2)  CATEGORY (TeeCategory)
 D(3)  SIZE          E(4)  PRINT_SIZE    F(5)  DISCOUNTED (Yes/No)
-G(6)  ORG_PRICE     H(7)  DC_PRICE      I(8)  AGE_GRP
-J(9)  SUITABLE      K(10) STOCK         L(11) UNITS
-M(12) BOOST STATUS (incl. "Stock Clearance")  N(13) COLOUR
-O(14) DESIGN (Sticker/Image name)       P(15) PRINT_LOCATION
+G(6)  ORG_PRICE     H(7)  DC_PRICE      I(8)  BULK_PRICE
+J(9)  AGE_GRP       K(10) SUITABLE      L(11) STOCK
+M(12) UNITS         N(13) BOOST STATUS (incl. "Stock Clearance")  O(14) COLOUR
+P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 ```
 
 **Price logic:** Discounted=Yes → sell DCPrice, OrgPrice struck · No → sell OrgPrice, no strike.
-**Bulk price:** OrgPrice − 151, auto-applied at 5+ cart units (Pricing Strategy formula).
+**Bulk price:** read directly from column I (BulkPrice), auto-applied at 5+ cart units. Sheet formula: `=IF(AND(B2="Kids",D2="S"), G2-101, IF(AND(B2="Kids",D2="M"), G2-125, G2-151))` — standard items get OrgPrice−151, Kids S/M get a smaller gap so bulk price never sells below real unit cost (see TBOS `Break-even Analysis`). Site no longer computes this in code — it trusts whatever's in column I.
 **Images:** repo files `img/products/<last 5 digits of ItemID>.jpg` (+`A` = Image2). Extensions jpg/jpeg/png/webp auto-tried. No sheet columns.
 **Material:** always "Single Jersey" (hardcoded, no column).
 **COLOR_GROUP** (Phase 16): would be Q(16) when added.
