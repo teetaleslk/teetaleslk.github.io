@@ -1590,10 +1590,8 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
 */
 .cat-ladies { background-image: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
 .cat-gents  { background-image: linear-gradient(135deg, #2c3e8a 0%, #4a6fa5 100%); }
-.cat-unisex { background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.cat-boys   { background-image: linear-gradient(135deg, #4facfe 0%, #00b4d8 100%); }
-.cat-girls  { background-image: linear-gradient(135deg, #fd7043 0%, #ff8a65 100%); }
 .cat-kids   { background-image: linear-gradient(135deg, #43e97b 0%, #38b2ac 100%); }
+/* .cat-unisex/.cat-boys/.cat-girls removed 2026-07-21 — merged into the 3-card layout (Ladies/Gents/Kids) */
 
 .cat-body {
   position: relative;

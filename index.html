@@ -203,15 +203,19 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════
-     CATEGORY GRID — 3×2 browse-by-audience sections
+     CATEGORY GRID — 3 browse-by-audience cards (simplified 2026-07-21,
+     was 6: Ladies/Gents/Adults-Unisex/Boys/Girls/Kids-Unisex → now 3)
      HOW TO EDIT:
      • To change card text: edit .cat-label (heading) and .cat-sub (tagline)
      • To change card photo: go to OtherImg tab in Google Sheet and paste
        a Google Drive share URL next to the matching data-img-id value
      • To change what clicking a card filters: update href="shop.html?suitable=...&age=..."
-       suitable = ladies | gents | unisex
+       suitable = ladies | gents  (omit for Kids — shows all kids regardless of suitable)
        age      = adults | kids
      • data-img-id must match exactly what's in the OtherImg sheet ID column
+     • Adults-Unisex items have no dedicated card — they already show up under
+       BOTH "For Ladies" and "For Gents" (the shop filter treats unisex as included
+       in either gender). Boys/Girls items are merged into the one "For Kids" card.
 ════════════════════════════════════════════════════════ -->
 <section class="cat-grid-section">
   <div class="container">
@@ -239,34 +243,10 @@
         </div>
       </a>
 
-      <a href="shop.html?suitable=unisex&age=adults" class="cat-card cat-unisex" data-img-id="ForAdultsCategory">
+      <a href="shop.html?age=kids" class="cat-card cat-kids" data-img-id="ForKidsCategory">
         <div class="cat-body">
-          <div class="cat-label">Adults Unisex</div>
-          <div class="cat-sub">Your style. No labels needed.</div>
-          <div class="cat-cta">Shop Now →</div>
-        </div>
-      </a>
-
-      <a href="shop.html?suitable=gents&age=kids" class="cat-card cat-boys" data-img-id="ForBoysCategory">
-        <div class="cat-body">
-          <div class="cat-label">For Boys</div>
-          <div class="cat-sub">Bold prints. Big adventures.</div>
-          <div class="cat-cta">Shop Now →</div>
-        </div>
-      </a>
-
-      <a href="shop.html?suitable=ladies&age=kids" class="cat-card cat-girls" data-img-id="ForGirlsCategory">
-        <div class="cat-body">
-          <div class="cat-label">For Girls</div>
-          <div class="cat-sub">Pretty. Playful. Perfectly theirs.</div>
-          <div class="cat-cta">Shop Now →</div>
-        </div>
-      </a>
-
-      <a href="shop.html?suitable=unisex&age=kids" class="cat-card cat-kids" data-img-id="ForKidsCategory">
-        <div class="cat-body">
-          <div class="cat-label">Kids Unisex</div>
-          <div class="cat-sub">Dress their world. Print their story.</div>
+          <div class="cat-label">For Kids</div>
+          <div class="cat-sub">Bold prints. Playful designs. Every kid's story.</div>
           <div class="cat-cta">Shop Now →</div>
         </div>
       </a>
