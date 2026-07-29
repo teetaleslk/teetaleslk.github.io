@@ -198,6 +198,18 @@
     <div class="results-row">
       <div class="results-bar" id="resultsBar"></div>
       <span class="fresh-note" id="freshNote"></span>
+      <div class="view-toggle" id="viewToggle" role="group" aria-label="Grid layout">
+        <button class="view-btn" data-view="list" title="List view"><i class="fas fa-bars"></i></button>
+        <button class="view-btn" data-view="cols2" title="2 per row"><i class="fas fa-grip-vertical"></i></button>
+        <button class="view-btn" data-view="cols3" title="3 per row"><i class="fas fa-th-large"></i></button>
+        <button class="view-btn" data-view="cols4" title="4 per row"><i class="fas fa-th"></i></button>
+      </div>
+      <select id="perPageSelect" class="sort-select" aria-label="Items per page">
+        <option value="12">Show: 12</option>
+        <option value="24" selected>Show: 24</option>
+        <option value="48">Show: 48</option>
+        <option value="96">Show: 96</option>
+      </select>
       <select id="sortSelect" class="sort-select" aria-label="Sort products">
         <option value="featured">Sort: Featured</option>
         <option value="newest">Newest First</option>
@@ -212,6 +224,8 @@
         <p>Loading our collection…</p>
       </div>
     </div>
+
+    <div class="pagination-bar" id="paginationBar"></div>
 
     <div class="empty-state" id="emptyState" style="display:none;">
       <div class="empty-icon">🔍</div>

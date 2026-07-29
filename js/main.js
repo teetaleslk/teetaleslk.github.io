@@ -90,6 +90,10 @@ let activeSize    = 'all';
 let activeBoost   = 'all';      // 'all' | 'new' | 'hot'  (?boost= URL param)
 let activeSort    = 'featured'; // 'featured' | 'newest' | 'price-asc' | 'price-desc'
 let searchQuery   = '';
+let activePrintSize = 'all';    // Print Size filter (Pocket/A5/A4/A3/A3+Pocket…) — Adults only, Kids are always "NA"
+let currentPage   = 1;
+let itemsPerPage  = 24;         // 12 | 24 | 48 | 96 — multiples of 12 so 2/3/4-col grids never leave a lone item in the last row
+let gridView      = localStorage.getItem('tt_grid_view') || 'cols4';  // 'list' | 'cols2' | 'cols3' | 'cols4'
 
 /* ── DOM REFS ───────────────────────────────────────────────── */
 const grid          = document.getElementById('productsGrid');
@@ -610,13 +614,13 @@ function getBoostBadgeHtml(boostStatus) {
 /* ═══════════════════════════════════════════════════════════════
    RENDER
 ═══════════════════════════════════════════════════════════════ */
-function renderProducts(products) {
+function renderProducts(products, page) {
   grid.querySelectorAll('.product-card').forEach(el => el.remove());
 
   if (products.length === 0) {
     loadingState.style.display = 'none';
     emptyState.style.display = 'block';
-    resultsBar.textContent = '';
+    if (resultsBar) resultsBar.textContent = '';
     return;
   }
 
@@ -624,7 +628,13 @@ function renderProducts(products) {
   loadingState.style.display = 'none';
 
   const count = products.length;
-  resultsBar.textContent = `Showing ${count} item${count !== 1 ? 's' : ''}`;
+  if (resultsBar) {
+    if (page && page.total) {
+      resultsBar.textContent = `Showing ${page.start + 1}–${page.start + count} of ${page.total} result${page.total !== 1 ? 's' : ''}`;
+    } else {
+      resultsBar.textContent = `Showing ${count} item${count !== 1 ? 's' : ''}`;
+    }
+  }
 
   const frag = document.createDocumentFragment();
   products.forEach(p => frag.appendChild(createProductCard(p)));
@@ -786,6 +796,8 @@ function contextFor(except) {
   if (except !== 'tag'    && activeTag    !== 'all') f = f.filter(p => p.design.includes(activeTag));
   if (except !== 'colour' && activeColour !== 'all') f = f.filter(p => colourGroupOf(p.colour) === activeColour);
   if (except !== 'size'   && activeSize   !== 'all') f = f.filter(p => (p.size || '').toLowerCase() === activeSize);
+  if (except !== 'printSize' && activePrintSize !== 'all')
+    f = f.filter(p => (p.printSize || '').toLowerCase() === activePrintSize.toLowerCase());
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     f = f.filter(p =>
@@ -799,12 +811,15 @@ function contextFor(except) {
   return f;
 }
 
-function applyFilters() {
+let lastFiltered = [];  // full filtered+sorted list, before pagination slicing
+
+function applyFilters(keepPage) {
   /* Rebuild every option group from its own "all others" context */
   updateStaticPillAvailability();
   buildTagFilter(contextFor('tag'));
   buildColourFilter(contextFor('colour'));
   buildSizeFilter(contextFor('size'));
+  buildPrintSizeFilter(contextFor('printSize'));
 
   /* Final result = all filters applied */
   let f = contextFor(null);
@@ -817,8 +832,58 @@ function applyFilters() {
     f.sort((a, b) => stockPriority(a.stock) - stockPriority(b.stock));
   }
 
-  renderProducts(f);
+  lastFiltered = f;
+  if (!keepPage) currentPage = 1;  // any filter/search/sort/per-page change jumps back to page 1
+
+  const total = f.length;
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageItems = f.slice(start, start + itemsPerPage);
+
+  renderProducts(pageItems, { start, total });
+  renderPagination(total, totalPages);
   updateFilterSummary();
+}
+
+/* Jump to a specific page (from pagination controls) — keeps all filters as-is */
+function goToPage(n) {
+  currentPage = n;
+  applyFilters(true);
+  document.querySelector('.filters-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* Prev/Next + numbered page buttons, with ellipsis for long ranges */
+function renderPagination(total, totalPages) {
+  const bar = document.getElementById('paginationBar');
+  if (!bar) return;
+  if (totalPages <= 1) { bar.innerHTML = ''; return; }
+
+  const pageBtn = (n, label, extraClass = '') =>
+    `<button class="page-btn ${extraClass}" data-page="${n}" ${n === currentPage ? 'aria-current="page"' : ''}>${label}</button>`;
+
+  let nums = [];
+  const add = n => { if (n >= 1 && n <= totalPages && !nums.includes(n)) nums.push(n); };
+  add(1); add(totalPages);
+  for (let n = currentPage - 1; n <= currentPage + 1; n++) add(n);
+  nums.sort((a, b) => a - b);
+
+  let html = pageBtn(currentPage - 1, '‹ Prev', currentPage === 1 ? 'disabled' : '');
+  let prev = 0;
+  nums.forEach(n => {
+    if (prev && n - prev > 1) html += `<span class="page-ellipsis">…</span>`;
+    html += pageBtn(n, n, n === currentPage ? 'active' : '');
+    prev = n;
+  });
+  html += pageBtn(currentPage + 1, 'Next ›', currentPage === totalPages ? 'disabled' : '');
+
+  bar.innerHTML = html;
+  bar.onclick = (e) => {
+    const btn = e.target.closest('.page-btn');
+    if (!btn || btn.classList.contains('disabled')) return;
+    const n = parseInt(btn.dataset.page, 10);
+    if (n >= 1 && n <= totalPages && n !== currentPage) goToPage(n);
+  };
 }
 
 /* Category + Suitable For pills: grey out choices with no products in the
@@ -850,6 +915,7 @@ function updateFilterSummary() {
   if (activeTag    !== 'all') tags.push(chip('tag',    'fa-tag',     escHtml(activeTag)));
   if (activeColour !== 'all') tags.push(chip('colour', 'fa-palette', capitalize(activeColour)));
   if (activeSize   !== 'all') tags.push(chip('size',   'fa-ruler',   `Size ${activeSize.toUpperCase()}`));
+  if (activePrintSize !== 'all') tags.push(chip('printSize', 'fa-image', escHtml(activePrintSize)));
   if (activeBoost  !== 'all') tags.push(chip('boost',  'fa-fire',    ({new: 'New Arrivals', hot: 'Hot Deals', gifts: 'Gift Picks'})[activeBoost]));
   if (searchQuery)            tags.push(chip('search', 'fa-search',  `"${escHtml(searchQuery)}"`));
   if (tags.length >= 2)
@@ -874,6 +940,7 @@ function clearFilter(key) {
   if (key === 'tag'    || key === 'all') activeTag    = 'all';
   if (key === 'colour' || key === 'all') activeColour = 'all';
   if (key === 'size'   || key === 'all') activeSize   = 'all';
+  if (key === 'printSize' || key === 'all') activePrintSize = 'all';
   if (key === 'boost'  || key === 'all') activeBoost  = 'all';
   if (key === 'search' || key === 'all') clearSearch();
   applyFilters();
@@ -918,6 +985,69 @@ function injectExtraFilters() {
       <div class="colour-filter-wrap" id="colourFilter"></div>`;
     bar.appendChild(colGroup);
   }
+
+  if (!document.getElementById('printSizeFilterGroup')) {
+    const psGroup = document.createElement('div');
+    psGroup.className = 'filter-group';
+    psGroup.id = 'printSizeFilterGroup';
+    psGroup.style.display = 'none';
+    psGroup.innerHTML = `
+      <span class="filter-label"><i class="fas fa-image"></i> Print Size</span>
+      <div class="filter-pills printsize-pills" id="printSizeFilter"></div>`;
+    bar.appendChild(psGroup);
+  }
+}
+
+/* Print Size filter — Pocket/A5/A4/A3/A3+Pocket… (Adults only; Kids are always "NA" so
+   this group naturally hides itself when the current context has no real print sizes).
+   Icons: img/printsize/<exact PrintSize text from the sheet>.<ext> — same probeImg
+   cascade as everything else. No icon file yet → pill still works, just shows text only. */
+const PRINT_SIZE_LADDER = ['pocket', 'a5', 'a4', 'a3', 'a3+pocket'];
+function buildPrintSizeFilter(base) {
+  const group = document.getElementById('printSizeFilterGroup');
+  const pills = document.getElementById('printSizeFilter');
+  if (!group || !pills) return;
+
+  // Distinct real print sizes present (skip blank/NA — that's Kids or unset)
+  const present = new Map();  // lowercase → original-cased label
+  base.forEach(p => {
+    const raw = (p.printSize || '').trim();
+    if (!raw || raw.toLowerCase() === 'na') return;
+    if (!present.has(raw.toLowerCase())) present.set(raw.toLowerCase(), raw);
+  });
+
+  if (!present.size) { group.style.display = 'none'; activePrintSize = 'all'; return; }
+  if (activePrintSize !== 'all' && !present.has(activePrintSize.toLowerCase())) activePrintSize = 'all';
+
+  // Known ladder first (Pocket→A5→A4→A3→A3+Pocket), anything unrecognised appended after
+  const ordered = [...PRINT_SIZE_LADDER.filter(k => present.has(k)),
+                   ...[...present.keys()].filter(k => !PRINT_SIZE_LADDER.includes(k))];
+
+  pills.innerHTML = `<button class="pill printsize-pill${activePrintSize === 'all' ? ' active' : ''}" data-ps="all">All</button>` +
+    ordered.map(k => {
+      const label = present.get(k);
+      return `<button class="pill printsize-pill${activePrintSize.toLowerCase() === k ? ' active' : ''}" data-ps="${escHtml(label)}">
+        <span class="printsize-icon" id="psIcon-${escHtml(k.replace(/[^a-z0-9]/g, ''))}"></span>${escHtml(label)}
+      </button>`;
+    }).join('');
+  group.style.display = 'flex';
+
+  // Try to load an icon per print size — silently no-ops if the file isn't there yet
+  ordered.forEach(k => {
+    const label = present.get(k);
+    const iconEl = document.getElementById(`psIcon-${k.replace(/[^a-z0-9]/g, '')}`);
+    if (!iconEl) return;
+    probeImg(`img/printsize/${encodeURIComponent(label)}`, url => {
+      iconEl.innerHTML = `<img src="${url}" alt="" />`;
+    });
+  });
+
+  pills.onclick = (e) => {
+    const pill = e.target.closest('.printsize-pill');
+    if (!pill) return;
+    activePrintSize = pill.dataset.ps;
+    applyFilters();
+  };
 }
 
 /* Size filter pills — sizes that actually exist in the data, S→3XL order */
@@ -1102,6 +1232,33 @@ async function initShop() {
     activeSort = sortSelect.value;
     applyFilters();
   });
+
+  // Per-page selector (12/24/48/96 — multiples of 12 so 2/3/4-col grids never strand a lone item)
+  const perPageSelect = document.getElementById('perPageSelect');
+  if (perPageSelect) {
+    perPageSelect.value = String(itemsPerPage);
+    perPageSelect.addEventListener('change', () => {
+      itemsPerPage = parseInt(perPageSelect.value, 10);
+      applyFilters();
+    });
+  }
+
+  // Grid density toggle (list / 2 / 3 / 4 per row) — remembered via localStorage
+  const viewToggle = document.getElementById('viewToggle');
+  if (viewToggle) {
+    const setView = (v) => {
+      gridView = v;
+      localStorage.setItem('tt_grid_view', v);
+      grid.classList.remove('view-list', 'view-cols2', 'view-cols3', 'view-cols4');
+      grid.classList.add(`view-${v}`);
+      viewToggle.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    };
+    setView(gridView);
+    viewToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-btn');
+      if (btn) setView(btn.dataset.view);
+    });
+  }
 
   injectExtraFilters();
 
