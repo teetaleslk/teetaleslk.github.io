@@ -340,6 +340,31 @@ a.pd-size-opt:hover { border-color: var(--accent); color: var(--accent); transfo
 }
 .card-cart-btn:hover:not(:disabled) { background: var(--accent); }
 .card-cart-btn:disabled { background: var(--light-gray); color: var(--mid-gray); cursor: not-allowed; }
+.card-cart-btn.selected { background: var(--wa-green); }
+.card-cart-btn.selected:hover { background: var(--wa-hover); }
+
+/* ── Bundle mode (Offer Bundle-Picker) ───────────────────────── */
+.product-card.bundle-selected { outline: 2px solid var(--wa-green); outline-offset: -2px; }
+.bundle-bar {
+  position: sticky; top: 0; z-index: 40;
+  background: var(--primary); color: #fff;
+  border-radius: var(--radius-md);
+  margin: 0 0 16px; padding: 12px 16px;
+  box-shadow: var(--shadow-md);
+}
+.bundle-bar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.bundle-bar-info { display: flex; flex-direction: column; gap: 2px; flex: 1 1 200px; font-size: .85rem; }
+.bundle-bar-info strong { font-size: .95rem; }
+.bundle-exit { color: #fff; opacity: .75; font-size: .8rem; white-space: nowrap; }
+.bundle-exit:hover { opacity: 1; }
+.bundle-wa-btn {
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: var(--wa-green); color: #fff; font-weight: 600;
+  padding: 9px 16px; border-radius: 999px; font-size: .85rem;
+  transition: background .2s;
+}
+.bundle-wa-btn:hover { background: var(--wa-hover); }
+.bundle-wa-btn.disabled { background: rgba(255,255,255,.2); color: rgba(255,255,255,.6); cursor: not-allowed; pointer-events: none; }
 
 /* ── Product page qty + Add to Cart ────────────────────────── */
 .pd-qty-wrap {

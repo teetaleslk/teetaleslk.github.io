@@ -95,6 +95,13 @@ let currentPage   = 1;
 let itemsPerPage  = 24;         // 12 | 24 | 48 | 96 — multiples of 12 so 2/3/4-col grids never leave a lone item in the last row
 let gridView      = localStorage.getItem('tt_grid_view') || 'cols4';  // 'list' | 'cols2' | 'cols3' | 'cols4'
 
+/* ── BUNDLE MODE (Offer Bundle-Picker) ──
+   Set from ?bundle=1 URL params (see createOfferCard in the Offers section).
+   Locks Age/Size to the offer's rules and lets the shopper pick exact items
+   instead of sending a vague WA message. null = normal shopping. */
+let bundleMode     = null;      // { title, badge, offerType, discountPercent, price, strike, bundleAge[], bundleSizes[], bundleCount }
+let bundleSelected = new Set(); // product IDs currently picked
+
 /* ── DOM REFS ───────────────────────────────────────────────── */
 const grid          = document.getElementById('productsGrid');
 const loadingState  = document.getElementById('loadingState');
@@ -227,23 +234,40 @@ function parseTableData(table) {
    2. Set column A (Status) = "Active" to show the deal, or "Expired" to hide it
    3. The Deals section on the website disappears automatically when no active offers exist
 
-   Sheet columns (A–G):
-     A: Status      "Active" or "Expired"
-     B: Badge       e.g. "FREE DELIVERY" / "🔥 HOT DEAL"
-     C: Title       e.g. "Kids Bundle Deal"
-     D: Description e.g. "3 tees for great prices — islandwide delivery!"
-     E: StrikePrice e.g. 3000  (leave blank = no strikethrough)
-     F: DealPrice   e.g. 2250
-     G: WA Text     pre-filled WhatsApp message (plain text, not encoded)
+   Sheet columns (A–L, updated 2026-07-21 — Bundle Builder):
+     A: Status          "Active" or "Expired"
+     B: Badge           e.g. "FREE DELIVERY" / "🔥 HOT DEAL"
+     C: Title           e.g. "Kids Bundle Deal"
+     D: Description     e.g. "Pick any 3 kids tees — islandwide delivery!"
+     E: OfferType        "Fixed" or "Percentage" (blank = Fixed). Fixed = flat total
+                         from StrikePrice/DealPrice regardless of what's picked.
+                         Percentage = total computed live from whatever's picked,
+                         discounted by DiscountPercent — for open/mixed bundles
+                         where a flat price wouldn't be fair either direction.
+     F: DiscountPercent  e.g. 20  — only used when OfferType = Percentage
+     G: StrikePrice      e.g. 3000 (Fixed only; leave blank = no strikethrough)
+     H: DealPrice        e.g. 2250 (Fixed only — the flat bundle total)
+     I: BundleAge        "Kids", "Adults", or "Kids,Adults" — blank = not a bundle,
+                         card just shows the plain WhatsApp "ask us" link as before
+     J: BundleSizes      e.g. "S,M,L" — blank = any size counts
+     K: BundleCount      e.g. 3 — how many tees must be picked (exact count)
+     L: WA Text          pre-filled WhatsApp message for NON-bundle offers only
+                         (plain text, not encoded) — bundle offers build their own
+                         WA message from the actual items picked
 ═══════════════════════════════════════════════════════════════ */
 const OFFER_COL = {
-  STATUS:  0,  // A
-  BADGE:   1,  // B
-  TITLE:   2,  // C
-  DESC:    3,  // D
-  STRIKE:  4,  // E
-  PRICE:   5,  // F
-  WA_TEXT: 6,  // G
+  STATUS:      0,  // A
+  BADGE:       1,  // B
+  TITLE:       2,  // C
+  DESC:        3,  // D
+  OFFER_TYPE:  4,  // E
+  DISCOUNT_PCT:5,  // F
+  STRIKE:      6,  // G
+  PRICE:       7,  // H
+  BUNDLE_AGE:  8,  // I
+  BUNDLE_SIZES:9,  // J
+  BUNDLE_COUNT:10, // K
+  WA_TEXT:     11, // L
 };
 
 async function fetchOffers() {
@@ -279,12 +303,23 @@ async function fetchOffers() {
       if (status !== 'active') return null;
       const title = v(OFFER_COL.TITLE);
       if (!title) return null;
+      const splitList = (s) => s ? s.split(',').map(x => x.trim().toLowerCase()).filter(Boolean) : [];
+      const offerType = (v(OFFER_COL.OFFER_TYPE).toLowerCase() === 'percentage') ? 'percentage' : 'fixed';
+      const bundleAge   = splitList(v(OFFER_COL.BUNDLE_AGE));
+      const bundleSizes = splitList(v(OFFER_COL.BUNDLE_SIZES));
+      const bundleCount = n(OFFER_COL.BUNDLE_COUNT);
       return {
         badge:  v(OFFER_COL.BADGE),
         title,
         desc:   v(OFFER_COL.DESC),
+        offerType,
+        discountPercent: n(OFFER_COL.DISCOUNT_PCT),
         strike: n(OFFER_COL.STRIKE),
         price:  n(OFFER_COL.PRICE),
+        bundleAge,
+        bundleSizes,
+        bundleCount,
+        isBundle: bundleAge.length > 0 && !!bundleCount,
         waText: v(OFFER_COL.WA_TEXT),
       };
     })
@@ -299,16 +334,46 @@ function createOfferCard(offer) {
     ? `<span class="offer-strike">${CONFIG.CURRENCY} ${formatNum(offer.strike)}</span>`
     : '';
 
-  const priceHtml = offer.price
-    ? `<div class="offer-price-row">
+  let priceHtml = '';
+  if (offer.isBundle && offer.offerType === 'percentage') {
+    // Percentage bundles don't have a fixed total to show — total is computed
+    // live from whatever the shopper picks, so show the discount instead.
+    priceHtml = offer.discountPercent
+      ? `<div class="offer-price-row"><span class="offer-price">${offer.discountPercent}% OFF</span></div>`
+      : '';
+  } else if (offer.price) {
+    priceHtml = `<div class="offer-price-row">
         ${strikeHtml}
         <span class="offer-price">${CONFIG.CURRENCY} ${formatNum(offer.price)}</span>
         ${offer.strike ? `<span class="offer-save">💰 Save ${CONFIG.CURRENCY} ${formatNum(offer.strike - offer.price)}</span>` : ''}
-       </div>`
-    : '';
+       </div>`;
+  }
 
-  const waMsg = offer.waText || `Hi TeeTales! I'd like to know more about the "${offer.title}" offer. 👕`;
-  const waLink = `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+  let ctaHtml;
+  if (offer.isBundle) {
+    // Send them to the shop in bundle-picker mode instead of a plain WA chat —
+    // filters lock to this offer's age/size rules and they pick exact items.
+    const params = new URLSearchParams();
+    params.set('bundle', '1');
+    params.set('bTitle', offer.title);
+    if (offer.badge) params.set('bBadge', offer.badge);
+    params.set('bType', offer.offerType);
+    if (offer.discountPercent) params.set('bPct', offer.discountPercent);
+    if (offer.price) params.set('bPrice', offer.price);
+    if (offer.strike) params.set('bStrike', offer.strike);
+    params.set('bAge', offer.bundleAge.join(','));
+    if (offer.bundleSizes.length) params.set('bSizes', offer.bundleSizes.join(','));
+    params.set('bCount', offer.bundleCount);
+    ctaHtml = `<a href="shop.html?${params.toString()}" class="offer-wa-btn">
+        <i class="fas fa-tshirt"></i> Build This Bundle
+      </a>`;
+  } else {
+    const waMsg = offer.waText || `Hi TeeTales! I'd like to know more about the "${offer.title}" offer. 👕`;
+    const waLink = `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+    ctaHtml = `<a href="${waLink}" target="_blank" rel="noopener" class="offer-wa-btn">
+        <i class="fab fa-whatsapp"></i> Grab This Deal
+      </a>`;
+  }
 
   card.innerHTML = `
     ${offer.badge ? `<div class="offer-badge">${escHtml(offer.badge)}</div>` : ''}
@@ -316,9 +381,7 @@ function createOfferCard(offer) {
       <h3 class="offer-title">${escHtml(offer.title)}</h3>
       ${offer.desc ? `<p class="offer-desc">${escHtml(offer.desc)}</p>` : ''}
       ${priceHtml}
-      <a href="${waLink}" target="_blank" rel="noopener" class="offer-wa-btn">
-        <i class="fab fa-whatsapp"></i> Grab This Deal
-      </a>
+      ${ctaHtml}
     </div>`;
   return card;
 }
@@ -643,7 +706,7 @@ function renderProducts(products, page) {
 
 function createProductCard(p) {
   const card = document.createElement('div');
-  card.className = 'product-card';
+  card.className = 'product-card' + (bundleMode && bundleSelected.has(p.id) ? ' bundle-selected' : '');
 
   const isOutOfStock = p.stock.toLowerCase().includes('out');
 
@@ -669,12 +732,22 @@ function createProductCard(p) {
     : '';
   if (audience.label) card.dataset.audience = audience.label;
 
-  /* ── Add to Cart button ── */
-  const cartBtn = isOutOfStock
-    ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
-    : `<button class="card-cart-btn" onclick="cartAddFromCard('${escHtml(p.id)}')">
-         <i class="fas fa-shopping-bag"></i> Add to Cart
-       </button>`;
+  /* ── Add to Cart button (or Bundle select toggle, in bundle mode) ── */
+  const isBundlePicked = bundleMode && bundleSelected.has(p.id);
+  const bundleFull = bundleMode && bundleSelected.size >= bundleMode.bundleCount && !isBundlePicked;
+  const cartBtn = bundleMode
+    ? (isOutOfStock
+        ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
+        : `<button class="card-cart-btn${isBundlePicked ? ' selected' : ''}"
+             onclick="bundleToggle('${escHtml(p.id)}')" ${bundleFull ? 'disabled' : ''}>
+             <i class="fas ${isBundlePicked ? 'fa-check-circle' : 'fa-plus-circle'}"></i>
+             ${isBundlePicked ? 'Selected' : (bundleFull ? 'Bundle Full' : 'Select for Bundle')}
+           </button>`)
+    : (isOutOfStock
+        ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
+        : `<button class="card-cart-btn" onclick="cartAddFromCard('${escHtml(p.id)}')">
+             <i class="fas fa-shopping-bag"></i> Add to Cart
+           </button>`);
 
   /* ── Price block ── */
   let priceHtml = '';
@@ -777,6 +850,98 @@ function createProductCard(p) {
 window.placeholderHtml = () =>
   `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
+/* ═══════════════════════════════════════════════════════════════
+   BUNDLE MODE — pick exact items for an Offer instead of a vague WA chat
+═══════════════════════════════════════════════════════════════ */
+function bundleToggle(id) {
+  if (!bundleMode) return;
+  if (bundleSelected.has(id)) {
+    bundleSelected.delete(id);
+  } else {
+    if (bundleSelected.size >= bundleMode.bundleCount) return; // full — exact count only
+    bundleSelected.add(id);
+  }
+  applyFilters(true);   // re-render cards with updated selection state
+  renderBundleBar();
+}
+
+function bundleSelectedProducts() {
+  return [...bundleSelected].map(id => _ttProdMap[id]).filter(Boolean);
+}
+
+function bundleTotal() {
+  const items = bundleSelectedProducts();
+  if (bundleMode.offerType === 'percentage') {
+    const raw = items.reduce((sum, p) => sum + (p.price || 0), 0);
+    return Math.round(raw * (1 - (bundleMode.discountPercent || 0) / 100));
+  }
+  return bundleMode.price || 0;
+}
+
+function buildBundleWAMessage() {
+  const items = bundleSelectedProducts();
+  const lines = items.map(p => `• ${p.type}${p.colour ? ' — ' + p.colour : ''} (Size ${p.size}) — ${p.id}`);
+  const total = bundleTotal();
+  return `Hi TeeTales! I'd like to order the "${bundleMode.title}" bundle:\n${lines.join('\n')}\n\nTotal: ${CONFIG.CURRENCY} ${formatNum(total)}`;
+}
+
+function renderBundleBar() {
+  const bar = document.getElementById('bundleBar');
+  if (!bar || !bundleMode) return;
+  const count = bundleSelected.size;
+  const need  = bundleMode.bundleCount;
+  const ready = count === need;
+  const total = bundleTotal();
+  const totalHtml = bundleMode.offerType === 'percentage'
+    ? (count ? `${CONFIG.CURRENCY} ${formatNum(total)} <small>(${bundleMode.discountPercent}% off)</small>` : '—')
+    : `${CONFIG.CURRENCY} ${formatNum(bundleMode.price)}`;
+  bar.innerHTML = `
+    <div class="bundle-bar-inner">
+      <div class="bundle-bar-info">
+        <strong>${escHtml(bundleMode.title)}</strong>
+        <span>${count} of ${need} selected — Total: ${totalHtml}</span>
+      </div>
+      <a href="#" class="bundle-exit" onclick="event.preventDefault(); window.location.href='shop.html';">✕ Exit Bundle</a>
+      <a href="${ready ? `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildBundleWAMessage())}` : '#'}"
+         target="${ready ? '_blank' : ''}" rel="noopener"
+         class="bundle-wa-btn${ready ? '' : ' disabled'}"
+         onclick="${ready ? '' : 'event.preventDefault();'}">
+        <i class="fab fa-whatsapp"></i> ${ready ? 'Order This Bundle' : `Pick ${need - count} more`}
+      </a>
+    </div>`;
+}
+
+function initBundleMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('bundle') !== '1') return;
+  const splitList = (s) => s ? s.split(',').map(x => x.trim().toLowerCase()).filter(Boolean) : [];
+  bundleMode = {
+    title: params.get('bTitle') || 'Bundle Deal',
+    badge: params.get('bBadge') || '',
+    offerType: params.get('bType') === 'percentage' ? 'percentage' : 'fixed',
+    discountPercent: parseFloat(params.get('bPct')) || 0,
+    price: parseFloat(params.get('bPrice')) || 0,
+    strike: parseFloat(params.get('bStrike')) || 0,
+    bundleAge: splitList(params.get('bAge')),
+    bundleSizes: splitList(params.get('bSizes')),
+    bundleCount: parseInt(params.get('bCount'), 10) || 1,
+  };
+  bundleSelected = new Set();
+
+  // Lock/hide the Age + Size filter groups — they're fixed by the offer.
+  document.getElementById('ageFilter')?.closest('.filter-group')?.style.setProperty('display', 'none');
+  document.getElementById('sizeFilter')?.closest('.filter-group')?.style.setProperty('display', 'none');
+
+  // Inject the sticky progress bar once, above the products grid.
+  if (!document.getElementById('bundleBar')) {
+    const bar = document.createElement('div');
+    bar.id = 'bundleBar';
+    bar.className = 'bundle-bar';
+    (document.querySelector('.filters-bar') || grid)?.insertAdjacentElement('beforebegin', bar);
+  }
+  renderBundleBar();
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    UTILITIES
@@ -803,7 +968,19 @@ function formatNum(n) {
    all OTHER active filters ("exclude self") — click order never matters. */
 function contextFor(except) {
   let f = allProducts;
-  if (except !== 'age') {
+  if (bundleMode) {
+    // Bundle mode: hard lock to the offer's eligible pool (age + size are
+    // fixed by the offer, not user-togglable) — everything else (gender,
+    // colour, design, print size, search) still narrows normally below.
+    if (bundleMode.bundleAge.length && !(bundleMode.bundleAge.includes('kids') && bundleMode.bundleAge.includes('adults'))) {
+      f = bundleMode.bundleAge.includes('adults')
+        ? f.filter(p => p.ageGrp === 'adults')
+        : f.filter(p => p.ageGrp !== 'adults');
+    }
+    if (bundleMode.bundleSizes.length) {
+      f = f.filter(p => bundleMode.bundleSizes.includes((p.size || '').toLowerCase()));
+    }
+  } else if (except !== 'age') {
     if (activeAge === 'adults') f = f.filter(p => p.ageGrp === 'adults');
     else if (activeAge === 'kids') f = f.filter(p => p.ageGrp !== 'adults');
   }
@@ -1285,6 +1462,7 @@ async function initShop() {
   }
 
   injectExtraFilters();
+  initBundleMode();
 
   // Age filter
   const ageFilter = document.getElementById('ageFilter');
