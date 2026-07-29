@@ -698,6 +698,27 @@ function createProductCard(p) {
     ? `<div class="card-tags">${p.design.slice(0, 3).map(t => `<span class="card-tag-chip">${t}</span>`).join('')}</div>`
     : '';
 
+  /* ── List-view detail block (hidden in grid views via CSS) ──
+     Mirrors the product page's key info so customers can decide without
+     clicking in — Style/Print Size/Material grid, a real Add to Cart button,
+     and the same delivery trust strip shown on product.html. */
+  const listMetaItems = [
+    p.category ? `<div><dt>Style</dt><dd>${escHtml(p.category)}</dd></div>` : '',
+    (p.printSize && p.printSize.toLowerCase() !== 'na' && (p.type || '').toLowerCase() !== 'kids')
+      ? `<div><dt>Print Size</dt><dd>${escHtml(p.printSize)}</dd></div>` : '',
+    p.material ? `<div><dt>Material</dt><dd>${escHtml(p.material)}</dd></div>` : '',
+    `<div><dt>Item ID</dt><dd>${escHtml(p.id)}</dd></div>`,
+  ].filter(Boolean).join('');
+  const listExtraHtml = `
+    <div class="card-list-extra">
+      <dl class="card-list-meta">${listMetaItems}</dl>
+      ${cartBtn}
+      <div class="card-list-trust">
+        <span><i class="fas fa-truck"></i> Islandwide Delivery</span>
+        <span><i class="fas fa-shield-alt"></i> Quality Guaranteed</span>
+      </div>
+    </div>`;
+
   /* ── Colour swatch + size bar (always visible) ── */
   const swatchColor = getSwatchColor(p.colour);
   const swatchDot   = p.colour
@@ -738,6 +759,7 @@ function createProductCard(p) {
       ${priceHtml}
       ${metaBar}
       ${tagsHtml}
+      ${listExtraHtml}
     </div>`;
 
   /* ── Navigate to product page on card click (but not on WA button) ── */
