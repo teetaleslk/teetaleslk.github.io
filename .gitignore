@@ -14,3 +14,6 @@ tools/
 
 # Internal pricing/cost reference — never public
 PRICES_updated.csv
+
+# Old/reference files — not part of the live site
+oldfiles/
