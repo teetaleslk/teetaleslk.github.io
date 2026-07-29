@@ -754,11 +754,13 @@ function createProductCard(p) {
       <div class="card-wa-hover">${cartBtn}</div>
     </div>
     <div class="card-info">
-      <div class="card-type">${escHtml((p.design?.[0] ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ') : p.type) + (p.size ? ` (${p.size})` : ''))}</div>
-      ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
-      ${priceHtml}
-      ${metaBar}
-      ${tagsHtml}
+      <div class="card-info-main">
+        <div class="card-type">${escHtml((p.design?.[0] ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ') : p.type) + (p.size ? ` (${p.size})` : ''))}</div>
+        ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
+        ${priceHtml}
+        ${metaBar}
+        ${tagsHtml}
+      </div>
       ${listExtraHtml}
     </div>`;
 
