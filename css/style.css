@@ -196,7 +196,9 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .size-qty-item {
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   padding: 10px 8px; text-align: center;
+  background: #fff; transition: background var(--transition), border-color var(--transition);
 }
+.size-qty-item.has-qty { background: #eafaf0; border-color: #b7ecc8; }
 .size-qty-item .sq-label { font-weight: 700; font-size: .82rem; margin-bottom: 8px; }
 .size-qty-stepper { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .size-qty-stepper button {

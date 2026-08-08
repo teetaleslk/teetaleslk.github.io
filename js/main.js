@@ -2455,6 +2455,7 @@ function buildSizeQtyGrid(gridId, ladder) {
     else if (e.target.classList.contains('sq-minus')) val = Math.max(val - 1, 0);
     else return;
     valEl.textContent = val;
+    item.classList.toggle('has-qty', val > 0);
   });
 }
 
