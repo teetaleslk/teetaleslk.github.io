@@ -190,6 +190,8 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
   padding: 10px 14px; font-size: .85rem; margin-bottom: 16px;
 }
 
+.size-qty-group-label { font-size: .78rem; font-weight: 700; color: var(--text-muted); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: .03em; }
+.size-qty-group-label:first-of-type { margin-top: 0; }
 .size-qty-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
 .size-qty-item {
   border: 1px solid var(--border); border-radius: var(--radius-sm);

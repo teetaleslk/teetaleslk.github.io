@@ -116,7 +116,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 11 | Trust & Conversion | ⏳ |
 | 12 | Discovery & Engagement | ✅ Done (2026-08-08, 12.4 dropped) |
 | 13 | Business Growth | ✅ Done (2026-08-08, 13.3b + 13.8 open) |
-| 14 | Analytics | 🔲 |
+| 14 | Analytics | ✅ Done (2026-08-08, 14.2 blocked on Clarity ID) |
 | 15 | Technical Excellence | ⏳ |
 | 16 | Colour & Size Variant Selector | 🔲 — architecture decided, not built |
 

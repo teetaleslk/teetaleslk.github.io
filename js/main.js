@@ -370,7 +370,7 @@ function createOfferCard(offer) {
   } else {
     const waMsg = offer.waText || `Hi TeeTales! I'd like to know more about the "${offer.title}" offer. 👕`;
     const waLink = `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
-    ctaHtml = `<a href="${waLink}" target="_blank" rel="noopener" class="offer-wa-btn">
+    ctaHtml = `<a href="${waLink}" target="_blank" rel="noopener" class="offer-wa-btn" data-wa-source="offer" data-item-id="${escHtml(offer.title)}">
         <i class="fab fa-whatsapp"></i> Grab This Deal
       </a>`;
   }
@@ -920,7 +920,7 @@ function renderBundleBar() {
       <a href="#" class="bundle-exit" onclick="event.preventDefault(); window.location.href='shop.html';">✕ Exit Bundle</a>
       <a href="${ready ? `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildBundleWAMessage())}` : '#'}"
          target="${ready ? '_blank' : ''}" rel="noopener"
-         class="bundle-wa-btn${ready ? '' : ' disabled'}"
+         class="bundle-wa-btn${ready ? '' : ' disabled'}" data-wa-source="bundle_order" data-item-id="${escHtml(bundleMode.title)}"
          onclick="${ready ? '' : 'event.preventDefault();'}">
         <i class="fab fa-whatsapp"></i> ${ready ? 'Order This Bundle' : `Pick ${need - count} more`}
       </a>
@@ -1863,6 +1863,8 @@ function cartAdd(p, qty = 1) {
   }
   cartSave(cart);
   cartToast();
+  // 14.4 Cart abandonment insight — compared against the cart's WA-order click (source: cart_order)
+  if (typeof gtag === 'function') gtag('event', 'cart_add', { item_id: p.id });
 }
 
 function cartUpdateQty(id, delta) {
@@ -2121,7 +2123,7 @@ function renderCartDrawer() {
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" onclick="setTimeout(()=>location.href='order-sent.html',350)">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
@@ -2209,7 +2211,7 @@ function renderCartPage() {
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" onclick="setTimeout(()=>location.href='order-sent.html',350)">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you. 😊</p>
@@ -2313,7 +2315,7 @@ function renderWishDrawer() {
     foot.style.display = 'block';
     foot.innerHTML = `
       <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildWishWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="wishlist_ask">
         <i class="fab fa-whatsapp"></i> Ask About All (${w.length})
       </a>`;
   }
@@ -2430,10 +2432,12 @@ function initSearchOverlay() {
    the shopper to attach their image once the chat opens instead of
    offering a fake upload button.
 ═══════════════════════════════════════════════════════════════ */
-function buildSizeQtyGrid(gridId) {
+const CUSTOM_KIDS_SIZE_LADDER = ['xs', 's', 'm', 'l', 'xl']; // kids tees rarely go past XL
+
+function buildSizeQtyGrid(gridId, ladder) {
   const grid = document.getElementById(gridId);
   if (!grid) return;
-  grid.innerHTML = SIZE_LADDER.map(sz => `
+  grid.innerHTML = (ladder || SIZE_LADDER).map(sz => `
     <div class="size-qty-item" data-size="${sz}">
       <div class="sq-label">${sz.toUpperCase()}</div>
       <div class="size-qty-stepper">
@@ -2465,7 +2469,8 @@ function readSizeQtyGrid(gridId) {
 function initCustomOrder() {
   const form = document.getElementById('customForm');
   if (!form) return;
-  buildSizeQtyGrid('cfSizeGrid');
+  buildSizeQtyGrid('cfSizeGridKids', CUSTOM_KIDS_SIZE_LADDER);
+  buildSizeQtyGrid('cfSizeGridAdults', SIZE_LADDER);
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -2475,7 +2480,8 @@ function initCustomOrder() {
     const design = document.getElementById('cfDesign').value.trim();
     const colour = document.getElementById('cfColour').value.trim();
     const occasion = document.getElementById('cfOccasion').value;
-    const sizes  = readSizeQtyGrid('cfSizeGrid');
+    const kidsSizes   = readSizeQtyGrid('cfSizeGridKids');
+    const adultsSizes = readSizeQtyGrid('cfSizeGridAdults');
 
     if (!name || !phone) {
       errEl.textContent = 'Please add your name and WhatsApp number so we can reply.';
@@ -2491,15 +2497,14 @@ function initCustomOrder() {
       `Design: ${design || 'Will share details in chat'}`,
       `Colour: ${colour || 'Not sure — please suggest'}`,
     ];
-    if (sizes.length) {
-      lines.push(`Sizes: ${sizes.map(r => `${r.size} x${r.qty}`).join(', ')}`);
-    } else {
-      lines.push(`Sizes: To be confirmed`);
-    }
+    if (kidsSizes.length)   lines.push(`Kids sizes: ${kidsSizes.map(r => `${r.size} x${r.qty}`).join(', ')}`);
+    if (adultsSizes.length) lines.push(`Adult sizes: ${adultsSizes.map(r => `${r.size} x${r.qty}`).join(', ')}`);
+    if (!kidsSizes.length && !adultsSizes.length) lines.push(`Sizes: To be confirmed`);
     if (occasion) lines.push(`Occasion: ${occasion}`);
     lines.push(``, `Name: ${name}`, `WhatsApp: ${phone}`);
 
     const msg = lines.join('\n');
+    trackWA('custom_order');
     window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
   });
 }
@@ -2548,7 +2553,40 @@ function initBulkOrder() {
     lines.push(``, `Name: ${name}`, `WhatsApp: ${phone}`);
 
     const msg = lines.join('\n');
+    trackWA('bulk_order');
     window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   14.3 WHATSAPP CLICK TRACKING (privacy-safe)
+   GA4's automatic "Outbound clicks" is intentionally OFF for wa.me
+   links (see WEB IMPROVEMENTS.md 14.1) because it would send the
+   full destination URL — including any name/phone a customer just
+   typed into a form — straight to Google. This helper sends only
+   the button's source label and (optionally) a product ID, never
+   the message text, phone number, or name.
+   A single delegated click listener catches every WA link site-wide
+   (static <a> tags and ones built dynamically by JS) so nothing new
+   needs manual wiring later — just add data-wa-source to a new link.
+═══════════════════════════════════════════════════════════════ */
+function trackWA(source, itemId) {
+  if (typeof gtag !== 'function') return;
+  const payload = { source: source || 'unknown' };
+  if (itemId) payload.item_id = itemId;
+  gtag('event', 'whatsapp_click', payload);
+}
+window.trackWA = trackWA;
+
+function initWAClickTracking() {
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href*="wa.me"]');
+    if (!link) return;
+    const source = link.dataset.waSource
+      || link.id
+      || (link.className || '').split(' ')[0]
+      || 'unlabelled';
+    trackWA(source, link.dataset.itemId || undefined);
   });
 }
 
@@ -2562,6 +2600,9 @@ function initBulkOrder() {
 document.addEventListener('DOMContentLoaded', () => {
   // Footer year — automatically keeps the copyright year current
   if (footerYear) footerYear.textContent = new Date().getFullYear();
+
+  // 14.3 WhatsApp click tracking — one delegated listener covers every page
+  initWAClickTracking();
 
   // Cart icon badge — update count on every page load
   cartBadgeUpdate();

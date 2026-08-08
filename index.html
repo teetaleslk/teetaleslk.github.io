@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) — GA4, see js/main.js for custom event tracking (WA clicks, cart_add) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-14KFYCPS4G"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-14KFYCPS4G');
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TeeTales — Wear Your Story</title>
@@ -363,7 +371,7 @@
         <h3 class="way-title" data-i18n="For Gifters">For Gifters</h3>
         <p class="way-sub">Birthdays, anniversaries, just because — we help you pick the perfect design, colour &amp; size for someone special.</p>
         <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%27m%20buying%20a%20gift%20for%20someone.%20Can%20you%20help%20me%20choose%20the%20perfect%20tee%3F%20%F0%9F%8E%81"
-           target="_blank" rel="noopener" class="way-wa-btn">
+           target="_blank" rel="noopener" class="way-wa-btn" data-wa-source="gift_help">
           <i class="fab fa-whatsapp"></i> <span data-i18n="Get Gift Help">Get Gift Help</span>
         </a>
       </div>
@@ -382,7 +390,7 @@
         <h3 class="way-title" data-i18n="Earn Extra Income">Earn Extra Income</h3>
         <p class="way-sub">Resell under our brand, use your own label, or order unbranded wholesale. Your network is your storefront.</p>
         <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27m%20interested%20in%20your%20wholesale%20partner%20programme.%20Can%20you%20share%20more%20about%20the%20options%20%E2%80%94%20TeeTales%20brand%2C%20private%20label%2C%20and%20unbranded%20wholesale%3F"
-           target="_blank" rel="noopener" class="way-wa-btn">
+           target="_blank" rel="noopener" class="way-wa-btn" data-wa-source="reseller_partner">
           <i class="fab fa-whatsapp"></i> <span data-i18n="Become a Partner">Become a Partner</span>
         </a>
       </div>
@@ -581,7 +589,7 @@
         <div class="broadcast-optin">
           <p><i class="fas fa-bell"></i> First to know about new designs &amp; deals?</p>
           <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20Add%20me%20to%20your%20deals%20list%20%F0%9F%93%A9"
-             target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+             target="_blank" rel="noopener" class="btn btn-outline btn-sm" data-wa-source="broadcast_optin">
             <i class="fab fa-whatsapp"></i> Send us a WhatsApp
           </a>
         </div>
