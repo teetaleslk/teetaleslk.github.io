@@ -1271,6 +1271,10 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   text-align: center; padding: 48px 32px;
   display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
+.fb-fallback-shot {
+  width: 100%; max-width: 360px; border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md); border: 1px solid var(--border);
+}
 .fb-fallback-icon {
   width: 64px; height: 64px; border-radius: 50%;
   background: #1877f2; color: var(--white);
