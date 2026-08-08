@@ -837,6 +837,22 @@ function createProductCard(p) {
       ${listExtraHtml}
     </div>`;
 
+  /* 12.5 Image hover swap — Image1 → Image2 (the "A" suffix file, same convention
+     as the product-page extra-views thumbnail strip). Silently does nothing when
+     a product only has one photo — no broken/empty state either way. */
+  if (imgUrl) {
+    probeFam(p, 'A', url => {
+      const link = card.querySelector('.card-img-link');
+      if (!link || link.querySelector('.card-img-alt')) return;
+      const alt = document.createElement('img');
+      alt.src = url;
+      alt.alt = `${p.type} — alternate view`;
+      alt.className = 'card-img-alt';
+      alt.loading = 'lazy';
+      link.appendChild(alt);
+    });
+  }
+
   /* ── Navigate to product page on card click (but not on WA button) ── */
   card.addEventListener('click', (e) => {
     if (e.target.closest('a, button')) return;
@@ -1423,6 +1439,14 @@ async function initShop() {
   const designParam = (params.get('design') || '').trim();
   if (designParam) activeTag = designParam;
 
+  // ?q=TEXT — from the 12.6 mobile search overlay's "See all results" / Enter key
+  const qParam = (params.get('q') || '').trim();
+  if (qParam) {
+    searchQuery = qParam;
+    if (searchInput) searchInput.value = qParam;
+    if (searchClear) searchClear.style.display = 'flex';
+  }
+
   // ?boost=new|hot — navbar "New In" / "Hot Deals" deep links (4.2 / 5.2)
   const boostParam = (params.get('boost') || '').toLowerCase();
   if (['new', 'hot', 'gifts'].includes(boostParam)) activeBoost = boostParam;
@@ -1784,6 +1808,22 @@ async function initProduct() {
       relWrap.style.display = 'block';
     }
 
+    /* 12.1 Recently Viewed — show what was viewed BEFORE this item, then log this one */
+    const recentWrap = document.getElementById('pdRecentWrap');
+    const recentIds = recentViewedGet().filter(rid => rid !== p.id);
+    if (recentWrap && recentIds.length) {
+      const recentGrid = document.getElementById('pdRecentGrid');
+      const recentProducts = recentIds
+        .map(rid => products.find(q => q.id === rid))
+        .filter(rp => rp && !rp.stock.toLowerCase().includes('out'))
+        .slice(0, 4);
+      if (recentProducts.length) {
+        recentProducts.forEach(rp => recentGrid.appendChild(createProductCard(rp)));
+        recentWrap.style.display = 'block';
+      }
+    }
+    recentViewedAdd(p.id);
+
   } catch (err) {
     if (loadEl) loadEl.style.display = 'none';
     if (errEl)  { errEl.style.display = 'block'; errEl.innerHTML = `<p style="font-size:2.5rem;margin-bottom:12px">😕</p><p>Failed to load product. <a href="shop.html">Browse the shop →</a></p>`; }
@@ -1798,6 +1838,17 @@ async function initProduct() {
 const CART_KEY = 'tt_cart';
 const cartGet  = () => { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } };
 const cartSave = c  => { localStorage.setItem(CART_KEY, JSON.stringify(c)); cartBadgeUpdate(); };
+
+/* 12.1 Recently Viewed — last 4 product IDs viewed, newest first */
+const RECENT_KEY = 'tt_recently_viewed';
+function recentViewedGet() {
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+}
+function recentViewedAdd(id) {
+  const list = recentViewedGet().filter(rid => rid !== id);
+  list.unshift(id);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 4)));
+}
 
 function cartAdd(p, qty = 1) {
   const cart = cartGet();
@@ -2263,6 +2314,82 @@ window.openWishlist = openWishlist;
 window.closeWishlist = closeWishlist;
 
 /* ═══════════════════════════════════════════════════════════════
+   12.6 SEARCH OVERLAY — mobile header search icon → full-screen
+   search with live suggestions (top 5), works on every page.
+   Product list is fetched lazily on first open, then cached in
+   allProducts for the rest of the session (shop.html overwrites it
+   with its own fresher fetch when that page loads).
+═══════════════════════════════════════════════════════════════ */
+function initSearchOverlay() {
+  const btn = document.getElementById('navSearchBtn');
+  if (!btn) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'search-overlay';
+  overlay.innerHTML = `
+    <div class="search-overlay-bar">
+      <input type="text" id="searchOverlayInput" placeholder="Search tees…" autocomplete="off" />
+      <span class="search-overlay-close" id="searchOverlayClose"><i class="fas fa-times"></i></span>
+    </div>
+    <div class="search-overlay-results" id="searchOverlayResults"></div>`;
+  document.body.appendChild(overlay);
+
+  const input   = overlay.querySelector('#searchOverlayInput');
+  const results = overlay.querySelector('#searchOverlayResults');
+  let overlayProducts = null;
+
+  const close = () => { overlay.classList.remove('open'); document.body.style.overflow = ''; };
+  const open  = async () => {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => input.focus(), 150);
+    if (!overlayProducts) {
+      try { overlayProducts = (allProducts && allProducts.length) ? allProducts : await fetchProducts(); }
+      catch { overlayProducts = []; }
+    }
+  };
+
+  btn.addEventListener('click', open);
+  overlay.querySelector('#searchOverlayClose').addEventListener('click', close);
+
+  const renderResults = (q) => {
+    if (!q) { results.innerHTML = ''; return; }
+    const list = (overlayProducts || []).filter(p =>
+      !p.stock.toLowerCase().includes('out') && (
+        p.type.toLowerCase().includes(q) || p.colour.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) || p.design.some(t => t.toLowerCase().includes(q))
+      ));
+    if (!list.length) {
+      results.innerHTML = `<div class="search-overlay-empty">No tees found for "${escHtml(q)}"</div>`;
+      return;
+    }
+    const top = list.slice(0, 5);
+    results.innerHTML = top.map(p => {
+      const imgUrl = resolveImageUrl(p.image) || repoImg(p.id, '');
+      return `<a class="search-suggestion" href="product.html?id=${encodeURIComponent(p.id)}">
+        ${imgUrl ? `<img src="${escHtml(imgUrl)}" alt="" onerror="this.style.display='none'" />` : ''}
+        <div class="search-suggestion-info">
+          <strong>${escHtml(p.type)}${p.size ? ' — ' + escHtml(p.size) : ''}</strong>
+          <span>${escHtml(p.colour || '')}${p.price ? ` · ${CONFIG.CURRENCY} ${formatNum(p.price)}` : ''}</span>
+        </div>
+      </a>`;
+    }).join('') + `<a class="search-overlay-viewall" href="shop.html?q=${encodeURIComponent(q)}">See all results for "${escHtml(q)}" →</a>`;
+  };
+
+  let debounceT;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceT);
+    const q = input.value.trim().toLowerCase();
+    debounceT = setTimeout(() => renderResults(q), 150);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && input.value.trim()) {
+      window.location.href = `shop.html?q=${encodeURIComponent(input.value.trim())}`;
+    } else if (e.key === 'Escape') close();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
      index.html  → has #homeAdultsGrid → initHome()
@@ -2338,6 +2465,8 @@ document.addEventListener('DOMContentLoaded', () => {
       floatWA.classList.toggle('visible', window.scrollY > 300);
     });
   }
+
+  initSearchOverlay();
 
   if (document.getElementById('homeAdultsGrid')) {
     initHome();

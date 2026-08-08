@@ -25,7 +25,7 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 | `order-sent.html` | Thank-you page after cart → WhatsApp order |
 | `js/main.js` | All JS — GViz fetch, parsers, renderers, cart, WA message builder |
 | `css/style.css` | All styles — mobile-first, CSS variables at top |
-| `IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
+| `WEB IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
 | `CHANGELOG.md` | Dated log of every change made — git-ignored, local only |
 
 ---
@@ -68,8 +68,8 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 - **NEVER reveal margins or profit figures publicly.** Wholesale pricing discussed via WhatsApp only. Frame as "set your own price" not "earn Rs. X per tee."
 - **Edit tool only — never full rewrites.** Edit only the specific part needed.
 - **Discuss before implementing.** When Ashirwadh proposes a change, first share analysis, comments, and alternatives — implement only after he agrees. Don't build first and comment after.
-- **After every decision/discussion → update IMPROVEMENTS.md** in BOTH locations immediately.
-- **After every change/addition/removal → log it in `CHANGELOG.md`** (repo root, git-ignored). One heading per change session: `## YYYY-MM-DD HH:MM — Major theme`, then one bullet per distinct change (5 changes = 5 bullets). Newest entries at the top. Link to `IMPROVEMENTS.md` and any files touched.
+- **After every decision/discussion → update WEB IMPROVEMENTS.md** in BOTH locations immediately.
+- **After every change/addition/removal → log it in `CHANGELOG.md`** (repo root, git-ignored). One heading per change session: `## YYYY-MM-DD HH:MM — Major theme`, then one bullet per distinct change (5 changes = 5 bullets). Newest entries at the top. Link to `WEB IMPROVEMENTS.md` and any files touched.
 
 ---
 
@@ -83,12 +83,12 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 
 ---
 
-## IMPROVEMENTS.md + CHANGELOG.md — TWO SYNC LOCATIONS
+## WEB IMPROVEMENTS.md + CHANGELOG.md — TWO SYNC LOCATIONS
 
 | Location | Path |
 |----------|------|
-| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\IMPROVEMENTS.md` + `CHANGELOG.md` |
-| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\IMPROVEMENTS.md` + `CHANGELOG.md` |
+| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\WEB IMPROVEMENTS.md` + `CHANGELOG.md` |
+| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\WEB IMPROVEMENTS.md` + `CHANGELOG.md` |
 
 **Rules:**
 - Repo is always edited first.
@@ -112,7 +112,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 9 | Marketing & Sales Strategy | 🔲 |
 | 10 | Customer Experience (Size Guide, Mobile Nav) | ✅ Done (2026-07-21) |
 | 11 | Trust & Conversion | ⏳ |
-| 12 | Discovery & Engagement | ⏳ |
+| 12 | Discovery & Engagement | ✅ Done (2026-08-08, 12.4 dropped) |
 | 13 | Business Growth | ⏳ |
 | 14 | Analytics | 🔲 |
 | 15 | Technical Excellence | ⏳ |
