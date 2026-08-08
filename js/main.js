@@ -587,6 +587,33 @@ function familyMembers(p) {
   return Object.values(_ttProdMap).filter(q => q.design?.length && familyKeyOf(q) === k);
 }
 
+/* 16.4 Colour swatcher — same design+type+category, but grouped ACROSS colours
+   (the size-family key above intentionally includes colour; this one deliberately
+   excludes it, so it groups this design's colour variants together). */
+function designKeyOf(p) {
+  return [(p.design[0] || '').trim().toLowerCase(), (p.type || '').toLowerCase(), (p.category || '').toLowerCase()].join('|');
+}
+function colourSiblings(p) {
+  if (!p.design?.length) return [];
+  const k = designKeyOf(p);
+  const all = Object.values(_ttProdMap).filter(q => q.design?.length && designKeyOf(q) === k);
+  // one representative per colour group: same size as current if in stock, else first in-stock, else first overall
+  const byColour = {};
+  all.forEach(q => {
+    const c = (q.colour || '').trim();
+    if (!c) return;
+    if (!byColour[c]) byColour[c] = [];
+    byColour[c].push(q);
+  });
+  return Object.entries(byColour).map(([colour, items]) => {
+    const sameSize = items.find(q => (q.size || '') === (p.size || '') && !q.stock.toLowerCase().includes('out'));
+    const inStock  = items.find(q => !q.stock.toLowerCase().includes('out'));
+    const rep = sameSize || inStock || items[0];
+    const anyInStock = items.some(q => !q.stock.toLowerCase().includes('out'));
+    return { colour, rep, isCurrent: items.some(q => q.id === p.id), soldOut: !anyInStock };
+  });
+}
+
 /* Basic colour groups — any shade maps to one group (faceted colour filter) */
 /* Order = display order: rainbow flow (R→O→Y→G→B→V→pink), then neutrals.
    A new colour shade auto-joins its group's fixed rainbow position. */
@@ -654,6 +681,29 @@ function getAudienceLabel(ageGrp, suitable) {
   if (isKids)                        return { label: "Kids' Tee",   emoji: '🧒' };
   if (!isKids)                       return { label: 'Adults',      emoji: '🧑' };
   return { label: '', emoji: '' };
+}
+
+/* 17.2 Identity-based product descriptions — "who this is for", not spec-sheet copy.
+   Picked deterministically per product id so the same tee always shows the same line. */
+const IDENTITY_LINES = {
+  girls:  ["For the girl who runs the room.", "For the girl with big ideas.", "For the one who never blends in."],
+  boys:   ["For the kid who can't sit still.", "For the one always mid-adventure.", "For the boy with a plan for everything."],
+  kids:   ["For the kid who can't sit still.", "For little legends in the making.", "For the one who never stops moving."],
+  ladies: ["For the woman who sets her own pace.", "For the one who shows up as herself.", "For days you want to feel like you."],
+  gents:  ["For the guy who shows up.", "For easy days and good company.", "For the one who keeps it simple."],
+  adults: ["For everyday, done your way.", "For the days that call for comfort.", "For whoever you're being today."],
+};
+function identityLineFor(p) {
+  const age    = (p.ageGrp   || '').toLowerCase();
+  const suit   = (p.suitable || '').toLowerCase();
+  const isKids = age !== 'adults';
+  let bucket = isKids
+    ? (suit === 'ladies' ? 'girls' : suit === 'gents' ? 'boys' : 'kids')
+    : (suit === 'ladies' ? 'ladies' : suit === 'gents' ? 'gents' : 'adults');
+  const lines = IDENTITY_LINES[bucket] || IDENTITY_LINES.adults;
+  let hash = 0;
+  for (const ch of String(p.id || '')) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return lines[hash % lines.length];
 }
 
 /** Column I — marketing/urgency boost (New, Hot, Trending, Best Seller…) */
@@ -1658,6 +1708,8 @@ async function initProduct() {
       ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ')
       : p.type) + (p.size ? ` (${p.size})` : '');
     document.getElementById('pdTitle').textContent = pdTitleText;
+    const identEl = document.getElementById('pdIdentity');
+    if (identEl) identEl.textContent = identityLineFor(p);
 
     /* 7.2 SEO: unique title + meta description + Product JSON-LD */
     document.title = `${pdTitleText} — TeeTales`;
@@ -1694,6 +1746,17 @@ async function initProduct() {
     }
     document.getElementById('pdPrice').innerHTML = priceHtml;
 
+    /* 17.7 Value framing — reframe price as value-per-wear, not cost */
+    const sellPrice = p.price ?? p.strike;
+    const valueEl = document.getElementById('pdValueLine');
+    if (valueEl) {
+      valueEl.textContent = sellPrice
+        ? `Works out to ${CONFIG.CURRENCY} ${formatNum(Math.round(sellPrice / 30))}/day if you wear it for a month 👕`
+        : '';
+    }
+    const zeroRiskEl = document.getElementById('pdZeroRisk');
+    if (zeroRiskEl) zeroRiskEl.textContent = '🔄 Not happy with the fit? Message us within 3 days of delivery — we\'ll sort it.';
+
     // Bulk promo banner (TBOS spec) — full-width line above image + details
     const pdBulk = (p.bulkPrice && p.price && p.bulkPrice < p.price) ? p.bulkPrice : null;
     const bulkBannerEl = document.getElementById('pdBulkBanner');
@@ -1719,6 +1782,23 @@ async function initProduct() {
         : '',
     ].filter(Boolean);
     document.getElementById('pdMeta').innerHTML = metaItems.join('');
+
+    /* Colour swatcher — same design+type+category, other colours (16.4) */
+    const colourSibs = colourSiblings(p);
+    const colourRowEl = document.getElementById('pdColourRow');
+    if (colourRowEl && colourSibs.length > 1) {
+      colourRowEl.innerHTML = `
+        <div class="pd-colourrow">
+          <span class="pd-colourrow-label">Colour: <strong>${escHtml(p.colour || '')}</strong></span>
+          <div class="pd-colourrow-swatches">${colourSibs.map(s => {
+            const hex = getSwatchColor(s.colour) || '#ccc';
+            const title = s.soldOut ? `${escHtml(s.colour)} (Sold out)` : escHtml(s.colour);
+            if (s.isCurrent) return `<span class="pd-colour-swatch current" style="background:${hex}" title="${title}"></span>`;
+            if (s.soldOut) return `<span class="pd-colour-swatch out" style="background:${hex}" title="${title}"></span>`;
+            return `<a class="pd-colour-swatch" style="background:${hex}" href="product.html?id=${encodeURIComponent(s.rep.id)}" title="${title}"></a>`;
+          }).join('')}</div>
+        </div>`;
+    }
 
     /* Available Sizes — same design+colour tee in other sizes (Phase 16) */
     const fam = familyMembers(p);
@@ -1746,7 +1826,8 @@ async function initProduct() {
     if (isOut) {
       document.getElementById('pdOrderBtn').innerHTML =
         `<button class="pd-add-cart-btn" disabled>✕ Sold Out</button>
-         <p class="pd-qty-itemid" style="margin-top:8px">Item ID: ${p.id}</p>`;
+         <p class="cart-summary-note" style="margin-top:6px">Similar styles are in stock — <a href="shop.html?age=${p.ageGrp === 'adults' ? 'adults' : 'kids'}${p.suitable ? `&suitable=${encodeURIComponent(p.suitable)}` : ''}">browse them here</a></p>
+         <p class="pd-qty-itemid" style="margin-top:6px">Item ID: ${p.id}</p>`;
     } else {
       document.getElementById('pdOrderBtn').innerHTML = `
         <div class="pd-qty-wrap">
@@ -2012,16 +2093,31 @@ function cartAddFromCard(id) {
 }
 window.cartAddFromCard = cartAddFromCard;
 
+/* 17.11 Cart abandonment nudge — pulse the WA button if the drawer sits open 30s with no click */
+let _ttCartPulseTimer = null;
+function cartPulseArm() {
+  clearTimeout(_ttCartPulseTimer);
+  document.querySelectorAll('.cart-wa-btn').forEach(b => b.classList.remove('pulse'));
+  _ttCartPulseTimer = setTimeout(() => {
+    document.querySelectorAll('.cart-wa-btn').forEach(b => b.classList.add('pulse'));
+  }, 30000);
+}
+function cartPulseDisarm() {
+  clearTimeout(_ttCartPulseTimer);
+  document.querySelectorAll('.cart-wa-btn').forEach(b => b.classList.remove('pulse'));
+}
 function openCart()  {
   renderCartDrawer();
   document.getElementById('cartDrawer')?.classList.add('open');
   document.getElementById('cartOverlay')?.classList.add('open');
   document.body.style.overflow = 'hidden';
+  if (cartGet().length) cartPulseArm();
 }
 function closeCart() {
   document.getElementById('cartDrawer')?.classList.remove('open');
   document.getElementById('cartOverlay')?.classList.remove('open');
   document.body.style.overflow = '';
+  cartPulseDisarm();
 }
 window.openCart  = openCart;
 window.closeCart = closeCart;
@@ -2126,6 +2222,9 @@ function renderCartDrawer() {
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
+      <p class="wa-response-note">💬 We reply in minutes · 9am–9pm daily</p>
+      <p class="cart-summary-note">Your cart is saved — take your time 😊</p>
+      <p class="cart-summary-note">🔄 Wrong size? Message us within 3 days of delivery — we'll sort it.</p>
       <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
   }
 }
@@ -2214,6 +2313,7 @@ function renderCartPage() {
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
+      <p class="wa-response-note">💬 We reply in minutes · 9am–9pm daily</p>
       <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you. 😊</p>
     </div>`;
 
@@ -2235,6 +2335,8 @@ function renderCartPage() {
       upsell.forEach(p => g.appendChild(createProductCard(p)));
     }
   }
+
+  cartPulseArm();
 }
 
 /* ═══ 8.1 LIGHTBOX — simple fullscreen image zoom, no library ═══ */
@@ -2591,6 +2693,20 @@ function initWAClickTracking() {
   });
 }
 
+/* 17.11 Cart abandonment nudge — floating bottom bar (mobile) reminding of a
+   non-empty cart on any page other than the cart page itself. */
+function initCartFloatBar() {
+  if (document.getElementById('cartPage') || document.getElementById('cartFloatBar')) return;
+  const n = cartCount();
+  if (!n) return;
+  const bar = document.createElement('a');
+  bar.id = 'cartFloatBar';
+  bar.href = 'cart.html';
+  bar.className = 'cart-float-bar';
+  bar.innerHTML = `🛒 You have ${n} item${n > 1 ? 's' : ''} waiting <span>→</span>`;
+  document.body.appendChild(bar);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
@@ -2605,9 +2721,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 14.3 WhatsApp click tracking — one delegated listener covers every page
   initWAClickTracking();
 
+  // 15.1 PWA — register the service worker (app shell caching, "Add to Home Screen")
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+
   // Cart icon badge — update count on every page load
   cartBadgeUpdate();
   document.getElementById('cartBtn')?.addEventListener('click', openCart);
+  initCartFloatBar();
   wishBadgeUpdate();
   document.getElementById('wishBtn')?.addEventListener('click', openWishlist);
 

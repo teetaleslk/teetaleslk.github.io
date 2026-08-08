@@ -117,8 +117,10 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 12 | Discovery & Engagement | ✅ Done (2026-08-08, 12.4 dropped) |
 | 13 | Business Growth | ✅ Done (2026-08-08, 13.3b + 13.8 open) |
 | 14 | Analytics | ✅ Done (2026-08-08, 14.2 blocked on Clarity ID) |
-| 15 | Technical Excellence | ⏳ (only 15.1 PWA open, blocked on icon assets) |
-| 16 | Colour & Size Variant Selector | 🔲 — architecture decided, not built |
+| 15 | Technical Excellence | ✅ Done (2026-08-08) — PWA icons are placeholder, real logo unreachable |
+| 16 | Colour & Size Variant Selector | ✅ Done (2026-08-08) — no sheet column needed, grouping computed in code |
+| 17 | Neuromarketing & Psychological Conversion | ⏳ (2026-08-08, 9/12 done — 17.1/17.6/17.9 need FB comments/dates/WA app settings) |
+| 18 | Emotional Selling & Copy Strategy | ⏳ (18.2 done 2026-08-08; 18.1/18.3-18.5 are WA scripts, not code) |
 
 **Next priority items:**
 - 9.1–9.4: Marketing & Sales Strategy (WA templates, brand story)

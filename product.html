@@ -9,6 +9,9 @@
     gtag('js', new Date());
     gtag('config', 'G-14KFYCPS4G');
   </script>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <link rel="apple-touch-icon" href="/img/icons/icon-192.png" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TeeTales — Product</title>
@@ -166,12 +169,16 @@
         <div class="pd-info">
           <div id="pdBadges" class="pd-badges"></div>
           <h1 id="pdTitle" class="pd-title"></h1>
+          <p id="pdIdentity" class="pd-identity"></p>
           <div id="pdPrice" class="pd-price-block"></div>
+          <p id="pdValueLine" class="pd-value-line"></p>
+          <p id="pdZeroRisk" class="pd-zero-risk"></p>
 
           <hr class="pd-divider" />
 
           <dl id="pdMeta" class="pd-meta-list"></dl>
 
+          <div id="pdColourRow"><!-- 16.4 Colour swatcher — injected by main.js when the same design exists in other colours --></div>
           <div id="pdSizeRow"><!-- "Available Sizes" chips injected by main.js when the same tee exists in other sizes --></div>
 
           <hr class="pd-divider" />
@@ -245,6 +252,7 @@
       </div>
     </div>
     <div class="footer-bottom">
+      <p class="sl-trust-line">🇱🇰 Proudly Sri Lankan · Island-wide delivery · Pay by bank transfer</p>
       <p class="privacy-promise">🔒 <strong>Our Privacy Promise:</strong> this website collects nothing about you. Your details stay in our WhatsApp chat, are never shared, and never posted without your permission.</p>
       <p>&copy; <span id="footerYear"></span> TeeTales. All rights reserved.</p>
     </div>
