@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delivery &amp; Policy — TeeTales</title>
+  <title>Custom Order — Your Design, Your Tee — TeeTales</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1Ns8IP7liBhnKKLDwpp55Pc_0uUCyxsPH" />
-  <meta name="description" content="TeeTales delivery timelines, payment method, and exchange policy for orders across Sri Lanka." />
+  <meta name="description" content="Order a custom DTF-printed t-shirt with your own design, colour, and sizes — confirmed instantly via WhatsApp." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,8 +36,8 @@
       <li><a href="shop.html?boost=new" class="nav-link">New In</a></li>
       <li><a href="shop.html?boost=hot" class="nav-link nav-link-offers">Deals 🔥</a></li>
       <li><a href="shop.html?age=kids" class="nav-link">Kids</a></li>
-      <li><a href="custom.html" class="nav-link nav-link-custom">🎨 Custom</a></li>
-      <li><a href="policy.html" class="nav-link active">Delivery &amp; Policy</a></li>
+      <li><a href="custom.html" class="nav-link nav-link-custom active">🎨 Custom</a></li>
+      <li><a href="policy.html" class="nav-link">Delivery &amp; Policy</a></li>
       <li><a href="index.html#contact" class="nav-link">Contact</a></li>
     </ul>
     <div class="nav-socials">
@@ -65,8 +65,8 @@
   <div class="mobile-menu" id="mobileMenu">
     <a href="index.html" class="mobile-link">Home</a>
     <a href="shop.html" class="mobile-link">Shop</a>
-    <a href="custom.html" class="mobile-link">🎨 Custom Order</a>
-    <a href="policy.html" class="mobile-link active">Delivery &amp; Policy</a>
+    <a href="custom.html" class="mobile-link active">🎨 Custom Order</a>
+    <a href="policy.html" class="mobile-link">Delivery &amp; Policy</a>
     <a href="index.html#contact" class="mobile-link">Contact</a>
     <a href="https://wa.me/94774407066" target="_blank" rel="noopener" class="mobile-wa-btn">
       <i class="fab fa-whatsapp"></i> Order on WhatsApp
@@ -81,10 +81,10 @@
         <div class="shop-breadcrumb">
           <a href="index.html">Home</a>
           <i class="fas fa-chevron-right"></i>
-          <span>Delivery &amp; Policy</span>
+          <span>Custom Order</span>
         </div>
-        <h1 class="shop-hero-title">Delivery &amp; Policy</h1>
-        <p class="shop-hero-sub">Everything you need to know before you order.</p>
+        <h1 class="shop-hero-title">Your Design. Your Brand. Your Label.</h1>
+        <p class="shop-hero-sub">DTF printing means we can put almost anything on a tee — tell us what you're picturing and we'll quote you on WhatsApp.</p>
       </div>
     </div>
   </div>
@@ -94,49 +94,72 @@
   <div class="container" style="max-width:760px">
 
     <div class="cart-trust-strip" style="margin:0 0 32px">
+      <span>🎨 Any Design, Any Idea</span>
+      <span>📱 Confirmed on WhatsApp</span>
       <span>🚚 Islandwide Delivery</span>
       <span>🏦 Bank Transfer Payment</span>
-      <span>🔄 Easy Exchanges</span>
-      <span>💬 WhatsApp Support</span>
     </div>
 
-    <h2 style="margin-bottom:10px">🚚 Delivery</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
-      We deliver islandwide across Sri Lanka via registered courier post.<br />
-      · Colombo &amp; suburbs: usually <strong>2–4 business days</strong> after order confirmation<br />
-      · Outstation areas: usually <strong>4–7 business days</strong><br />
-      Delivery times can vary slightly during peak seasons — we'll always keep you posted on WhatsApp.
-    </p>
+    <form id="customForm" class="order-form" novalidate>
 
-    <h2 style="margin-bottom:10px">🏦 Payment</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
-      TeeTales orders are confirmed and paid via <strong>bank transfer</strong>. Once you send your order on WhatsApp,
-      we'll confirm stock and share our account details there — nothing is charged automatically, and no card or
-      payment details are ever collected on this website.
-    </p>
+      <div class="order-form-section">
+        <h2 class="order-form-title">🎨 Your Design</h2>
+        <div class="form-field">
+          <label for="cfDesign">Tell us what you're picturing</label>
+          <textarea id="cfDesign" rows="3" placeholder="e.g. My dog's face on the front, or 'I'll send a reference photo in chat', or a logo I already have"></textarea>
+          <p class="form-hint">Have an image ready? No problem — you can attach it directly once the WhatsApp chat opens below. Nothing needs to be uploaded here.</p>
+        </div>
+      </div>
 
-    <h2 style="margin-bottom:10px">🔄 Exchange Policy</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
-      Wrong size? Let us know within <strong>3 days of delivery</strong> and we'll arrange a size exchange, as long as
-      the tee is unworn, unwashed, and has its tags attached. Since every tee is made to order, we're unable to
-      offer refunds for a simple change of mind — but we'll always work with you to make it right.
-    </p>
+      <div class="order-form-section">
+        <h2 class="order-form-title">👕 Tee Colour</h2>
+        <div class="form-field">
+          <label for="cfColour">Preferred tee colour</label>
+          <input type="text" id="cfColour" placeholder="e.g. Black, White, Navy — or 'not sure, suggest one'" />
+        </div>
+      </div>
 
-    <h2 style="margin-bottom:10px">✅ Quality Guarantee</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
-      Every tee is single-jersey cotton with a vibrant DTF print. If anything arrives damaged or misprinted,
-      message us a photo on WhatsApp and we'll sort it out — free of charge.
-    </p>
+      <div class="order-form-section">
+        <h2 class="order-form-title">📏 Sizes &amp; Quantities</h2>
+        <p class="form-hint" style="margin-bottom:12px">Add how many of each size you need — leave the rest at 0.</p>
+        <div class="size-qty-grid" id="cfSizeGrid">
+          <!-- filled by main.js: one qty stepper per size -->
+        </div>
+      </div>
 
-    <h2 style="margin-bottom:10px">💬 Questions?</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:32px">
-      We reply within 1 hour, 9am–9pm. Reach us any time on WhatsApp.
-    </p>
+      <div class="order-form-section">
+        <h2 class="order-form-title">🎉 Occasion <span class="form-optional">(optional)</span></h2>
+        <div class="form-field">
+          <select id="cfOccasion">
+            <option value="">Select an occasion</option>
+            <option value="Birthday">Birthday</option>
+            <option value="Event / Team">Event / Team</option>
+            <option value="Gift">Gift</option>
+            <option value="Just because">Just because</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
 
-    <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20I%20have%20a%20question%20about%20delivery%20or%20policy."
-       target="_blank" rel="noopener" class="btn btn-wa">
-      <i class="fab fa-whatsapp"></i> Ask on WhatsApp
-    </a>
+      <div class="order-form-section">
+        <h2 class="order-form-title">🙋 Your Details</h2>
+        <div class="form-field">
+          <label for="cfName">Your name</label>
+          <input type="text" id="cfName" placeholder="e.g. Dilshan" required />
+        </div>
+        <div class="form-field">
+          <label for="cfPhone">WhatsApp number</label>
+          <input type="tel" id="cfPhone" placeholder="e.g. 077 440 7066" required />
+        </div>
+      </div>
+
+      <p id="cfError" class="form-error" style="display:none"></p>
+
+      <button type="submit" class="btn btn-wa-large" style="width:100%;justify-content:center">
+        <i class="fab fa-whatsapp"></i>
+        <span><strong>Send via WhatsApp</strong><small>We'll reply with a quote within 1 hour</small></span>
+      </button>
+    </form>
   </div>
 </section>
 
@@ -161,8 +184,8 @@
           <div class="footer-col-title">Quick Links</div>
           <a href="index.html">Home</a>
           <a href="shop.html">Shop</a>
+          <a href="custom.html">Custom Order</a>
           <a href="policy.html">Delivery &amp; Policy</a>
-          <a href="index.html#about">About</a>
           <a href="index.html#contact">Contact</a>
         </div>
         <div class="footer-col">

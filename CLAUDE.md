@@ -22,7 +22,9 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 | `product.html` | Product detail — full info, qty selector, "You May Also Like" |
 | `cart.html` | Full cart page — images, qty, bulk pricing, upsell, WA order |
 | `policy.html` | Delivery timelines, payment (bank transfer), exchange policy |
-| `order-sent.html` | Thank-you page after cart → WhatsApp order |
+| `order-sent.html` | Thank-you page after cart → WhatsApp order — broadcast opt-in + referral card |
+| `custom.html` | Custom Order form — design/colour/sizes/occasion → WhatsApp |
+| `bulk.html` | Bulk/Corporate order form — org/qty/design/date → WhatsApp |
 | `js/main.js` | All JS — GViz fetch, parsers, renderers, cart, WA message builder |
 | `css/style.css` | All styles — mobile-first, CSS variables at top |
 | `WEB IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
@@ -113,7 +115,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 10 | Customer Experience (Size Guide, Mobile Nav) | ✅ Done (2026-07-21) |
 | 11 | Trust & Conversion | ⏳ |
 | 12 | Discovery & Engagement | ✅ Done (2026-08-08, 12.4 dropped) |
-| 13 | Business Growth | ⏳ |
+| 13 | Business Growth | ✅ Done (2026-08-08, 13.3b + 13.8 open) |
 | 14 | Analytics | 🔲 |
 | 15 | Technical Excellence | ⏳ |
 | 16 | Colour & Size Variant Selector | 🔲 — architecture decided, not built |

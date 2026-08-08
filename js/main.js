@@ -1945,6 +1945,34 @@ function cartNoteFieldHtml() {
   </div>`;
 }
 
+/* ── 13.5 Gift wrapping / gift note toggle — appended to WA order message ── */
+const CART_GIFT_KEY      = 'tt_cart_gift';
+const CART_GIFT_NOTE_KEY = 'tt_cart_gift_note';
+const cartGiftGet      = () => localStorage.getItem(CART_GIFT_KEY) === '1';
+const cartGiftSave     = v  => localStorage.setItem(CART_GIFT_KEY, v ? '1' : '');
+const cartGiftNoteGet  = () => localStorage.getItem(CART_GIFT_NOTE_KEY) || '';
+const cartGiftNoteSave = v  => localStorage.setItem(CART_GIFT_NOTE_KEY, v);
+function cartGiftToggle(checked) {
+  cartGiftSave(checked);
+  const wrap = document.getElementById('cartGiftNoteWrap');
+  if (wrap) wrap.style.display = checked ? 'block' : 'none';
+}
+window.cartGiftToggle    = cartGiftToggle;
+window.cartGiftNoteSave  = cartGiftNoteSave;
+function cartGiftFieldHtml() {
+  const isGift = cartGiftGet();
+  return `<div class="cart-gift-field">
+    <label class="cart-gift-toggle">
+      <input type="checkbox" id="cartGiftCheck" ${isGift ? 'checked' : ''} onchange="cartGiftToggle(this.checked)" />
+      <span>🎁 This is a gift</span>
+    </label>
+    <div class="cart-gift-note" id="cartGiftNoteWrap" style="display:${isGift ? 'block' : 'none'}">
+      <input type="text" id="cartGiftNoteInput" maxlength="120" placeholder="Add a gift note (optional) — e.g. 'Happy Birthday Nimal!'"
+             value="${escHtml(cartGiftNoteGet())}" oninput="cartGiftNoteSave(this.value)" />
+    </div>
+  </div>`;
+}
+
 /* ── Cart → Wishlist: "Save for later" moves one item out of the cart ── */
 function cartSaveForLater(id) {
   const cart = cartGet();
@@ -2013,7 +2041,10 @@ function buildCartWAMessage() {
     : '';
   const note = cartNoteGet().trim();
   const noteLine = note ? `\n📝 Note: ${note}\n` : '';
-  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}${noteLine}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
+  const isGift = cartGiftGet();
+  const giftNote = cartGiftNoteGet().trim();
+  const giftLine = isGift ? `\n🎁 This is a gift!${giftNote ? ' Note: ' + giftNote : ''}\n` : '';
+  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}${noteLine}${giftLine}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
 }
 
 function renderCartDrawer() {
@@ -2084,6 +2115,7 @@ function renderCartDrawer() {
     const saved  = orgTot - cartTotal();
     footer.innerHTML = `
       ${cartNoteFieldHtml()}
+      ${cartGiftFieldHtml()}
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
@@ -2171,6 +2203,7 @@ function renderCartPage() {
     <div id="cartUpsellWrap"></div>
     <div class="cart-page-summary">
       ${cartNoteFieldHtml()}
+      ${cartGiftFieldHtml()}
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
@@ -2390,6 +2423,136 @@ function initSearchOverlay() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   13.1 CUSTOM ORDER FORM (custom.html)
+   No backend — collects design/colour/sizes/contact and builds a
+   pre-filled WhatsApp message. Design "upload" is intentionally just
+   a text field: WA links can't pre-attach files, so the copy tells
+   the shopper to attach their image once the chat opens instead of
+   offering a fake upload button.
+═══════════════════════════════════════════════════════════════ */
+function buildSizeQtyGrid(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = SIZE_LADDER.map(sz => `
+    <div class="size-qty-item" data-size="${sz}">
+      <div class="sq-label">${sz.toUpperCase()}</div>
+      <div class="size-qty-stepper">
+        <button type="button" class="sq-minus" aria-label="Decrease">−</button>
+        <span class="sq-val">0</span>
+        <button type="button" class="sq-plus" aria-label="Increase">+</button>
+      </div>
+    </div>`).join('');
+  grid.addEventListener('click', (e) => {
+    const item = e.target.closest('.size-qty-item');
+    if (!item) return;
+    const valEl = item.querySelector('.sq-val');
+    let val = parseInt(valEl.textContent, 10) || 0;
+    if (e.target.classList.contains('sq-plus')) val = Math.min(val + 1, 99);
+    else if (e.target.classList.contains('sq-minus')) val = Math.max(val - 1, 0);
+    else return;
+    valEl.textContent = val;
+  });
+}
+
+function readSizeQtyGrid(gridId) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return [];
+  return [...grid.querySelectorAll('.size-qty-item')]
+    .map(item => ({ size: item.dataset.size.toUpperCase(), qty: parseInt(item.querySelector('.sq-val').textContent, 10) || 0 }))
+    .filter(r => r.qty > 0);
+}
+
+function initCustomOrder() {
+  const form = document.getElementById('customForm');
+  if (!form) return;
+  buildSizeQtyGrid('cfSizeGrid');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('cfError');
+    const name   = document.getElementById('cfName').value.trim();
+    const phone  = document.getElementById('cfPhone').value.trim();
+    const design = document.getElementById('cfDesign').value.trim();
+    const colour = document.getElementById('cfColour').value.trim();
+    const occasion = document.getElementById('cfOccasion').value;
+    const sizes  = readSizeQtyGrid('cfSizeGrid');
+
+    if (!name || !phone) {
+      errEl.textContent = 'Please add your name and WhatsApp number so we can reply.';
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const lines = [
+      `Hi TeeTales! 🎨 I'd like to place a custom order.`,
+      ``,
+      `Design: ${design || 'Will share details in chat'}`,
+      `Colour: ${colour || 'Not sure — please suggest'}`,
+    ];
+    if (sizes.length) {
+      lines.push(`Sizes: ${sizes.map(r => `${r.size} x${r.qty}`).join(', ')}`);
+    } else {
+      lines.push(`Sizes: To be confirmed`);
+    }
+    if (occasion) lines.push(`Occasion: ${occasion}`);
+    lines.push(``, `Name: ${name}`, `WhatsApp: ${phone}`);
+
+    const msg = lines.join('\n');
+    window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   13.2 BULK / CORPORATE ORDER FORM (bulk.html)
+   Same no-backend pattern as the custom order form — collects
+   requirements and builds a pre-filled WhatsApp enquiry. Tiered
+   pricing is never shown on-site (margins stay private); it's
+   quoted back on WhatsApp once we see the real requirements.
+═══════════════════════════════════════════════════════════════ */
+function initBulkOrder() {
+  const form = document.getElementById('bulkForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('bfError');
+    const name  = document.getElementById('bfName').value.trim();
+    const phone = document.getElementById('bfPhone').value.trim();
+    const org   = document.getElementById('bfOrg').value.trim();
+    const type  = document.getElementById('bfType').value;
+    const qty   = document.getElementById('bfQty').value.trim();
+    const design = document.getElementById('bfDesign').value;
+    const date  = document.getElementById('bfDate').value;
+    const notes = document.getElementById('bfNotes').value.trim();
+
+    if (!name || !phone) {
+      errEl.textContent = 'Please add your name and WhatsApp number so we can reply.';
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const lines = [
+      `Hi TeeTales! 👥 I'd like to place a bulk order.`,
+      ``,
+      `Organisation/Team: ${org || 'Not specified'}`,
+      `Type: ${type || 'Not specified'}`,
+      `Approx quantity: ${qty || 'To be confirmed'}`,
+      `Design: ${design || 'Not specified'}`,
+    ];
+    if (date) lines.push(`Needed by: ${date}`);
+    if (notes) lines.push(`Notes: ${notes}`);
+    lines.push(``, `Name: ${name}`, `WhatsApp: ${phone}`);
+
+    const msg = lines.join('\n');
+    window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
      index.html  → has #homeAdultsGrid → initHome()
@@ -2477,5 +2640,9 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (document.getElementById('cartPage')) {
     // Fetch the catalogue first so the "You may also like" upsell row has data
     fetchProducts().then(products => { allProducts = products; renderCartPage(); }).catch(() => renderCartPage());
+  } else if (document.getElementById('customForm')) {
+    initCustomOrder();
+  } else if (document.getElementById('bulkForm')) {
+    initBulkOrder();
   }
 });
