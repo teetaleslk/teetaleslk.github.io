@@ -148,14 +148,28 @@
       <div class="order-form-section">
         <h2 class="order-form-title">🎉 Occasion <span class="form-optional">(optional)</span></h2>
         <div class="form-field">
-          <select id="cfOccasion">
-            <option value="">Select an occasion</option>
-            <option value="Birthday">Birthday</option>
-            <option value="Event / Team">Event / Team</option>
-            <option value="Gift">Gift</option>
-            <option value="Just because">Just because</option>
-            <option value="Other">Other</option>
-          </select>
+          <div class="occasion-pills" id="cfOccasionPills">
+            <label class="occasion-pill">
+              <input type="radio" name="cfOccasion" value="Birthday" />
+              <span>🎂 Birthday</span>
+            </label>
+            <label class="occasion-pill">
+              <input type="radio" name="cfOccasion" value="Event / Team" />
+              <span>🎽 Event / Team</span>
+            </label>
+            <label class="occasion-pill">
+              <input type="radio" name="cfOccasion" value="Gift" />
+              <span>🎁 Gift</span>
+            </label>
+            <label class="occasion-pill">
+              <input type="radio" name="cfOccasion" value="Just because" />
+              <span>✨ Just because <small>(no special reason — just want one)</small></span>
+            </label>
+            <label class="occasion-pill">
+              <input type="radio" name="cfOccasion" value="Other" />
+              <span>Other</span>
+            </label>
+          </div>
         </div>
       </div>
 

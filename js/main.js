@@ -2628,7 +2628,7 @@ function initCustomOrder() {
     const phone  = document.getElementById('cfPhone').value.trim();
     const design = document.getElementById('cfDesign').value.trim();
     const colour = document.getElementById('cfColour').value.trim();
-    const occasion = document.getElementById('cfOccasion').value;
+    const occasion = document.querySelector('input[name="cfOccasion"]:checked')?.value || '';
     const kidsSizes   = readSizeQtyGrid('cfSizeGridKids');
     const adultsSizes = readSizeQtyGrid('cfSizeGridAdults');
 

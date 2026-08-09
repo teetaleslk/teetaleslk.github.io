@@ -822,6 +822,22 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .tag-pill:hover { border-color: var(--primary); color: var(--primary); }
 .tag-pill.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
 
+/* Occasion radio-pills (custom.html) — same visual language as .pill, but real
+   radio inputs for accessibility/keyboard support, visually hidden and styled via the label */
+.occasion-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.occasion-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 50px;
+  font-size: .85rem; font-weight: 500; color: var(--text-muted);
+  background: var(--off-white); border: 1.5px solid var(--border);
+  cursor: pointer; transition: all var(--transition);
+}
+.occasion-pill input { position: absolute; opacity: 0; width: 0; height: 0; }
+.occasion-pill:hover { border-color: var(--accent); color: var(--accent); }
+.occasion-pill:has(input:checked) { background: var(--accent); color: var(--white); border-color: var(--accent); font-weight: 600; }
+.occasion-pill small { font-weight: 400; opacity: .85; }
+.occasion-pill:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* Colour swatches filter */
 .colour-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .colour-btn {
