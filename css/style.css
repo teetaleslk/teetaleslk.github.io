@@ -877,7 +877,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   .products-grid.view-list  { grid-template-columns: 1fr; gap: 12px; }
   .products-grid.view-list .product-card {
     display: flex; flex-direction: row; align-items: stretch;
-    border-radius: var(--radius-md); border: 1px solid #adb5bd;
+    border-radius: var(--radius-md); border: 1px solid #adb5bd; padding: 0;
   }
   /* Zebra striping — alternate row backgrounds for easy scanning */
   .products-grid.view-list .product-card:nth-child(odd)  { background: #fff; }
@@ -939,6 +939,9 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   display: flex; flex-direction: column;
   position: relative;
   cursor: pointer;
+  border: 1px solid #adb5bd;
+  border-radius: var(--radius-md);
+  padding: 10px;
 }
 
 /* ─ Image area ─────────────────────────────────────────────── */
