@@ -755,10 +755,11 @@ function renderProducts(products, page) {
 }
 
 function createProductCard(p) {
-  const card = document.createElement('div');
-  card.className = 'product-card' + (bundleMode && bundleSelected.has(p.id) ? ' bundle-selected' : '');
-
   const isOutOfStock = p.stock.toLowerCase().includes('out');
+  const card = document.createElement('div');
+  card.className = 'product-card'
+    + (bundleMode && bundleSelected.has(p.id) ? ' bundle-selected' : '')
+    + (isOutOfStock ? ' card-out-of-stock' : '');
 
   /* ── Image ── */
   const imgUrl  = resolveImageUrl(p.image);
