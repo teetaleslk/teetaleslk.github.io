@@ -875,7 +875,14 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   .products-grid.view-cols3 { grid-template-columns: repeat(3, 1fr); }
   .products-grid.view-cols4 { grid-template-columns: repeat(4, 1fr); }
   .products-grid.view-list  { grid-template-columns: 1fr; gap: 12px; }
-  .products-grid.view-list .product-card { display: flex; flex-direction: row; align-items: stretch; }
+  .products-grid.view-list .product-card {
+    display: flex; flex-direction: row; align-items: stretch;
+    border-radius: var(--radius-md); border: 1px solid var(--border);
+  }
+  /* Zebra striping — alternate row backgrounds for easy scanning */
+  .products-grid.view-list .product-card:nth-child(odd)  { background: #fff; }
+  .products-grid.view-list .product-card:nth-child(even) { background: var(--off-white); }
+  .products-grid.view-list .card-img-area { margin-bottom: 0; }
   .products-grid.view-list .card-img-area { width: 200px; flex-shrink: 0; }
   /* Right pane splits into two side-by-side columns — info on the left,
      specs + Add to Cart on the right — so the width is used, not left blank. */
@@ -1353,11 +1360,11 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .contact-card {
   background: rgba(255,255,255,.06); backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-lg);
-  padding: 36px 40px;
+  padding: 30px 40px;
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 28px; max-width: 860px; margin: 0 auto;
+  flex-wrap: nowrap; gap: 28px; max-width: 1080px; margin: 0 auto;
 }
-.contact-row { display: flex; flex-wrap: wrap; gap: 22px; }
+.contact-row { display: flex; flex-wrap: nowrap; gap: 32px; }
 .contact-item { display: flex; align-items: center; gap: 12px; color: var(--white); }
 .ci-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
 .wa-bg    { background: rgba(37,211,102,.25); color: var(--wa-green); }
@@ -1464,6 +1471,12 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   .nav-links, .nav-wa-btn, .nav-socials { display: none; }
   .hamburger { display: flex; }
 }
+@media (max-width: 1024px) and (min-width: 769px) {
+  .contact-card { gap: 16px; padding: 26px 24px; }
+  .contact-row { gap: 16px; }
+  .ci-icon { width: 40px; height: 40px; font-size: 1.05rem; }
+  .btn-wa-large { padding: 14px 18px; }
+}
 @media (max-width: 768px) {
   .nav-links, .nav-wa-btn, .nav-socials { display: none; }
   .hamburger { display: flex; }
@@ -1473,6 +1486,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   .filters-row { flex-direction: column; }
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .contact-card { flex-direction: column; padding: 26px 22px; }
+  .contact-row { flex-wrap: wrap; }
   .btn-wa-large { width: 100%; justify-content: center; }
   .bundle-grid { grid-template-columns: 1fr; }
 }

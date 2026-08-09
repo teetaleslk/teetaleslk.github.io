@@ -29,6 +29,7 @@ Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
 | `css/style.css` | All styles — mobile-first, CSS variables at top |
 | `WEB IMPROVEMENTS.md` | Roadmap + master checklist — source of truth |
 | `CHANGELOG.md` | Dated log of every change made — git-ignored, local only |
+| `Website Manual.md` | Plain-language "what does the site do" guide for non-technical readers — git-ignored, local only |
 
 ---
 
@@ -85,19 +86,20 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 
 ---
 
-## WEB IMPROVEMENTS.md + CHANGELOG.md — TWO SYNC LOCATIONS
+## WEB IMPROVEMENTS.md + CHANGELOG.md + Website Manual.md — TWO SYNC LOCATIONS
 
 | Location | Path |
 |----------|------|
-| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\WEB IMPROVEMENTS.md` + `CHANGELOG.md` |
-| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\WEB IMPROVEMENTS.md` + `CHANGELOG.md` |
+| Repo (source of truth) | `D:\TeeTales\GitHub\teetaleslk.github.io\WEB IMPROVEMENTS.md` + `CHANGELOG.md` + `Website Manual.md` |
+| Obsidian (mirror) | `G:\My Drive\Personal Documents\GD ObsidianNotes\TeeTales\WEB IMPROVEMENTS.md` + `CHANGELOG.md` + `Website Manual.md` |
 
 **Rules:**
 - Repo is always edited first.
 - Obsidian must be synced after every change.
 - Use **Edit tool only** on Obsidian path (Write tool fails there).
 - Status icons: ✅ done · ⏳ in progress · 🔲 not started
-- `sync-improvements.bat` (repo root) copies BOTH files to Obsidian in one run — double-click locally (Claude can't run it directly).
+- `sync-improvements.bat` (repo root) copies all three files to Obsidian in one run — double-click locally (Claude can't run it directly).
+- **Website Manual.md** should be updated (not necessarily every session, but whenever a user-facing feature changes enough to make the manual inaccurate) so it stays a reliable "explain it to anyone" reference.
 
 ---
 
