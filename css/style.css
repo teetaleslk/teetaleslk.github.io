@@ -877,11 +877,11 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   .products-grid.view-list  { grid-template-columns: 1fr; gap: 12px; }
   .products-grid.view-list .product-card {
     display: flex; flex-direction: row; align-items: stretch;
-    border-radius: var(--radius-md); border: 1px solid var(--border);
+    border-radius: var(--radius-md); border: 1px solid #adb5bd;
   }
   /* Zebra striping — alternate row backgrounds for easy scanning */
   .products-grid.view-list .product-card:nth-child(odd)  { background: #fff; }
-  .products-grid.view-list .product-card:nth-child(even) { background: var(--off-white); }
+  .products-grid.view-list .product-card:nth-child(even) { background: #e4e7eb; }
   .products-grid.view-list .card-img-area { margin-bottom: 0; }
   .products-grid.view-list .card-img-area { width: 200px; flex-shrink: 0; }
   /* Right pane splits into two side-by-side columns — info on the left,
