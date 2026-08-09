@@ -2057,20 +2057,65 @@ function cartGiftFieldHtml() {
   </div>`;
 }
 
-/* ── Cart → Wishlist: "Save for later" moves one item out of the cart ── */
-function cartSaveForLater(id) {
+/* ── Cart → Wishlist: "Save for later" adds the item to Wishlist, then asks
+   whether to also keep it in the cart or remove it — the customer's call,
+   since they may be buying it now AND saving it, or just saving it for later. */
+function cartSaveForLater(id, btn) {
   const cart = cartGet();
   const item = cart.find(i => i.id === id);
   if (!item) return;
-  const w = wishGet();
-  if (!w.some(x => x.id === id)) {
-    const name = `${item.design?.[0] ? item.design[0] + ' — ' : ''}${item.type} ${item.colour || ''}`.trim() + (item.size ? ` (${item.size})` : '');
-    w.push({ id: item.id, name, price: item.price, lead: item.lead || '' });
+
+  // Already saved — second click just un-saves, cart is untouched.
+  if (wishHas(id)) {
+    const w = wishGet().filter(x => x.id !== id);
     wishSave(w);
+    if (btn) {
+      const ic = btn.querySelector('i');
+      if (ic) ic.className = 'far fa-heart';
+      btn.classList.remove('saved');
+      btn.title = 'Save for later';
+    }
+    return;
   }
-  cartRemove(id);
+
+  const w = wishGet();
+  const name = `${item.design?.[0] ? item.design[0] + ' — ' : ''}${item.type} ${item.colour || ''}`.trim() + (item.size ? ` (${item.size})` : '');
+  w.push({ id: item.id, name, price: item.price, lead: item.lead || '' });
+  wishSave(w);
+  if (btn) {
+    const ic = btn.querySelector('i');
+    if (ic) ic.className = 'fas fa-heart';
+    btn.classList.add('saved');
+    btn.title = 'Saved for later';
+  }
+  cartSaveConfirm(id);
 }
 window.cartSaveForLater = cartSaveForLater;
+
+/* Small confirm popup after saving — ask whether to also remove it from the cart */
+function cartSaveConfirm(id) {
+  let m = document.getElementById('ttCartSaveModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'ttCartSaveModal';
+    m.className = 'tt-modal-overlay';
+    m.innerHTML = `
+      <div class="tt-modal">
+        <div class="tt-modal-icon">💚</div>
+        <p class="tt-modal-title">Saved to your Wishlist</p>
+        <p class="tt-modal-sub">Keep it in your cart too, or remove it since it's saved for later?</p>
+        <div class="tt-modal-actions">
+          <button class="btn btn-outline" id="ttCsmRemove">Remove from Cart</button>
+          <button class="btn btn-primary" id="ttCsmKeep">Keep in Cart</button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  }
+  document.getElementById('ttCsmKeep').onclick = () => m.classList.remove('open');
+  document.getElementById('ttCsmRemove').onclick = () => { cartRemove(id); m.classList.remove('open'); };
+  m.classList.add('open');
+}
 
 function cartToast() {
   let t = document.getElementById('cartToast');
@@ -2201,7 +2246,7 @@ function renderCartDrawer() {
         <span class="qty-num">${item.qty}</span>
         <button class="qty-btn" onclick="cartUpdateQty('${escHtml(item.id)}',1)"
           ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
-        <button class="cart-item-save" onclick="cartSaveForLater('${escHtml(item.id)}')" title="Save for later"><i class="far fa-heart"></i></button>
+        <button class="cart-item-save${wishHas(item.id) ? ' saved' : ''}" onclick="cartSaveForLater('${escHtml(item.id)}', this)" title="${wishHas(item.id) ? 'Saved for later' : 'Save for later'}"><i class="${wishHas(item.id) ? 'fas' : 'far'} fa-heart"></i></button>
         <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')">✕</button>
       </div>
     </div>`;
@@ -2290,7 +2335,7 @@ function renderCartPage() {
             ${item.qty >= item.units ? 'disabled title="Max available"' : ''}>+</button>
         </div>
         <div class="cart-line-total">${CONFIG.CURRENCY} ${formatNum(eff * item.qty)}</div>
-        <button class="cart-item-save" onclick="cartSaveForLater('${escHtml(item.id)}')" title="Save for later"><i class="far fa-heart"></i> Save for later</button>
+        <button class="cart-item-save${wishHas(item.id) ? ' saved' : ''}" onclick="cartSaveForLater('${escHtml(item.id)}', this)" title="${wishHas(item.id) ? 'Saved for later' : 'Save for later'}"><i class="${wishHas(item.id) ? 'fas' : 'far'} fa-heart"></i> ${wishHas(item.id) ? 'Saved' : 'Save for later'}</button>
         <button class="cart-item-remove" onclick="cartRemove('${escHtml(item.id)}')" title="Remove">✕ Remove</button>
       </div>
     </div>`;
