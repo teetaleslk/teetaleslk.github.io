@@ -756,10 +756,13 @@ function renderProducts(products, page) {
 
 function createProductCard(p) {
   const isOutOfStock = p.stock.toLowerCase().includes('out');
+  const inCartQty = cartQtyOf(p.id);
   const card = document.createElement('div');
+  card.dataset.id = p.id;
   card.className = 'product-card'
     + (bundleMode && bundleSelected.has(p.id) ? ' bundle-selected' : '')
-    + (isOutOfStock ? ' card-out-of-stock' : '');
+    + (isOutOfStock ? ' card-out-of-stock' : '')
+    + (inCartQty > 0 ? ' in-cart' : '');
 
   /* ── Image ── */
   const imgUrl  = resolveImageUrl(p.image);
@@ -796,8 +799,10 @@ function createProductCard(p) {
            </button>`)
     : (isOutOfStock
         ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
-        : `<button class="card-cart-btn" onclick="cartAddFromCard('${escHtml(p.id)}')">
-             <i class="fas fa-shopping-bag"></i> Add to Cart
+        : `<button class="card-cart-btn" data-cart-btn="1" onclick="cartAddFromCard('${escHtml(p.id)}')">
+             ${inCartQty > 0
+               ? `<i class="fas fa-check"></i> In Cart (${inCartQty}) · Add More`
+               : `<i class="fas fa-shopping-bag"></i> Add to Cart`}
            </button>`);
 
   /* ── Price block ── */
@@ -871,6 +876,7 @@ function createProductCard(p) {
       <div class="card-badge-tr">
         ${audienceBadge}
       </div>
+      ${inCartQty > 0 ? `<span class="card-in-cart-badge">✓ In Cart (${inCartQty})</span>` : ''}
       <button class="card-wish${wishHas(p.id) ? ' saved' : ''}" aria-label="Save for later"
         onclick="event.stopPropagation(); wishToggle('${escHtml(p.id)}', this)">
         <i class="${wishHas(p.id) ? 'fas' : 'far'} fa-heart"></i>
@@ -1919,7 +1925,25 @@ async function initProduct() {
 ═══════════════════════════════════════════════════════════════ */
 const CART_KEY = 'tt_cart';
 const cartGet  = () => { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } };
-const cartSave = c  => { localStorage.setItem(CART_KEY, JSON.stringify(c)); cartBadgeUpdate(); };
+const cartSave = c  => { localStorage.setItem(CART_KEY, JSON.stringify(c)); cartBadgeUpdate(); syncCardCartState(); };
+const cartQtyOf = id => cartGet().find(i => i.id === id)?.qty || 0;
+
+/* Keep every visible product card's "in cart" badge/button in sync with the
+   cart, without a full grid re-render — called any time the cart changes. */
+function syncCardCartState() {
+  document.querySelectorAll('.product-card[data-id]').forEach(card => {
+    const qty = cartQtyOf(card.dataset.id);
+    card.classList.toggle('in-cart', qty > 0);
+    const badge = card.querySelector('.card-in-cart-badge');
+    if (badge) badge.textContent = `✓ In Cart (${qty})`;
+    const btn = card.querySelector('.card-cart-btn:not([disabled])');
+    if (btn && btn.dataset.cartBtn === '1') {
+      btn.innerHTML = qty > 0
+        ? `<i class="fas fa-check"></i> In Cart (${qty}) · Add More`
+        : `<i class="fas fa-shopping-bag"></i> Add to Cart`;
+    }
+  });
+}
 
 /* 12.1 Recently Viewed — last 4 product IDs viewed, newest first */
 const RECENT_KEY = 'tt_recently_viewed';
@@ -2257,9 +2281,9 @@ function renderCartDrawer() {
        visible even to shoppers who never open the full cart page */
     const orgTot = cartOrgTotal(cart);
     const saved  = orgTot - cartTotal();
+    /* 13.5 note/gift fields removed from the drawer (2026-08-09) — they were
+       pushing the item list out of view. Still available on the full cart page. */
     footer.innerHTML = `
-      ${cartNoteFieldHtml()}
-      ${cartGiftFieldHtml()}
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
