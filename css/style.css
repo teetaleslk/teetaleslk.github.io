@@ -944,6 +944,15 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   padding: 10px;
 }
 
+/* Sold-out cards — greyed out like an inactive item, but still fully clickable:
+   the design might still be wanted as a custom-print order even if this exact
+   size/colour is gone. */
+.product-card.card-out-of-stock { opacity: .55; filter: grayscale(65%); }
+.product-card.card-out-of-stock:hover { opacity: .8; filter: grayscale(35%); }
+.product-card.card-out-of-stock .badge-sale,
+.product-card.card-out-of-stock .badge-audience,
+.product-card.card-out-of-stock .badge-boost { filter: grayscale(100%); }
+
 /* ─ Image area ─────────────────────────────────────────────── */
 .card-img-area {
   position: relative;
