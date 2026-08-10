@@ -124,7 +124,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 17 | Neuromarketing & Psychological Conversion | ⏳ (2026-08-08, 9/12 done — 17.1/17.6/17.9 need FB comments/dates/WA app settings) |
 | 18 | Emotional Selling & Copy Strategy | ⏳ (18.2 done 2026-08-08; 18.1/18.3-18.5 are WA scripts, not code) |
 | 19 | Dark Mode Toggle | 🔲 (planned 2026-08-09 — staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
-| 20 | Code Cleanup: Reusability & Duplication Reduction | 🔲 (planned 2026-08-09 — read-only audit done, staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
+| 20 | Code Cleanup: Reusability & Duplication Reduction | ⏳ (20.1/20.2 done 2026-08-09; 20.3-20.5 CSS consolidation still open) |
 
 **Next priority items:**
 - 9.1–9.4: Marketing & Sales Strategy (WA templates, brand story)

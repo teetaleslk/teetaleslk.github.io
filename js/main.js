@@ -41,6 +41,27 @@ const CONFIG = {
   },
 };
 
+/** Builds a wa.me link with the message pre-filled and URL-encoded. */
+function waHref(msg) {
+  return `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+
+/* ── localStorage helpers — shared shape for every feature that persists
+   locally (cart, wishlist, recently viewed, notes, preferences). ── */
+function lsGetArray(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; }
+}
+function lsSetArray(key, val, onSaved) {
+  localStorage.setItem(key, JSON.stringify(val));
+  if (onSaved) onSaved();
+}
+function lsGetString(key, fallback = '') {
+  return localStorage.getItem(key) ?? fallback;
+}
+function lsSetString(key, val) {
+  localStorage.setItem(key, val);
+}
+
 /*
   Column index map — matches WebStock sheet headers (A–Q, 17 cols, updated 2026-07-21):
   A(0): ItemID     | B(1): Type       | C(2): TeeCategory
@@ -93,7 +114,8 @@ let searchQuery   = '';
 let activePrintSize = 'all';    // Print Size filter (Pocket/A5/A4/A3/A3+Pocket…) — Adults only, Kids are always "NA"
 let currentPage   = 1;
 let itemsPerPage  = 24;         // 12 | 24 | 48 | 96 — multiples of 12 so 2/3/4-col grids never leave a lone item in the last row
-let gridView      = localStorage.getItem('tt_grid_view') || 'cols4';  // 'list' | 'cols2' | 'cols3' | 'cols4'
+const GRID_VIEW_KEY = 'tt_grid_view';
+let gridView      = lsGetString(GRID_VIEW_KEY, 'cols4');  // 'list' | 'cols2' | 'cols3' | 'cols4'
 
 /* ── BUNDLE MODE (Offer Bundle-Picker) ──
    Set from ?bundle=1 URL params (see createOfferCard in the Offers section).
@@ -369,7 +391,7 @@ function createOfferCard(offer) {
       </a>`;
   } else {
     const waMsg = offer.waText || `Hi TeeTales! I'd like to know more about the "${offer.title}" offer. 👕`;
-    const waLink = `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+    const waLink = waHref(waMsg);
     ctaHtml = `<a href="${waLink}" target="_blank" rel="noopener" class="offer-wa-btn" data-wa-source="offer" data-item-id="${escHtml(offer.title)}">
         <i class="fab fa-whatsapp"></i> Grab This Deal
       </a>`;
@@ -574,29 +596,34 @@ const COLOUR_MAP = {
   rose: '#e84393', sky: '#74b9ff', mint: '#55efc4', peach: '#ffeaa7',
   charcoal: '#2d3436', olive: '#6d8b74', wine: '#722f37', mustard: '#e3aa00',
 };
-/* ── SIZE-FAMILY GROUPING (Phase 16, no sheet change) ──
-   Rows are "the same tee in another size" when Design+Colour+Type+Category+PrintSize match. */
-function familyKeyOf(p) {
-  // Same sticker design + same colour + same Type (Kids/Adults) + same TeeCategory → one family
-  return [(p.design[0] || '').trim().toLowerCase(), (p.colour || '').toLowerCase(),
-          (p.type || '').toLowerCase(), (p.category || '').toLowerCase()].join('|');
+/* ── SIZE-FAMILY / COLOUR-SIBLING GROUPING (Phase 16, no sheet change) ──
+   Both group by Design+Type+Category; the size-family key additionally
+   includes Colour (so it groups "same tee, other size"), while the
+   colour-sibling key deliberately excludes Colour (so it groups "same
+   design, other colour" instead). One key function, one lookup helper,
+   parameterized rather than duplicated. */
+function groupKeyOf(p, includeColour) {
+  const parts = [(p.design[0] || '').trim().toLowerCase()];
+  if (includeColour) parts.push((p.colour || '').toLowerCase());
+  parts.push((p.type || '').toLowerCase(), (p.category || '').toLowerCase());
+  return parts.join('|');
+}
+const familyKeyOf = p => groupKeyOf(p, true);
+const designKeyOf = p => groupKeyOf(p, false);
+
+/** Every product (including p itself) sharing keyFn(p)'s value. */
+function productsWithKey(keyFn, key) {
+  return Object.values(_ttProdMap).filter(q => q.design?.length && keyFn(q) === key);
 }
 function familyMembers(p) {
   if (!p.design?.length) return [];
-  const k = familyKeyOf(p);
-  return Object.values(_ttProdMap).filter(q => q.design?.length && familyKeyOf(q) === k);
+  return productsWithKey(familyKeyOf, familyKeyOf(p));
 }
 
-/* 16.4 Colour swatcher — same design+type+category, but grouped ACROSS colours
-   (the size-family key above intentionally includes colour; this one deliberately
-   excludes it, so it groups this design's colour variants together). */
-function designKeyOf(p) {
-  return [(p.design[0] || '').trim().toLowerCase(), (p.type || '').toLowerCase(), (p.category || '').toLowerCase()].join('|');
-}
+/* 16.4 Colour swatcher — same design+type+category, but grouped ACROSS colours */
 function colourSiblings(p) {
   if (!p.design?.length) return [];
-  const k = designKeyOf(p);
-  const all = Object.values(_ttProdMap).filter(q => q.design?.length && designKeyOf(q) === k);
+  const all = productsWithKey(designKeyOf, designKeyOf(p));
   // one representative per colour group: same size as current if in stock, else first in-stock, else first overall
   const byColour = {};
   all.forEach(q => {
@@ -606,10 +633,10 @@ function colourSiblings(p) {
     byColour[c].push(q);
   });
   return Object.entries(byColour).map(([colour, items]) => {
-    const sameSize = items.find(q => (q.size || '') === (p.size || '') && !q.stock.toLowerCase().includes('out'));
-    const inStock  = items.find(q => !q.stock.toLowerCase().includes('out'));
+    const sameSize = items.find(q => (q.size || '') === (p.size || '') && !isOutOfStock(q));
+    const inStock  = items.find(q => !isOutOfStock(q));
     const rep = sameSize || inStock || items[0];
-    const anyInStock = items.some(q => !q.stock.toLowerCase().includes('out'));
+    const anyInStock = items.some(q => !isOutOfStock(q));
     return { colour, rep, isCurrent: items.some(q => q.id === p.id), soldOut: !anyInStock };
   });
 }
@@ -650,6 +677,32 @@ function getSwatchColor(colourName) {
 /* ═══════════════════════════════════════════════════════════════
    BADGE HELPERS  (Stock Status + Boost Status)
 ═══════════════════════════════════════════════════════════════ */
+
+/** Builds the "Design — Type Category/Colour Tee (Size)" display name used
+ *  for product card titles, the product page title, cart lines, and wishlist
+ *  items. `tee: true` gives the identity-first title style (design tag
+ *  required to show the category/"Tee" suffix at all — used on cards/product
+ *  page); `tee: false` gives the simpler "always show type" style used in the
+ *  cart/wishlist, where the design tag is just an optional prefix. */
+function productDisplayName(p, { tee = false, category = false, colour = false } = {}) {
+  const design = p.design?.[0];
+  const extra = category ? (p.category || '') : colour ? (p.colour || '') : '';
+  let base;
+  if (tee) {
+    base = design ? `${design} — ${p.type} ${extra} Tee`.replace(/\s+/g, ' ') : p.type;
+  } else {
+    base = `${design ? design + ' — ' : ''}${p.type} ${extra}`.trim();
+  }
+  return base + (p.size ? ` (${p.size})` : '');
+}
+
+/** True when a product's stock text indicates it's sold out (Column H).
+ *  Accepts a product object OR a raw stock string, so existing call sites
+ *  passing `p`, `q`, `rp`, `item.stock`, etc. all work unchanged. */
+function isOutOfStock(pOrStock) {
+  const s = typeof pOrStock === 'string' ? pOrStock : (pOrStock?.stock || '');
+  return s.toLowerCase().includes('out');
+}
 
 /** Column H — stock availability badge */
 function getStockBadgeHtml(stockStatus) {
@@ -755,13 +808,13 @@ function renderProducts(products, page) {
 }
 
 function createProductCard(p) {
-  const isOutOfStock = p.stock.toLowerCase().includes('out');
+  const outOfStock = isOutOfStock(p);
   const inCartQty = cartQtyOf(p.id);
   const card = document.createElement('div');
   card.dataset.id = p.id;
   card.className = 'product-card'
     + (bundleMode && bundleSelected.has(p.id) ? ' bundle-selected' : '')
-    + (isOutOfStock ? ' card-out-of-stock' : '')
+    + (outOfStock ? ' card-out-of-stock' : '')
     + (inCartQty > 0 ? ' in-cart' : '');
 
   /* ── Image ── */
@@ -790,14 +843,14 @@ function createProductCard(p) {
   const isBundlePicked = bundleMode && bundleSelected.has(p.id);
   const bundleFull = bundleMode && bundleSelected.size >= bundleMode.bundleCount && !isBundlePicked;
   const cartBtn = bundleMode
-    ? (isOutOfStock
+    ? (outOfStock
         ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
         : `<button class="card-cart-btn${isBundlePicked ? ' selected' : ''}"
              onclick="bundleToggle('${escHtml(p.id)}')" ${bundleFull ? 'disabled' : ''}>
              <i class="fas ${isBundlePicked ? 'fa-check-circle' : 'fa-plus-circle'}"></i>
              ${isBundlePicked ? 'Selected' : (bundleFull ? 'Bundle Full' : 'Select for Bundle')}
            </button>`)
-    : (isOutOfStock
+    : (outOfStock
         ? `<button class="card-cart-btn" disabled>✕ Sold Out</button>`
         : `<button class="card-cart-btn" data-cart-btn="1" onclick="cartAddFromCard('${escHtml(p.id)}')">
              ${inCartQty > 0
@@ -856,7 +909,7 @@ function createProductCard(p) {
   const colourLabel = p.colour ? `<span class="card-meta-colour">${escHtml(p.colour)}</span>` : '';
   const ageIsRange  = p.ageGrp && p.ageGrp !== 'adults';
   const ageLabel    = ageIsRange ? `<span class="card-meta-age">🎂 ${escHtml(p.ageGrp)}</span>` : '';
-  const moreSizes   = familyMembers(p).filter(q => q.id !== p.id && !q.stock.toLowerCase().includes('out')).length;
+  const moreSizes   = familyMembers(p).filter(q => q.id !== p.id && !isOutOfStock(q)).length;
   const sizeLabel   = p.size
     ? `<span class="card-meta-size">Size: <strong>${escHtml(p.size)}</strong>${moreSizes ? ` <span class="card-more-sizes">+${moreSizes} more size${moreSizes > 1 ? 's' : ''}</span>` : ''}</span>`
     : '';
@@ -885,7 +938,7 @@ function createProductCard(p) {
     </div>
     <div class="card-info">
       <div class="card-info-main">
-        <div class="card-type">${escHtml((p.design?.[0] ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ') : p.type) + (p.size ? ` (${p.size})` : ''))}</div>
+        <div class="card-type">${escHtml(productDisplayName(p, { tee: true, category: true }))}</div>
         ${stockBadge ? `<div class="card-stock-row">${stockBadge}</div>` : ''}
         ${priceHtml}
         ${metaBar}
@@ -975,7 +1028,7 @@ function renderBundleBar() {
         <span>${count} of ${need} selected — Total: ${totalHtml}</span>
       </div>
       <a href="#" class="bundle-exit" onclick="event.preventDefault(); window.location.href='shop.html';">✕ Exit Bundle</a>
-      <a href="${ready ? `https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildBundleWAMessage())}` : '#'}"
+      <a href="${ready ? waHref(buildBundleWAMessage()) : '#'}"
          target="${ready ? '_blank' : ''}" rel="noopener"
          class="bundle-wa-btn${ready ? '' : ' disabled'}" data-wa-source="bundle_order" data-item-id="${escHtml(bundleMode.title)}"
          onclick="${ready ? '' : 'event.preventDefault();'}">
@@ -1410,7 +1463,7 @@ async function initHome() {
       grid.innerHTML = '';
       grid.appendChild(frag);
     };
-    const inStock = products.filter(p => !p.stock.toLowerCase().includes('out'));
+    const inStock = products.filter(p => !isOutOfStock(p));
     strip('newArrivalsSection', 'newArrivalsStrip',
       inStock.filter(p => (p.boost || '').toLowerCase().includes('new')).reverse());
     strip('hotDealsSection', 'hotDealsStrip',
@@ -1530,7 +1583,7 @@ async function initShop() {
   if (viewToggle) {
     const setView = (v) => {
       gridView = v;
-      localStorage.setItem('tt_grid_view', v);
+      lsSetString(GRID_VIEW_KEY, v);
       grid.classList.remove('view-list', 'view-cols2', 'view-cols3', 'view-cols4');
       grid.classList.add(`view-${v}`);
       viewToggle.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
@@ -1711,9 +1764,7 @@ async function initProduct() {
 
     /* Title */
     /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
-    const pdTitleText = (p.design?.[0]
-      ? `${p.design[0]} — ${p.type} ${p.category || ''} Tee`.replace(/\s+/g, ' ')
-      : p.type) + (p.size ? ` (${p.size})` : '');
+    const pdTitleText = productDisplayName(p, { tee: true, category: true });
     document.getElementById('pdTitle').textContent = pdTitleText;
     const identEl = document.getElementById('pdIdentity');
     if (identEl) identEl.textContent = identityLineFor(p);
@@ -1731,7 +1782,7 @@ async function initProduct() {
       brand: { '@type': 'Brand', name: 'TeeTales' },
       offers: {
         '@type': 'Offer', priceCurrency: 'LKR', price: p.price || p.org || 0,
-        availability: p.stock.toLowerCase().includes('out')
+        availability: isOutOfStock(p)
           ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       },
     });
@@ -1773,7 +1824,7 @@ async function initProduct() {
     /* Meta list */
     const swatchColor = getSwatchColor(p.colour);
     const swatchDot   = p.colour
-      ? `<span class="card-swatch-dot" style="background:${swatchColor || '#ccc'}"></span>` : '';
+      ? `<span class="card-swatch-dot-sm" style="background:${swatchColor || '#ccc'}"></span>` : '';
     const ageIsKids   = p.ageGrp && p.ageGrp !== 'adults';
     const metaItems   = [
       p.colour     ? `<div class="pd-meta-item"><dt>Colour</dt><dd>${swatchDot}${escHtml(p.colour)}</dd></div>` : '',
@@ -1821,7 +1872,7 @@ async function initProduct() {
           <div class="pd-sizerow-chips">${ordered.map(sz => {
             const q = bySize[sz], label = sz.toUpperCase();
             if (q.id === p.id) return `<span class="pd-size-opt current" title="You're viewing this size">${label}</span>`;
-            if (q.stock.toLowerCase().includes('out')) return `<span class="pd-size-opt out" title="Sold out">${label}</span>`;
+            if (isOutOfStock(q)) return `<span class="pd-size-opt out" title="Sold out">${label}</span>`;
             return `<a class="pd-size-opt" href="product.html?id=${encodeURIComponent(q.id)}" title="View ${label}">${label}</a>`;
           }).join('')}</div>
           <span class="pd-sizerow-hint">Tap a size to switch</span>
@@ -1829,7 +1880,7 @@ async function initProduct() {
     }
 
     /* Add to Cart — qty selector + button */
-    const isOut = p.stock.toLowerCase().includes('out');
+    const isOut = isOutOfStock(p);
     if (isOut) {
       document.getElementById('pdOrderBtn').innerHTML =
         `<button class="pd-add-cart-btn" disabled>✕ Sold Out</button>
@@ -1879,7 +1930,7 @@ async function initProduct() {
 
     /* Related products — same audience first, then anything in stock */
     const related = products
-      .filter(q => q.id !== p.id && !q.stock.toLowerCase().includes('out'))
+      .filter(q => q.id !== p.id && !isOutOfStock(q))
       .sort((a, b) => {
         const score = r => {
           if (r.suitable === p.suitable && r.ageGrp === p.ageGrp) return 3;
@@ -1903,7 +1954,7 @@ async function initProduct() {
       const recentGrid = document.getElementById('pdRecentGrid');
       const recentProducts = recentIds
         .map(rid => products.find(q => q.id === rid))
-        .filter(rp => rp && !rp.stock.toLowerCase().includes('out'))
+        .filter(rp => rp && !isOutOfStock(rp))
         .slice(0, 4);
       if (recentProducts.length) {
         recentProducts.forEach(rp => recentGrid.appendChild(createProductCard(rp)));
@@ -1924,8 +1975,8 @@ async function initProduct() {
    To edit WA message format: see buildCartWAMessage()
 ═══════════════════════════════════════════════════════════════ */
 const CART_KEY = 'tt_cart';
-const cartGet  = () => { try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { return []; } };
-const cartSave = c  => { localStorage.setItem(CART_KEY, JSON.stringify(c)); cartBadgeUpdate(); syncCardCartState(); };
+const cartGet  = () => lsGetArray(CART_KEY);
+const cartSave = c  => lsSetArray(CART_KEY, c, () => { cartBadgeUpdate(); syncCardCartState(); });
 const cartQtyOf = id => cartGet().find(i => i.id === id)?.qty || 0;
 
 /* Keep every visible product card's "in cart" badge/button in sync with the
@@ -1948,12 +1999,12 @@ function syncCardCartState() {
 /* 12.1 Recently Viewed — last 4 product IDs viewed, newest first */
 const RECENT_KEY = 'tt_recently_viewed';
 function recentViewedGet() {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+  return lsGetArray(RECENT_KEY);
 }
 function recentViewedAdd(id) {
   const list = recentViewedGet().filter(rid => rid !== id);
   list.unshift(id);
-  localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 4)));
+  lsSetArray(RECENT_KEY, list.slice(0, 4));
 }
 
 function cartAdd(p, qty = 1) {
@@ -2042,8 +2093,8 @@ function cartBadgeUpdate() {
 
 /* ── 9.2 Delivery note / occasion date (optional) — appended to WA order message ── */
 const CART_NOTE_KEY = 'tt_cart_note';
-const cartNoteGet  = () => localStorage.getItem(CART_NOTE_KEY) || '';
-const cartNoteSave = v  => localStorage.setItem(CART_NOTE_KEY, v);
+const cartNoteGet  = () => lsGetString(CART_NOTE_KEY);
+const cartNoteSave = v  => lsSetString(CART_NOTE_KEY, v);
 window.cartNoteSave = cartNoteSave;
 function cartNoteFieldHtml() {
   return `<div class="cart-note-field">
@@ -2056,10 +2107,10 @@ function cartNoteFieldHtml() {
 /* ── 13.5 Gift wrapping / gift note toggle — appended to WA order message ── */
 const CART_GIFT_KEY      = 'tt_cart_gift';
 const CART_GIFT_NOTE_KEY = 'tt_cart_gift_note';
-const cartGiftGet      = () => localStorage.getItem(CART_GIFT_KEY) === '1';
-const cartGiftSave     = v  => localStorage.setItem(CART_GIFT_KEY, v ? '1' : '');
-const cartGiftNoteGet  = () => localStorage.getItem(CART_GIFT_NOTE_KEY) || '';
-const cartGiftNoteSave = v  => localStorage.setItem(CART_GIFT_NOTE_KEY, v);
+const cartGiftGet      = () => lsGetString(CART_GIFT_KEY) === '1';
+const cartGiftSave     = v  => lsSetString(CART_GIFT_KEY, v ? '1' : '');
+const cartGiftNoteGet  = () => lsGetString(CART_GIFT_NOTE_KEY);
+const cartGiftNoteSave = v  => lsSetString(CART_GIFT_NOTE_KEY, v);
 function cartGiftToggle(checked) {
   cartGiftSave(checked);
   const wrap = document.getElementById('cartGiftNoteWrap');
@@ -2103,7 +2154,7 @@ function cartSaveForLater(id, btn) {
   }
 
   const w = wishGet();
-  const name = `${item.design?.[0] ? item.design[0] + ' — ' : ''}${item.type} ${item.colour || ''}`.trim() + (item.size ? ` (${item.size})` : '');
+  const name = productDisplayName(item, { colour: true });
   w.push({ id: item.id, name, price: item.price, lead: item.lead || '' });
   wishSave(w);
   if (btn) {
@@ -2157,7 +2208,7 @@ function cartToast() {
 // Called from product card "Add to Cart" onclick
 function cartAddFromCard(id) {
   const p = _ttProdMap[id];
-  if (!p || p.stock.toLowerCase().includes('out')) return;
+  if (!p || isOutOfStock(p)) return;
   cartAdd(p, 1);
   openCart();
 }
@@ -2287,14 +2338,12 @@ function renderCartDrawer() {
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
-      <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
-      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
+      <p class="cart-cod-note">🏦 Bank transfer · confirmed on WhatsApp</p>
+      <a href="${waHref(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
-      <p class="wa-response-note">💬 We reply in minutes · 9am–9pm daily</p>
-      <p class="cart-summary-note">Your cart is saved — take your time 😊</p>
-      <p class="cart-summary-note">🔄 Wrong size? Message us within 3 days of delivery — we'll sort it.</p>
+      <p class="wa-response-note wa-response-note-sm">💬 We reply in minutes · 9am–9pm</p>
       <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
   }
 }
@@ -2379,12 +2428,14 @@ function renderCartPage() {
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
       <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
-      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildCartWAMessage())}"
+      <a href="${waHref(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <p class="wa-response-note">💬 We reply in minutes · 9am–9pm daily</p>
-      <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you. 😊</p>
+      <p class="cart-summary-note">Your cart is saved — take your time 😊</p>
+      <p class="cart-summary-note">🔄 Wrong size? Message us within 3 days of delivery — we'll sort it.</p>
+      <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you.</p>
     </div>`;
 
   /* 9.1 Upsell — "You may also like", excludes items already in cart */
@@ -2396,7 +2447,7 @@ function renderCartPage() {
       return Object.keys(c).sort((a, b) => c[b] - c[a])[0];
     })();
     const upsell = allProducts
-      .filter(p => !inCart.has(p.id) && !p.stock.toLowerCase().includes('out'))
+      .filter(p => !inCart.has(p.id) && !isOutOfStock(p))
       .sort((a, b) => (b.ageGrp === modeAge) - (a.ageGrp === modeAge) || stockPriority(a.stock) - stockPriority(b.stock))
       .slice(0, 4);
     if (upsell.length) {
@@ -2427,8 +2478,8 @@ function openLightbox(src) {
 /* ═══ 8.2 WISHLIST — ❤ save for later, localStorage, WA "order all" ═══
    Stores product snapshots so the wishlist works on every page. */
 const WISH_KEY = 'tt_wishlist';
-const wishGet  = () => { try { return JSON.parse(localStorage.getItem(WISH_KEY)) || []; } catch { return []; } };
-const wishSave = w => { localStorage.setItem(WISH_KEY, JSON.stringify(w)); wishBadgeUpdate(); };
+const wishGet  = () => lsGetArray(WISH_KEY);
+const wishSave = w => lsSetArray(WISH_KEY, w, wishBadgeUpdate);
 const wishHas  = id => wishGet().some(i => i.id === id);
 
 function wishToggle(id, btn) {
@@ -2438,7 +2489,7 @@ function wishToggle(id, btn) {
   else {
     const p = _ttProdMap[id];
     if (!p) return;
-    w.push({ id: p.id, name: (p.design?.[0] ? `${p.design[0]} — ` : '') + `${p.type} ${p.category || ''}`.trim() + (p.size ? ` (${p.size})` : ''), price: p.price, lead: p.leadNum || '' });
+    w.push({ id: p.id, name: productDisplayName(p, { category: true }), price: p.price, lead: p.leadNum || '' });
   }
   wishSave(w);
   if (btn) {
@@ -2486,7 +2537,7 @@ function renderWishDrawer() {
   if (foot) {
     foot.style.display = 'block';
     foot.innerHTML = `
-      <a href="https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(buildWishWAMessage())}"
+      <a href="${waHref(buildWishWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="wishlist_ask">
         <i class="fab fa-whatsapp"></i> Ask About All (${w.length})
       </a>`;
@@ -2562,7 +2613,7 @@ function initSearchOverlay() {
   const renderResults = (q) => {
     if (!q) { results.innerHTML = ''; return; }
     const list = (overlayProducts || []).filter(p =>
-      !p.stock.toLowerCase().includes('out') && (
+      !isOutOfStock(p) && (
         p.type.toLowerCase().includes(q) || p.colour.toLowerCase().includes(q) ||
         p.id.toLowerCase().includes(q) || p.design.some(t => t.toLowerCase().includes(q))
       ));
@@ -2678,7 +2729,7 @@ function initCustomOrder() {
 
     const msg = lines.join('\n');
     trackWA('custom_order');
-    window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+    window.open(waHref(msg), '_blank', 'noopener');
   });
 }
 
@@ -2727,7 +2778,7 @@ function initBulkOrder() {
 
     const msg = lines.join('\n');
     trackWA('bulk_order');
-    window.open(`https://wa.me/${CONFIG.WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+    window.open(waHref(msg), '_blank', 'noopener');
   });
 }
 
@@ -2809,7 +2860,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const announceBar   = document.getElementById('announceBar');
   const announceClose = document.getElementById('announceClose');
   if (announceBar && announceClose) {
-    const dismissed = localStorage.getItem('tt_announce_dismissed');
+    const dismissed = lsGetString('tt_announce_dismissed', '');
     if (dismissed && Date.now() - parseInt(dismissed) < 86400000) {
       announceBar.style.display = 'none';  // keep hidden for 24h after user closes it
     } else {
@@ -2828,7 +2879,7 @@ document.addEventListener('DOMContentLoaded', () => {
     announceClose.addEventListener('click', () => {
       announceBar.style.display = 'none';
       document.body.classList.remove('has-announce');
-      localStorage.setItem('tt_announce_dismissed', Date.now());
+      lsSetString('tt_announce_dismissed', Date.now());
     });
   }
 

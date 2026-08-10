@@ -367,7 +367,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 
 /* Cart item thumbnails (drawer) */
 .cart-item-img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; border: 1px solid var(--border); }
-.cart-view-full { display: block; text-align: center; margin-top: 10px; font-size: .85rem; color: var(--primary); font-weight: 600; text-decoration: none; }
+.cart-view-full { display: block; text-align: center; margin-top: 6px; font-size: .85rem; color: var(--primary); font-weight: 600; text-decoration: none; }
 .cart-view-full:hover { color: var(--accent); }
 
 /* Cart page (cart.html) */
@@ -381,7 +381,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cart-page-item .cart-item-remove { font-size: .75rem; }
 .cart-page-summary { max-width: 420px; margin: 24px 0 0 auto; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
 .cart-summary-row { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 8px; }
-.cart-summary-save { color: #16a34a; font-weight: 700; }
 .cart-summary-total { font-size: 1.05rem; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
 .cart-summary-note { font-size: .75rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
 .cart-page-actions { margin-top: 24px; }
@@ -421,8 +420,9 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cart-item-save { color: var(--mid-gray); font-size: .8rem; padding: 4px 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .cart-item-save:hover { color: var(--gold); }
 .cart-page-item .cart-item-save { font-size: .75rem; }
-.cart-cod-note { font-size: .76rem; color: var(--text-muted); text-align: center; margin: 4px 0 10px; }
+.cart-cod-note { font-size: .76rem; color: var(--text-muted); text-align: center; margin: 4px 0 8px; }
 .wa-response-note { font-size: .74rem; color: var(--wa-green); font-weight: 600; text-align: center; margin: 6px 0 0; }
+.wa-response-note-sm { font-size: .68rem; margin: 4px 0 0; line-height: 1.3; }
 
 /* 17.11 Cart abandonment nudge */
 @keyframes ttCartPulse {
@@ -1825,7 +1825,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   padding: 5px 0 2px;
   border-top: 1px solid var(--border);
 }
-.card-swatch-dot {
+.card-swatch-dot-sm {
   width: 13px;
   height: 13px;
   border-radius: 50%;
@@ -1966,53 +1966,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BULK ORDERS CTA (legacy — HTML section removed, CSS kept for ref)
-═══════════════════════════════════════════════════════════════ */
-.bulk-section { padding: 20px 0 60px; }
-
-.bulk-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
-  border-radius: 24px;
-  padding: 40px 48px;
-  color: #fff;
-}
-@media (max-width: 768px) {
-  .bulk-card { flex-direction: column; align-items: flex-start; padding: 32px 24px; gap: 24px; }
-  .bulk-wa-btn { width: 100%; justify-content: center; }
-}
-
-.bulk-left { display: flex; align-items: flex-start; gap: 24px; flex: 1; }
-.bulk-icon { font-size: 3rem; line-height: 1; flex-shrink: 0; }
-.bulk-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 8px; }
-.bulk-sub   { font-size: .9rem; color: rgba(255,255,255,.75); margin: 0 0 16px; line-height: 1.6; max-width: 480px; }
-
-.bulk-perks { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-.bulk-perks span { font-size: .82rem; color: rgba(255,255,255,.85); display: flex; align-items: center; gap: 6px; }
-.bulk-perks i { color: #43e97b; }
-
-.bulk-wa-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-  padding: 15px 28px;
-  background: #25d366;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  border-radius: 14px;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: background .2s, transform .15s;
-  box-shadow: 0 4px 16px rgba(37,211,102,.4);
-}
-.bulk-wa-btn:hover { background: #1ebe5d; transform: translateY(-2px); }
-
-/* ═══════════════════════════════════════════════════════════════
    RESELLER PROGRAMME SECTION
    Deep-purple gradient — distinct from bulk section's navy blue.
    Gold accents = money/profit theme.
@@ -2134,7 +2087,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .pd-state-msg { text-align: center; padding: 80px 20px; color: var(--text-muted); }
 .pd-state-msg a { color: var(--accent); font-weight: 600; }
 .pd-spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 16px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* 2-column layout */
 .pd-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; align-items: start; margin-bottom: 64px; }
@@ -2181,7 +2133,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 /* WhatsApp order button */
 .pd-order-wrap { margin: 4px 0 10px; }
 .pd-wa-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px 24px; background: #25d366; color: #fff; font-size: 1.1rem; font-weight: 700; border-radius: 14px; text-decoration: none; border: none; cursor: pointer; transition: background .2s, transform .15s; box-shadow: 0 4px 14px rgba(37,211,102,.35); }
-.pd-wa-btn:hover { background: #1ebe5d; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(37,211,102,.45); }
+.pd-wa-btn:hover { background: var(--wa-hover); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(37,211,102,.45); }
 .pd-wa-btn-out { background: var(--mid-gray); cursor: not-allowed; box-shadow: none; }
 .pd-wa-btn-out:hover { transform: none; background: var(--mid-gray); box-shadow: none; }
 
