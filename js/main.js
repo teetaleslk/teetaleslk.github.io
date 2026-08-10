@@ -2849,12 +2849,16 @@ function initScrollReveal() {
   if (!('IntersectionObserver' in window)) return; // very old browser — just show everything, no animation
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return; // 21.4 accessibility
 
+  // 21.3 Wave stagger — cards that cross the viewport threshold in the same
+  // batch (i.e. the same row scrolling into view together) are handed to
+  // this callback in DOM order (left-to-right for a grid), so index-in-batch
+  // doubles as a left-to-right delay step. Capped so a long row/full-page
+  // batch doesn't chain into a multi-second wait.
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        io.unobserve(entry.target);
-      }
+    entries.filter(e => e.isIntersecting).forEach((entry, i) => {
+      entry.target.style.transitionDelay = `${Math.min(i, 5) * 90}ms`;
+      entry.target.classList.add('revealed');
+      io.unobserve(entry.target);
     });
   }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
 

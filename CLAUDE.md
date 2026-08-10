@@ -125,7 +125,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 18 | Emotional Selling & Copy Strategy | ⏳ (18.2 done 2026-08-08; 18.1/18.3-18.5 are WA scripts, not code) |
 | 19 | Dark Mode Toggle | 🔲 (planned 2026-08-09 — staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
 | 20 | Code Cleanup: Reusability & Duplication Reduction | ✅ Done (2026-08-10) — 20.1-20.3 full, 20.4/20.5 partial by design (see WEB IMPROVEMENTS.md for what was skipped and why) |
-| 21 | Scroll Reveal Animations | ✅ Done (2026-08-10) — "float in" on scroll, JS-driven, all pages, no HTML edits needed; 21.3 stagger not done |
+| 21 | Scroll Reveal Animations | ✅ Done (2026-08-10) — "float in" on scroll, JS-driven, all pages, no HTML edits needed; 21.3 wave stagger done |
 
 **Next priority items:**
 - 9.1–9.4: Marketing & Sales Strategy (WA templates, brand story)
