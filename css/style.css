@@ -132,9 +132,13 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 .nav-search-btn { display: none; }
 @media (max-width: 768px) { .nav-search-btn { display: flex; } }
 
+/* 20.3 Shared overlay base — search/cart/lightbox/modal overlays all sit fixed
+   over the full viewport; each keeps its own background/z-index/open-mechanism below. */
+.search-overlay, .cart-overlay, .tt-lightbox, .tt-modal-overlay { position: fixed; inset: 0; }
+
 /* Full-screen mobile search overlay — built dynamically by initSearchOverlay() in main.js */
 .search-overlay {
-  position: fixed; inset: 0; background: #fff; z-index: 2000;
+  background: #fff; z-index: 2000;
   display: flex; flex-direction: column;
   transform: translateY(-100%); transition: transform .25s ease;
 }
@@ -210,7 +214,7 @@ body.has-announce { padding-top: calc(var(--nav-h) + 36px); }
 
 /* ── Cart drawer ────────────────────────────────────────────── */
 .cart-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  background: rgba(0,0,0,.45);
   z-index: 1200; opacity: 0; pointer-events: none; transition: opacity .3s;
 }
 .cart-overlay.open { opacity: 1; pointer-events: all; }
@@ -301,14 +305,14 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .pd-sizeguide img { display: block; width: 100%; height: auto; }
 
 /* 8.1 Lightbox — fullscreen image zoom */
-.tt-lightbox { position: fixed; inset: 0; background: rgba(10,10,20,.92); display: none; align-items: center; justify-content: center; z-index: 3000; cursor: zoom-out; }
+.tt-lightbox { background: rgba(10,10,20,.92); display: none; align-items: center; justify-content: center; z-index: 3000; cursor: zoom-out; }
 .tt-lightbox.open { display: flex; }
 .tt-lightbox img { max-width: 94vw; max-height: 94vh; border-radius: 8px; box-shadow: 0 10px 60px rgba(0,0,0,.6); }
 .tt-lightbox-close { position: absolute; top: 18px; right: 26px; color: #fff; font-size: 1.6rem; font-weight: 700; }
 
 /* Cart → Wishlist "keep or remove" confirm popup */
 .tt-modal-overlay {
-  position: fixed; inset: 0; background: rgba(10,10,20,.55);
+  background: rgba(10,10,20,.55);
   display: none; align-items: center; justify-content: center; z-index: 3100; padding: 20px;
 }
 .tt-modal-overlay.open { display: flex; }
@@ -382,7 +386,9 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cart-page-summary { max-width: 420px; margin: 24px 0 0 auto; background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; }
 .cart-summary-row { display: flex; justify-content: space-between; font-size: .9rem; margin-bottom: 8px; }
 .cart-summary-total { font-size: 1.05rem; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
-.cart-summary-note { font-size: .75rem; color: var(--text-muted); margin-top: 10px; text-align: center; }
+/* 20.3 Shared muted centered note — text-align/colour identical across these 3. */
+.cart-summary-note, .cart-cod-note, .zero-risk-note { color: var(--text-muted); text-align: center; }
+.cart-summary-note { font-size: .75rem; margin-top: 10px; }
 .cart-page-actions { margin-top: 24px; }
 .cart-trust-strip { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-top: 28px; padding: 14px 18px; background: var(--off-white); border-radius: var(--radius-sm); font-size: .82rem; color: var(--text-muted); }
 .cart-page-empty { padding: 60px 0; text-align: center; }
@@ -420,7 +426,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cart-item-save { color: var(--mid-gray); font-size: .8rem; padding: 4px 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .cart-item-save:hover { color: var(--gold); }
 .cart-page-item .cart-item-save { font-size: .75rem; }
-.cart-cod-note { font-size: .76rem; color: var(--text-muted); text-align: center; margin: 4px 0 8px; }
+.cart-cod-note { font-size: .76rem; margin: 4px 0 8px; }
 .wa-response-note { font-size: .74rem; color: var(--wa-green); font-weight: 600; text-align: center; margin: 6px 0 0; }
 .wa-response-note-sm { font-size: .68rem; margin: 4px 0 0; line-height: 1.3; }
 
@@ -507,9 +513,17 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .bundle-bar-info strong { font-size: .95rem; }
 .bundle-exit { color: #fff; opacity: .75; font-size: .8rem; white-space: nowrap; }
 .bundle-exit:hover { opacity: 1; }
+/* 20.3 Shared WhatsApp-button base — every WA CTA is green-on-white with
+   centered content; each keeps its own display/gap/padding/shape below. */
+.bundle-wa-btn, .nav-wa-btn, .mobile-wa-btn, .gift-order-btn,
+.btn-wa-large, .offer-wa-btn, .way-wa-btn, .pd-wa-btn {
+  align-items: center;
+  background: var(--wa-green);
+  color: var(--white);
+}
 .bundle-wa-btn {
-  display: flex; align-items: center; gap: 6px; white-space: nowrap;
-  background: var(--wa-green); color: #fff; font-weight: 600;
+  display: flex; gap: 6px; white-space: nowrap;
+  font-weight: 600;
   padding: 9px 16px; border-radius: 999px; font-size: .85rem;
   transition: background .2s;
 }
@@ -598,9 +612,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .social-icon:hover { background: var(--accent); color: var(--white); transform: translateY(-2px); }
 
 .nav-wa-btn {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; gap: 7px;
   padding: 9px 16px;
-  background: var(--wa-green); color: var(--white);
   border-radius: 50px; font-weight: 600; font-size: .87rem;
   transition: background var(--transition), transform var(--transition);
   flex-shrink: 0;
@@ -631,9 +644,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .mobile-link:hover { background: var(--off-white); color: var(--accent); }
 .mobile-socials { display: flex; gap: 8px; padding: 8px 14px; }
 .mobile-wa-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: flex; justify-content: center; gap: 8px;
   margin-top: 8px; padding: 12px;
-  background: var(--wa-green); color: var(--white);
   border-radius: var(--radius-md); font-weight: 600; font-size: .95rem;
 }
 
@@ -787,12 +799,20 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
   margin-bottom: 28px;
 }
+/* 20.3 Shared filter-pill base — border-radius, muted text colour, hairline
+   border, and transition are identical across these 4; each keeps its own
+   background/padding/font-size below. */
+.buyer-tab, .pill, .tag-pill, .colour-all-btn {
+  border-radius: 50px;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  transition: all var(--transition);
+}
 .buyer-tab {
   display: flex; align-items: center; gap: 7px;
-  padding: 10px 22px; border-radius: 50px;
-  font-weight: 600; font-size: .88rem; color: var(--text-muted);
-  background: var(--white); border: 1.5px solid var(--border);
-  transition: all var(--transition);
+  padding: 10px 22px;
+  font-weight: 600; font-size: .88rem;
+  background: var(--white);
 }
 .buyer-tab:hover { border-color: var(--accent); color: var(--accent); }
 .buyer-tab.active { background: var(--accent); color: var(--white); border-color: var(--accent); }
@@ -811,10 +831,9 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 }
 .filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
 .pill {
-  padding: 6px 14px; border-radius: 50px;
-  font-size: .82rem; font-weight: 500; color: var(--text-muted);
-  background: var(--off-white); border: 1.5px solid var(--border);
-  transition: all var(--transition);
+  padding: 6px 14px;
+  font-size: .82rem; font-weight: 500;
+  background: var(--off-white);
 }
 .pill:hover { border-color: var(--accent); color: var(--accent); }
 .pill.active { background: var(--accent); color: var(--white); border-color: var(--accent); font-weight: 600; }
@@ -822,10 +841,9 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 /* Tag filter pills (theme tags) */
 .tag-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 5px 12px; border-radius: 50px;
-  font-size: .78rem; font-weight: 600; color: var(--text-muted);
-  background: var(--off-white); border: 1.5px solid var(--border);
-  transition: all var(--transition); cursor: pointer;
+  padding: 5px 12px;
+  font-size: .78rem; font-weight: 600;
+  background: var(--off-white); cursor: pointer;
 }
 .tag-pill:hover { border-color: var(--primary); color: var(--primary); }
 .tag-pill.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
@@ -864,9 +882,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   text-shadow: 0 1px 2px rgba(0,0,0,.5);
 }
 .colour-all-btn {
-  padding: 4px 10px; border-radius: 50px; font-size: .75rem; font-weight: 600;
-  color: var(--text-muted); background: var(--off-white); border: 1.5px solid var(--border);
-  transition: all var(--transition);
+  padding: 4px 10px; font-size: .75rem; font-weight: 600;
+  background: var(--off-white);
 }
 .colour-all-btn.active { background: var(--text); color: var(--white); border-color: var(--text); }
 
@@ -1287,9 +1304,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .gift-card-sub { font-size: .85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
 .gift-card-price { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 16px; }
 .gift-order-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: flex; justify-content: center; gap: 8px;
   width: 100%; padding: 12px;
-  background: var(--wa-green); color: var(--white);
   border-radius: var(--radius-sm); font-weight: 700; font-size: .95rem;
   transition: background var(--transition);
 }
@@ -1427,8 +1443,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .ci-text strong { font-weight: 600; font-size: .88rem; }
 .ci-text span   { opacity: .7; font-size: .82rem; }
 .btn-wa-large {
-  display: flex; align-items: center; gap: 12px; padding: 16px 26px;
-  background: var(--wa-green); color: var(--white); border-radius: var(--radius-md);
+  display: flex; gap: 12px; padding: 16px 26px;
+  border-radius: var(--radius-md);
   font-weight: 600;
   transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
   flex-shrink: 0;
@@ -1780,11 +1796,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 /* WhatsApp CTA */
 .offer-wa-btn {
   display: flex;
-  align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--wa-green);
-  color: var(--white);
   font-size: .9rem;
   font-weight: 700;
   padding: 11px 18px;
@@ -1926,7 +1939,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
-.zero-risk-note { text-align: center; font-size: .82rem; color: var(--text-muted); margin: 28px 0 0; }
+.zero-risk-note { font-size: .82rem; margin: 28px 0 0; }
 .way-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -1946,10 +1959,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .way-sub   { font-size: .88rem; color: var(--text-muted); line-height: 1.65; flex: 1; margin: 0; }
 .way-wa-btn {
   display: inline-flex;
-  align-items: center;
   gap: 8px;
-  background: var(--wa-green);
-  color: var(--white);
   padding: .6rem 1.2rem;
   border-radius: 50px;
   font-size: .85rem;
@@ -2132,7 +2142,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 
 /* WhatsApp order button */
 .pd-order-wrap { margin: 4px 0 10px; }
-.pd-wa-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px 24px; background: #25d366; color: #fff; font-size: 1.1rem; font-weight: 700; border-radius: 14px; text-decoration: none; border: none; cursor: pointer; transition: background .2s, transform .15s; box-shadow: 0 4px 14px rgba(37,211,102,.35); }
+.pd-wa-btn { display: flex; justify-content: center; gap: 10px; width: 100%; padding: 16px 24px; font-size: 1.1rem; font-weight: 700; border-radius: 14px; text-decoration: none; border: none; cursor: pointer; transition: background .2s, transform .15s; box-shadow: 0 4px 14px rgba(37,211,102,.35); }
 .pd-wa-btn:hover { background: var(--wa-hover); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(37,211,102,.45); }
 .pd-wa-btn-out { background: var(--mid-gray); cursor: not-allowed; box-shadow: none; }
 .pd-wa-btn-out:hover { transform: none; background: var(--mid-gray); box-shadow: none; }
