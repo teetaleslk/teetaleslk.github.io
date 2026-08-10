@@ -2829,6 +2829,55 @@ function initCartFloatBar() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PHASE 21 — Scroll reveal ("float in")
+   Boxes fade+rise into view once, the first time they scroll into
+   the viewport. Selector list covers card/section "boxes" across
+   every page. Purely JS-driven — no HTML edits needed anywhere:
+   the .reveal class (which starts an element at opacity:0) is only
+   added here at runtime, so if JS is off/fails, nothing is ever
+   hidden. A MutationObserver picks up cards added later by the
+   dynamic renderers (product grids, "You May Also Like", etc.),
+   so this one init covers both static and fetched content.
+═══════════════════════════════════════════════════════════════ */
+const REVEAL_SELECTOR = [
+  '.category-card', '.about-card', '.contact-card', '.offer-card',
+  '.bundle-card', '.product-card', '.order-form-section',
+  '.reseller-card', '.way-card', '.hero-sl-badge', '.footer-col'
+].join(', ');
+
+function initScrollReveal() {
+  if (!('IntersectionObserver' in window)) return; // very old browser — just show everything, no animation
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return; // 21.4 accessibility
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  const bind = el => {
+    if (el.dataset.revealBound) return;
+    el.dataset.revealBound = '1';
+    el.classList.add('reveal');
+    io.observe(el);
+  };
+
+  document.querySelectorAll(REVEAL_SELECTOR).forEach(bind);
+
+  // Pick up cards rendered later (product grids, related items, etc.)
+  new MutationObserver(mutations => {
+    mutations.forEach(m => m.addedNodes.forEach(node => {
+      if (node.nodeType !== 1) return;
+      if (node.matches?.(REVEAL_SELECTOR)) bind(node);
+      node.querySelectorAll?.(REVEAL_SELECTOR).forEach(bind);
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BOOT — runs once when the page finishes loading
    Detects which page we're on and calls the right init function:
      index.html  → has #homeAdultsGrid → initHome()
@@ -2915,6 +2964,9 @@ document.addEventListener('DOMContentLoaded', () => {
       floatWA.classList.toggle('visible', window.scrollY > 300);
     });
   }
+
+  // 21.1 Scroll reveal ("float in") — runs on every page, no HTML changes needed
+  initScrollReveal();
 
   initSearchOverlay();
 

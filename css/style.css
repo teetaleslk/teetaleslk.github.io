@@ -37,6 +37,21 @@
   --nav-h:         68px;
 }
 
+/* ── Phase 21: Scroll reveal ("float in") ──────────────────────
+   .reveal is only ever added by JS (initScrollReveal in main.js) —
+   if JS is off, this class never appears, so content stays visible
+   by default. .revealed is added the first time each box scrolls
+   into view. */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .55s ease-out, transform .55s ease-out;
+}
+.reveal.revealed { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
 /* ── Phase 6: Bilingual / Sinhala font ─────────────────────── */
 /* Iskoola Pota is pre-installed on Windows/Android — no import needed for most SL users.
    Noto Sans Sinhala is the web-safe fallback. */
