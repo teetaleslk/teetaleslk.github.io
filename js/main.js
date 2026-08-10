@@ -2840,9 +2840,9 @@ function initCartFloatBar() {
    so this one init covers both static and fetched content.
 ═══════════════════════════════════════════════════════════════ */
 const REVEAL_SELECTOR = [
-  '.category-card', '.about-card', '.contact-card', '.offer-card',
+  '.cat-card', '.about-card', '.contact-card', '.offer-card',
   '.bundle-card', '.product-card', '.order-form-section',
-  '.reseller-card', '.way-card', '.hero-sl-badge', '.footer-col'
+  '.way-card', '.hero-sl-badge', '.footer-col'
 ].join(', ');
 
 function initScrollReveal() {
@@ -2856,7 +2856,7 @@ function initScrollReveal() {
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.08, rootMargin: '0px 0px -60px 0px' });
 
   const bind = el => {
     if (el.dataset.revealBound) return;

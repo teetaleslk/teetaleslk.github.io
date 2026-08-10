@@ -124,7 +124,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 17 | Neuromarketing & Psychological Conversion | ⏳ (2026-08-08, 9/12 done — 17.1/17.6/17.9 need FB comments/dates/WA app settings) |
 | 18 | Emotional Selling & Copy Strategy | ⏳ (18.2 done 2026-08-08; 18.1/18.3-18.5 are WA scripts, not code) |
 | 19 | Dark Mode Toggle | 🔲 (planned 2026-08-09 — staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
-| 20 | Code Cleanup: Reusability & Duplication Reduction | ⏳ (20.1/20.2 done 2026-08-09; 20.3 done 2026-08-10; 20.4-20.5 still open) |
+| 20 | Code Cleanup: Reusability & Duplication Reduction | ✅ Done (2026-08-10) — 20.1-20.3 full, 20.4/20.5 partial by design (see WEB IMPROVEMENTS.md for what was skipped and why) |
 | 21 | Scroll Reveal Animations | ✅ Done (2026-08-10) — "float in" on scroll, JS-driven, all pages, no HTML edits needed; 21.3 stagger not done |
 
 **Next priority items:**
