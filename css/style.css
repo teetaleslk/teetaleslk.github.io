@@ -26,9 +26,9 @@
   --text:          #2d3436;
   --text-muted:    #636e72;
   --border:        #dee2e6;
-  --sale-red:      var(--sale-red); /* 20.4: sale price / discount badge red — was a repeated raw hex */
-  --price-orange:  var(--price-orange); /* 20.4: cart bulk-price / savings orange */
-  --success-green: var(--success-green); /* 20.4: in-stock / bulk-unlocked / success green */
+  --sale-red:      #c62a32; /* 20.4: sale price / discount badge red — was a repeated raw hex */
+  --price-orange:  #fa6338; /* 20.4: cart bulk-price / savings orange */
+  --success-green: #16a34a; /* 20.4: in-stock / bulk-unlocked / success green */
   --shadow-sm:     0 2px 8px rgba(0,0,0,.08);
   --shadow-md:     0 4px 20px rgba(0,0,0,.12);
   --shadow-lg:     0 8px 40px rgba(0,0,0,.16);
@@ -2074,3 +2074,19 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 
 /* Related section */
 .pd-related { padding-top: 48px; border-top: 1px solid var(--border); }
+
+/* ── 22.8 FAQ accordion (policy.html) — native <details>, zero JS ── */
+.faq-list { display: flex; flex-direction: column; gap: 10px; }
+.faq-item {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 14px 18px; background: var(--off-white);
+}
+.faq-item summary {
+  cursor: pointer; font-weight: 700; font-size: .95rem; color: var(--text);
+  list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: '+'; font-size: 1.3rem; font-weight: 400; color: var(--accent); flex-shrink: 0; transition: transform .2s; }
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p { margin: 10px 0 0; color: var(--text-muted); line-height: 1.65; font-size: .88rem; }
+.faq-item p a { color: var(--accent); font-weight: 600; }
