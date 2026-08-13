@@ -7,6 +7,7 @@
 
 Sri Lanka-based t-shirt e-commerce. Static multi-page HTML site hosted on GitHub Pages.
 Ordering model: Cart → WhatsApp. No payment gateway. No login. No backend.
+**Real-world fulfilment flow (confirmed 2026-08-10):** customer explores the site → orders/asks questions on WhatsApp → Ashirwadh clarifies details there → parcel is couriered → customer pays by bank transfer **after receiving it**. This is much closer to Cash on Delivery than a prepaid transfer — don't assume "pay before ship" in future copy/analysis (this was a real mistake corrected once already, see WEB IMPROVEMENTS.md §22.11).
 
 **WhatsApp number:** 94774407066
 **Reference site:** haidi.lk (structure/professionalism only — not content)
@@ -126,6 +127,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 19 | Dark Mode Toggle | 🔲 (planned 2026-08-09 — staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
 | 20 | Code Cleanup: Reusability & Duplication Reduction | ✅ Done (2026-08-10) — 20.1-20.3 full, 20.4/20.5 partial by design (see WEB IMPROVEMENTS.md for what was skipped and why) |
 | 21 | Scroll Reveal Animations | ✅ Done (2026-08-10) — "float in" on scroll, JS-driven, all pages, no HTML edits needed; 21.3 wave stagger done; 21.6 hover-zoom on all cards done |
+| 22 | Critical Review: Sales, Trust & Growth | 🔲 (14 items, round 2 added 2026-08-10; 22.1 + 22.5 + 22.7 built 2026-08-10; rest staged for one-by-one approval; see WEB IMPROVEMENTS.md) |
 
 **Next priority items:**
 - 9.1–9.4: Marketing & Sales Strategy (WA templates, brand story)

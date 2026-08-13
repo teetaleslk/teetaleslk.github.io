@@ -705,9 +705,16 @@ function isOutOfStock(pOrStock) {
 }
 
 /** Column H — stock availability badge */
-function getStockBadgeHtml(stockStatus) {
+/* 22.7: most TeeTales designs are genuinely printed in tiny runs (often just
+   1-3 pieces) — rather than that reading as "barely any stock," frame it as
+   the small-batch reality it is. Only kicks in while actually in stock, so
+   it never competes with the Sold Out badge. `units` is optional so every
+   existing call site (which only ever passed the stock string) still works. */
+function getStockBadgeHtml(stockStatus, units) {
   const s = (stockStatus || '').toLowerCase();
   if (s.includes('out'))  return `<span class="badge badge-out">✕ Sold Out</span>`;
+  if (units === 1) return `<span class="badge badge-limited">🖨️ One-of-a-Kind Print</span>`;
+  if (units === 2 || units === 3) return `<span class="badge badge-limited">🖨️ Only ${units} Made — Small Batch</span>`;
   if (s.includes('low') || s.includes('few') || s.includes('almost')) return `<span class="badge badge-low">⚡ Almost Gone</span>`;
   return `<span class="badge badge-in-stock">✓ In Stock</span>`;
 }
@@ -831,7 +838,7 @@ function createProductCard(p) {
         return `<span class="badge badge-sale">Save ${disc}%</span>`;
       })()
     : '';
-  const stockBadge  = getStockBadgeHtml(p.stock);
+  const stockBadge  = getStockBadgeHtml(p.stock, p.units);
   const boostBadge  = getBoostBadgeHtml(p.boost);
   const audience    = getAudienceLabel(p.ageGrp, p.suitable);
   const audienceBadge = audience.label
@@ -1760,7 +1767,7 @@ async function initProduct() {
     const audBadge = audience.label
       ? `<span class="badge badge-audience">${audience.emoji} ${audience.label}</span>` : '';
     document.getElementById('pdBadges').innerHTML =
-      `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock)}`;
+      `${getBoostBadgeHtml(p.boost)} ${getStockBadgeHtml(p.stock, p.units)}`;
 
     /* Title */
     /* Title: design-first (sell the story) — "Harry Potter — Kids Plain Tee" */
@@ -2022,6 +2029,8 @@ function cartAdd(p, qty = 1) {
   cartToast();
   // 14.4 Cart abandonment insight — compared against the cart's WA-order click (source: cart_order)
   if (typeof gtag === 'function') gtag('event', 'cart_add', { item_id: p.id });
+  // 22.1 Meta Pixel — lets Meta build a retargeting audience of cart-abandoners
+  if (typeof fbq === 'function') fbq('track', 'AddToCart', { content_ids: [p.id], content_type: 'product', value: p.price ?? p.strike ?? 0, currency: 'LKR' });
 }
 
 function cartUpdateQty(id, delta) {
@@ -2795,10 +2804,13 @@ function initBulkOrder() {
    needs manual wiring later — just add data-wa-source to a new link.
 ═══════════════════════════════════════════════════════════════ */
 function trackWA(source, itemId) {
-  if (typeof gtag !== 'function') return;
   const payload = { source: source || 'unknown' };
   if (itemId) payload.item_id = itemId;
-  gtag('event', 'whatsapp_click', payload);
+  if (typeof gtag === 'function') gtag('event', 'whatsapp_click', payload);
+  // 22.1 Meta Pixel — WhatsApp click is the real "checkout" moment for this
+  // business (order is finalized on WA, not on this site), so this doubles
+  // as the InitiateCheckout conversion event for future ad retargeting.
+  if (typeof fbq === 'function') fbq('track', 'InitiateCheckout', payload);
 }
 window.trackWA = trackWA;
 

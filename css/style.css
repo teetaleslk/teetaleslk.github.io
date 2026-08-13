@@ -56,6 +56,20 @@
   .reveal { opacity: 1; transform: none; transition: none; }
 }
 
+/* ── 22.5: Card hover-zoom, gated to real mouse devices only ──
+   Plain :hover can "stick" on a card after a tap on touchscreens
+   until the user taps elsewhere. Restricting the zoom/lift/shadow
+   to devices that report a real hover + fine pointer (i.e. a mouse)
+   means touch devices just get the plain card, no stuck effect. */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover { transform: scale(1.035); box-shadow: var(--shadow-lg); z-index: 2; position: relative; }
+  .cat-card:hover { transform: scale(1.035); box-shadow: var(--shadow-lg); z-index: 2; }
+  .bundle-card:hover { transform: translateY(-4px) scale(1.035); box-shadow: var(--shadow-lg); position: relative; z-index: 2; }
+  .about-card:hover { transform: translateY(-4px) scale(1.035); box-shadow: var(--shadow-lg); border-color: rgba(233,69,96,.2); position: relative; z-index: 2; }
+  .offer-card:hover { transform: translateY(-4px) scale(1.035); box-shadow: 0 10px 32px rgba(0,0,0,.25); position: relative; z-index: 2; }
+  .way-card:hover { transform: translateY(-3px) scale(1.035); box-shadow: var(--shadow-lg); position: relative; z-index: 2; }
+}
+
 /* ── Phase 6: Bilingual / Sinhala font ─────────────────────── */
 /* Iskoola Pota is pre-installed on Windows/Android — no import needed for most SL users.
    Noto Sans Sinhala is the web-safe fallback. */
@@ -1026,11 +1040,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   padding: 10px;
   transition: transform .25s ease, box-shadow .25s ease;
 }
-.product-card:hover {
-  transform: scale(1.035);
-  box-shadow: var(--shadow-lg);
-  z-index: 2;
-}
 
 /* Sold-out cards — greyed out like an inactive item, but still fully clickable:
    the design might still be wanted as a custom-print order even if this exact
@@ -1116,6 +1125,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .badge-clearance  { background: #b91c1c;         color: var(--white); }
 .badge-gift       { background: var(--gold);     color: #3d2b00; }
 .badge-audience   { background: #3730a3; color: var(--white); } /* default fallback */
+.badge-limited    { background: linear-gradient(135deg, #6d28d9, #9333ea); color: var(--white); } /* 22.7: small-batch/exclusivity, deliberately not red/orange like the urgency badges */
 /* Kids — pastel */
 [data-audience="Boys' Tee"]  .badge-audience { background: #bfdbfe; color: #1d4ed8; }
 [data-audience="Girls' Tee"] .badge-audience { background: #fce7f3; color: #be185d; }
@@ -1244,7 +1254,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   display: flex; flex-direction: column; gap: 14px;
   transition: box-shadow var(--transition), transform var(--transition);
 }
-.bundle-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px) scale(1.035); position: relative; z-index: 2; }
 .bundle-card.decoy { opacity: .75; }
 .bundle-card.best-value {
   background: var(--primary);
@@ -1444,7 +1453,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   border: 1.5px solid transparent;
   transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
 }
-.about-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px) scale(1.035); border-color: rgba(233,69,96,.2); position: relative; z-index: 2; }
 .ac-icon { font-size: 2.2rem; margin-bottom: 10px; }
 .ac-title { font-weight: 700; font-size: .98rem; margin-bottom: 5px; }
 .ac-sub { font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
@@ -1757,12 +1765,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   box-shadow: 0 4px 20px rgba(0,0,0,.18);
   transition: transform var(--transition), box-shadow var(--transition);
 }
-.offer-card:hover {
-  transform: translateY(-4px) scale(1.035);
-  box-shadow: 0 10px 32px rgba(0,0,0,.25);
-  position: relative;
-  z-index: 2;
-}
 
 /* Coloured badge strip at the top */
 .offer-badge {
@@ -1958,7 +1960,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cat-sub   { font-size: .72rem; font-weight: 400; opacity: .88; margin-bottom: 10px; line-height: 1.3; }
 .cat-cta   { font-size: .75rem; font-weight: 600; background: rgba(255,255,255,.25); padding: 4px 14px; border-radius: var(--radius-pill); transition: background .2s; }
 .cat-card:hover .cat-cta { background: rgba(255,255,255,.4); }
-.cat-card:hover { transform: scale(1.035); box-shadow: var(--shadow-lg); z-index: 2; }
 
 /* ═══════════════════════════════════════════════════════════════
    MORE WAYS TO SHOP — three-card persona row
@@ -1982,12 +1983,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   flex-direction: column;
   gap: 12px;
   transition: box-shadow var(--transition), transform var(--transition);
-}
-.way-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-3px) scale(1.035);
-  position: relative;
-  z-index: 2;
 }
 .way-icon { font-size: 2.4rem; line-height: 1; }
 .way-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
