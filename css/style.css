@@ -1024,6 +1024,12 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   border: 1px solid var(--mid-gray);
   border-radius: var(--radius-md);
   padding: 10px;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.product-card:hover {
+  transform: scale(1.035);
+  box-shadow: var(--shadow-lg);
+  z-index: 2;
 }
 
 /* Sold-out cards — greyed out like an inactive item, but still fully clickable:
@@ -1238,7 +1244,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   display: flex; flex-direction: column; gap: 14px;
   transition: box-shadow var(--transition), transform var(--transition);
 }
-.bundle-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); }
+.bundle-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px) scale(1.035); position: relative; z-index: 2; }
 .bundle-card.decoy { opacity: .75; }
 .bundle-card.best-value {
   background: var(--primary);
@@ -1438,7 +1444,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   border: 1.5px solid transparent;
   transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
 }
-.about-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: rgba(233,69,96,.2); }
+.about-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px) scale(1.035); border-color: rgba(233,69,96,.2); position: relative; z-index: 2; }
 .ac-icon { font-size: 2.2rem; margin-bottom: 10px; }
 .ac-title { font-weight: 700; font-size: .98rem; margin-bottom: 5px; }
 .ac-sub { font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
@@ -1752,8 +1758,10 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   transition: transform var(--transition), box-shadow var(--transition);
 }
 .offer-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.035);
   box-shadow: 0 10px 32px rgba(0,0,0,.25);
+  position: relative;
+  z-index: 2;
 }
 
 /* Coloured badge strip at the top */
@@ -1950,6 +1958,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .cat-sub   { font-size: .72rem; font-weight: 400; opacity: .88; margin-bottom: 10px; line-height: 1.3; }
 .cat-cta   { font-size: .75rem; font-weight: 600; background: rgba(255,255,255,.25); padding: 4px 14px; border-radius: var(--radius-pill); transition: background .2s; }
 .cat-card:hover .cat-cta { background: rgba(255,255,255,.4); }
+.cat-card:hover { transform: scale(1.035); box-shadow: var(--shadow-lg); z-index: 2; }
 
 /* ═══════════════════════════════════════════════════════════════
    MORE WAYS TO SHOP — three-card persona row
@@ -1975,8 +1984,10 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   transition: box-shadow var(--transition), transform var(--transition);
 }
 .way-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px) scale(1.035);
+  position: relative;
+  z-index: 2;
 }
 .way-icon { font-size: 2.4rem; line-height: 1; }
 .way-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin: 0; }
