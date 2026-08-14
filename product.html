@@ -197,6 +197,7 @@
 
           <div id="pdColourRow"><!-- 16.4 Colour swatcher — injected by main.js when the same design exists in other colours --></div>
           <div id="pdSizeRow"><!-- "Available Sizes" chips injected by main.js when the same tee exists in other sizes --></div>
+          <div id="pdCrossAgeRow"><!-- 22.6 "Also available for Kids/Adults" — injected by main.js when the same design exists in the other age group --></div>
 
           <hr class="pd-divider" />
 
@@ -269,7 +270,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p class="sl-trust-line">🇱🇰 Proudly Sri Lankan · Island-wide delivery · Pay by bank transfer</p>
+      <p class="sl-trust-line">🇱🇰 Proudly Sri Lankan · Island-wide delivery · Pay only after you receive it</p>
       <p class="privacy-promise">🔒 <strong>Our Privacy Promise:</strong> we never ask for personal details on this website — no accounts, no forms, no payment info collected here. Your details stay in our WhatsApp chat, are never shared, and never posted without your permission.</p>
       <p>&copy; <span id="footerYear"></span> TeeTales. All rights reserved.</p>
     </div>
@@ -305,6 +306,8 @@
   <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27d%20like%20to%20chat." target="_blank" rel="noopener" class="mbn-item mbn-wa"><i class="fab fa-whatsapp"></i><span>Chat</span></a>
 </nav>
 
+<!-- 22.3 QR-to-WhatsApp fallback library (desktop only, no external API calls) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

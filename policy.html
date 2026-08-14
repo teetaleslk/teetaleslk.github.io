@@ -140,7 +140,7 @@
 
     <div class="cart-trust-strip" style="margin:0 0 32px">
       <span>🚚 Islandwide Delivery</span>
-      <span>🏦 Bank Transfer Payment</span>
+      <span>📦 Pay After You Receive It</span>
       <span>🔄 Easy Exchanges</span>
       <span>💬 WhatsApp Support</span>
     </div>
@@ -153,12 +153,18 @@
       Delivery times can vary slightly during peak seasons — we'll always keep you posted on WhatsApp.
     </p>
 
-    <h2 style="margin-bottom:10px">🏦 Payment</h2>
-    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
-      TeeTales orders are confirmed and paid via <strong>bank transfer</strong>. Once you send your order on WhatsApp,
-      we'll confirm stock and share our account details there — nothing is charged automatically, and no card or
-      payment details are ever collected on this website.
+    <h2 style="margin-bottom:10px">🏦 Payment — pay only after your parcel arrives</h2>
+    <p style="color:var(--text-muted);line-height:1.7;margin-bottom:16px">
+      Nothing is paid upfront. Send your order on WhatsApp, we'll confirm details there, your tee gets couriered to
+      you — and only once it's arrived and you've checked it do you pay, by <strong>bank transfer</strong>. No card or
+      payment details are ever collected on this website, and nothing is charged automatically at any point.
     </p>
+    <div style="text-align:center;margin-bottom:24px">
+      <img src="img/bankqr/BankQR.jpeg" alt="TeeTales bank transfer QR code" loading="lazy"
+           style="max-width:220px;width:100%;border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-sm)"
+           onerror="this.parentElement.style.display='none'" />
+      <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px">Scan to pay by bank transfer once your parcel arrives — no need to type our account details</p>
+    </div>
 
     <h2 style="margin-bottom:10px">🔄 Exchange Policy</h2>
     <p style="color:var(--text-muted);line-height:1.7;margin-bottom:24px">
@@ -252,7 +258,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p class="sl-trust-line">🇱🇰 Proudly Sri Lankan · Island-wide delivery · Pay by bank transfer</p>
+      <p class="sl-trust-line">🇱🇰 Proudly Sri Lankan · Island-wide delivery · Pay only after you receive it</p>
       <p class="privacy-promise">🔒 <strong>Our Privacy Promise:</strong> we never ask for personal details on this website — no accounts, no forms, no payment info collected here. Your details stay in our WhatsApp chat, are never shared, and never posted without your permission.</p>
       <p>&copy; <span id="footerYear"></span> TeeTales. All rights reserved.</p>
     </div>
@@ -284,6 +290,8 @@
   <a href="https://wa.me/94774407066?text=Hi%20TeeTales!%20%F0%9F%91%95%20I%27d%20like%20to%20chat." target="_blank" rel="noopener" class="mbn-item mbn-wa"><i class="fab fa-whatsapp"></i><span>Chat</span></a>
 </nav>
 
+<!-- 22.3 QR-to-WhatsApp fallback library (desktop only, no external API calls) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

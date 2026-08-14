@@ -127,7 +127,7 @@ P(15) DESIGN (Sticker/Image name)       Q(16) PRINT_LOCATION
 | 19 | Dark Mode Toggle | 🔲 (planned 2026-08-09 — staged plan in `WEB IMPROVEMENTS.md`, awaiting go-ahead stage by stage) |
 | 20 | Code Cleanup: Reusability & Duplication Reduction | ✅ Done (2026-08-10) — 20.1-20.3 full, 20.4/20.5 partial by design (see WEB IMPROVEMENTS.md for what was skipped and why) |
 | 21 | Scroll Reveal Animations | ✅ Done (2026-08-10) — "float in" on scroll, JS-driven, all pages, no HTML edits needed; 21.3 wave stagger done; 21.6 hover-zoom on all cards done |
-| 22 | Critical Review: Sales, Trust & Growth | 🔲 (15 items, round 2 added 2026-08-10; 22.1 + 22.5 + 22.7 + 22.15 built 2026-08-10; rest staged for one-by-one approval; see WEB IMPROVEMENTS.md) |
+| 22 | Critical Review: Sales, Trust & Growth | ⏳ 11/15 done (2026-08-14) — 22.2 needs Ashirwadh's photos, 22.9 script written but sheet not yet set up, 22.12 needs real GA4 numbers, 22.14 is a habit not code; see WEB IMPROVEMENTS.md |
 | 23 | $100M Money Models: Hormozi Offer Framework | 🔲 (planned 2026-08-13, synced 2026-08-14 with TBOS Money Models Playbook — added Free Goodwill Offer, Downsell flagged as biggest gap, staged for one-by-one approval; see WEB IMPROVEMENTS.md) |
 
 **Next priority items:**

@@ -1820,7 +1820,7 @@ async function initProduct() {
         : '';
     }
     const zeroRiskEl = document.getElementById('pdZeroRisk');
-    if (zeroRiskEl) zeroRiskEl.textContent = '🔄 Not happy with the fit? Message us within 3 days of delivery — we\'ll sort it.';
+    if (zeroRiskEl) zeroRiskEl.innerHTML = '📦 <strong>Pay only after it arrives</strong> — nothing charged upfront.<br>🔄 Not happy with the fit? Message us within 3 days of delivery — we\'ll sort it.';
 
     // Bulk promo banner (TBOS spec) — full-width line above image + details
     const pdBulk = (p.bulkPrice && p.price && p.bulkPrice < p.price) ? p.bulkPrice : null;
@@ -1884,6 +1884,28 @@ async function initProduct() {
           }).join('')}</div>
           <span class="pd-sizerow-hint">Tap a size to switch</span>
         </div>`;
+    }
+
+    /* 22.6 Family cross-sell — same design, other age group (Kids ↔ Adults).
+       Data-driven rather than hardcoded: as of 2026-08-14 only 2 real matches
+       exist ("Ninja Turtles", "Labubu") but this works automatically as more
+       get added — no manual link-maintenance needed. */
+    const crossAgeRowEl = document.getElementById('pdCrossAgeRow');
+    if (crossAgeRowEl && p.design && p.design.length) {
+      const myDesigns = new Set(p.design.map(d => d.toLowerCase()));
+      const crossMatch = (allProducts || []).find(q =>
+        q.id !== p.id &&
+        q.ageGrp !== p.ageGrp &&
+        !isOutOfStock(q) &&
+        (q.design || []).some(d => myDesigns.has(d.toLowerCase()))
+      );
+      if (crossMatch) {
+        const otherAge = crossMatch.ageGrp === 'adults' ? 'Adults' : 'Kids';
+        crossAgeRowEl.innerHTML = `
+          <a class="pd-cross-age" href="product.html?id=${encodeURIComponent(crossMatch.id)}">
+            👨‍👩‍👧‍👦 Also available for ${otherAge} — match the whole family!
+          </a>`;
+      }
     }
 
     /* Add to Cart — qty selector + button */
@@ -2141,6 +2163,33 @@ function cartGiftFieldHtml() {
   </div>`;
 }
 
+/* ── 22.10 First-order discount opt-in — explicit checkbox (not pre-checked,
+   per Phase 23's "be transparent" principle: customer claims it honestly,
+   we still verify it's genuinely their first order manually via the WA
+   number against the 22.9 OrderTracker sheet before actually applying it).
+   Once an order is sent with this checked, we stop showing the banner on
+   this device — soft/local-only, real gatekeeping stays on the WA side. */
+const CART_FIRST_KEY = 'tt_first_order_claimed';
+const cartFirstClaimed = () => lsGetString(CART_FIRST_KEY) === '1';
+function cartFirstOrderFieldHtml() {
+  if (cartFirstClaimed()) return '';
+  return `<label class="cart-first-order-field">
+    <input type="checkbox" id="cartFirstCheck" onchange="cartFirstOrderRefreshLink()" />
+    <span>🎉 First time ordering from TeeTales? Check this for <strong>10% off</strong> — we'll confirm on WhatsApp</span>
+  </label>`;
+}
+/* Keeps the "Order via WhatsApp" link's pre-filled message in sync the moment
+   the checkbox changes — the href is otherwise only built once at render time. */
+function cartFirstOrderRefreshLink() {
+  const msg = waHref(buildCartWAMessage());
+  document.querySelectorAll('.cart-wa-btn[data-wa-source="cart_order"]').forEach(a => { a.href = msg; });
+}
+window.cartFirstOrderRefreshLink = cartFirstOrderRefreshLink;
+function cartFirstOrderClaim() {
+  if (document.getElementById('cartFirstCheck')?.checked) lsSetString(CART_FIRST_KEY, '1');
+}
+window.cartFirstOrderClaim = cartFirstOrderClaim;
+
 /* ── Cart → Wishlist: "Save for later" adds the item to Wishlist, then asks
    whether to also keep it in the cart or remove it — the customer's call,
    since they may be buying it now AND saving it, or just saving it for later. */
@@ -2272,7 +2321,9 @@ function buildCartWAMessage() {
   const isGift = cartGiftGet();
   const giftNote = cartGiftNoteGet().trim();
   const giftLine = isGift ? `\n🎁 This is a gift!${giftNote ? ' Note: ' + giftNote : ''}\n` : '';
-  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}${noteLine}${giftLine}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
+  const firstOrderChecked = document.getElementById('cartFirstCheck')?.checked;
+  const firstOrderLine = firstOrderChecked ? `\n🎉 This is my first TeeTales order — requesting the 10% first-order discount\n` : '';
+  return `Hi TeeTales! 👋 I'd like to order:\n\n${lines.join('\n')}\n${bulkNote}${noteLine}${giftLine}${firstOrderLine}\nTotal: ${CONFIG.CURRENCY} ${formatNum(cartTotal())}\n\nPlease confirm availability! 👕`;
 }
 
 function renderCartDrawer() {
@@ -2347,13 +2398,14 @@ function renderCartDrawer() {
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
-      <p class="cart-cod-note">🏦 Bank transfer · confirmed on WhatsApp</p>
+      <p class="cart-cod-note">📦 Pay by bank transfer — only after your parcel arrives</p>
       <a href="${waHref(buildCartWAMessage())}"
          target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <p class="wa-response-note wa-response-note-sm">💬 We reply in minutes · 9am–9pm</p>
       <a href="cart.html" class="cart-view-full">View Full Cart →</a>`;
+    injectWaQrButtons(footer); // 22.3 — re-inject QR fallback next to the freshly-rendered Order button
   }
 }
 
@@ -2433,12 +2485,13 @@ function renderCartPage() {
     <div class="cart-page-summary">
       ${cartNoteFieldHtml()}
       ${cartGiftFieldHtml()}
+      ${cartFirstOrderFieldHtml()}
       <div class="cart-summary-row"><span>Retail Price (${n} items)</span><span>${CONFIG.CURRENCY} ${formatNum(orgTot)}</span></div>
       ${saved > 0 ? `<div class="cart-summary-row cart-summary-save"><span>Saved${bulkOn ? ' (Bulk)' : ''}</span><span><span class="cart-pct-label">${Math.round(saved / orgTot * 100)}% OFF</span> − ${CONFIG.CURRENCY} ${formatNum(saved)}</span></div>` : ''}
       <div class="cart-summary-row cart-summary-total"><span>Total</span><strong class="cart-total-now">${CONFIG.CURRENCY} ${formatNum(cartTotal())}</strong></div>
-      <p class="cart-cod-note">🏦 Payment via bank transfer — details confirmed on WhatsApp</p>
+      <p class="cart-cod-note">📦 Pay by bank transfer — only after your parcel arrives, not before</p>
       <a href="${waHref(buildCartWAMessage())}"
-         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="setTimeout(()=>location.href='order-sent.html',350)">
+         target="_blank" rel="noopener" class="btn btn-wa cart-wa-btn" data-wa-source="cart_order" onclick="cartFirstOrderClaim();setTimeout(()=>location.href='order-sent.html',350)">
         <i class="fab fa-whatsapp"></i> Order via WhatsApp
       </a>
       <p class="wa-response-note">💬 We reply in minutes · 9am–9pm daily</p>
@@ -2446,6 +2499,7 @@ function renderCartPage() {
       <p class="cart-summary-note">🔄 Wrong size? Message us within 3 days of delivery — we'll sort it.</p>
       <p class="cart-summary-note">Sending the order opens WhatsApp with your cart pre-filled — nothing is charged until we confirm with you.</p>
     </div>`;
+  injectWaQrButtons(el); // 22.3 — re-inject QR fallback next to the freshly-rendered Order button
 
   /* 9.1 Upsell — "You may also like", excludes items already in cart */
   const upsellWrap = document.getElementById('cartUpsellWrap');
@@ -2826,6 +2880,81 @@ function initWAClickTracking() {
   });
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   22.3 QR-TO-WHATSAPP FALLBACK (desktop only)
+   Most customers only have WhatsApp on their phone, not their
+   laptop. On desktop viewports, a small QR button next to the main
+   order buttons opens a modal with a QR code encoding the exact
+   same pre-filled wa.me link — scan with a phone camera, WhatsApp
+   opens on the phone with the message ready to send. Stays fully
+   inside WhatsApp (no SMS/email), no data leaves the browser (QR
+   drawn client-side), and still fires the normal trackWA() event.
+   Hidden on phones/tablets — those visitors already tap straight
+   into the WA app, no fallback needed.
+═══════════════════════════════════════════════════════════════ */
+const WA_QR_SELECTOR = 'a.nav-wa-btn, a.btn-wa, a.offer-wa-btn, a.way-wa-btn, a.cart-wa-btn';
+
+function showWaQrModal(link, source, itemId) {
+  let m = document.getElementById('ttWaQrModal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'ttWaQrModal';
+    m.className = 'tt-modal-overlay';
+    m.innerHTML = `
+      <div class="tt-modal">
+        <div class="tt-modal-icon">📱</div>
+        <p class="tt-modal-title">Scan to open WhatsApp on your phone</p>
+        <p class="tt-modal-sub">Your message is ready — scan with your phone's camera, WhatsApp opens with everything pre-filled. Just hit send.</p>
+        <div id="ttWaQrCanvas"></div>
+        <div class="tt-modal-actions">
+          <a id="ttWaQrDirect" class="btn btn-outline" target="_blank" rel="noopener">Open WhatsApp Here Instead</a>
+          <button class="btn btn-primary" id="ttWaQrClose" type="button">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+    document.getElementById('ttWaQrClose').onclick = () => m.classList.remove('open');
+  }
+  const canvas = document.getElementById('ttWaQrCanvas');
+  canvas.innerHTML = '';
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(canvas, { text: link, width: 176, height: 176, colorDark: '#1a1a2e', colorLight: '#ffffff' });
+  } else {
+    canvas.innerHTML = '<p class="tt-modal-sub">QR unavailable right now — use the button below instead.</p>';
+  }
+  const directLink = document.getElementById('ttWaQrDirect');
+  directLink.href = link;
+  directLink.onclick = () => trackWA((source || 'qr_fallback') + '_direct', itemId);
+  m.classList.add('open');
+  trackWA((source || 'qr_fallback') + '_qr_shown', itemId);
+}
+window.showWaQrModal = showWaQrModal;
+
+/* Injects a small QR icon-button right after each qualifying WA link.
+   Safe to call repeatedly (skips links that already have one) — call
+   again after any dynamic re-render that adds new WA links (cart). */
+function injectWaQrButtons(root) {
+  if (!window.matchMedia('(min-width: 993px)').matches) return; // desktop only
+  (root || document).querySelectorAll(WA_QR_SELECTOR).forEach(a => {
+    if (!a.href || a.href.indexOf('wa.me') === -1) return;
+    if (a.nextElementSibling && a.nextElementSibling.classList.contains('wa-qr-btn')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'wa-qr-btn';
+    btn.title = 'On a computer? Scan a QR code instead';
+    btn.setAttribute('aria-label', 'Show WhatsApp QR code');
+    btn.innerHTML = '<i class="fas fa-qrcode"></i>';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const source = a.dataset.waSource || a.id || (a.className || '').split(' ')[0] || 'unlabelled';
+      showWaQrModal(a.href, source, a.dataset.itemId || undefined);
+    });
+    a.insertAdjacentElement('afterend', btn);
+  });
+}
+window.injectWaQrButtons = injectWaQrButtons;
+
 /* 17.11 Cart abandonment nudge — floating bottom bar (mobile) reminding of a
    non-empty cart on any page other than the cart page itself. */
 function initCartFloatBar() {
@@ -2906,6 +3035,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 14.3 WhatsApp click tracking — one delegated listener covers every page
   initWAClickTracking();
+
+  // 22.3 QR-to-WhatsApp fallback (desktop only) — static WA buttons present on load
+  injectWaQrButtons();
 
   // 15.1 PWA — register the service worker (app shell caching, "Add to Home Screen")
   if ('serviceWorker' in navigator) {
