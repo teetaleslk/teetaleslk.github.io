@@ -1760,6 +1760,18 @@ async function initProduct() {
           <div class="pd-sizeguide-title">📏 Size Guide</div>
           <img src="${url}" alt="Size guide" loading="lazy" />
         </div>`;
+      /* In-page "Size Chart" link next to the Size chip — only added when a
+         guide image actually exists for this product type, so it never
+         points at an empty section. */
+      const sizeDD = document.getElementById('pdSizeDD');
+      if (sizeDD && sg && !sizeDD.querySelector('.pd-sizechart-link')) {
+        sizeDD.insertAdjacentHTML('beforeend',
+          `<a href="#pdSizeGuide" class="pd-sizechart-link">📏 Size Chart</a>`);
+        sizeDD.querySelector('.pd-sizechart-link').addEventListener('click', e => {
+          e.preventDefault();
+          sg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     });
 
     /* Badges */
@@ -1835,7 +1847,7 @@ async function initProduct() {
     const ageIsKids   = p.ageGrp && p.ageGrp !== 'adults';
     const metaItems   = [
       p.colour     ? `<div class="pd-meta-item"><dt>Colour</dt><dd>${swatchDot}${escHtml(p.colour)}</dd></div>` : '',
-      p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd><span class="pd-size-chip">${escHtml(p.size)}</span></dd></div>` : '',
+      p.size       ? `<div class="pd-meta-item"><dt>Size</dt><dd id="pdSizeDD"><span class="pd-size-chip">${escHtml(p.size)}</span></dd></div>` : '',
       p.category   ? `<div class="pd-meta-item"><dt>Style</dt><dd>${escHtml(p.category)}</dd></div>` : '',
       /* Print Size: adults only (kids is always NA) */
       (p.printSize && p.printSize.toLowerCase() !== 'na' && (p.type || '').toLowerCase() !== 'kids')
