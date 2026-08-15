@@ -832,12 +832,9 @@ function createProductCard(p) {
     : `<div class="card-img-placeholder"><span>👕</span><small>Photo coming soon</small></div>`;
 
   /* ── Badges ── */
-  const saleBadge = (p.strike && p.price && p.price < p.strike)
-    ? (() => {
-        const disc = Math.round((1 - p.price / p.strike) * 100);
-        return `<span class="badge badge-sale">Save ${disc}%</span>`;
-      })()
-    : '';
+  /* Note: a "Save X%" badge was computed here in earlier code but never
+     rendered — the price block below already shows the same -X% via
+     .price-badge, so it would have been a duplicate. Removed 2026-08-15. */
   const stockBadge  = getStockBadgeHtml(p.stock, p.units);
   const boostBadge  = getBoostBadgeHtml(p.boost);
   const audience    = getAudienceLabel(p.ageGrp, p.suitable);

@@ -70,34 +70,6 @@
   .way-card:hover { transform: translateY(-3px) scale(1.035); box-shadow: var(--shadow-lg); position: relative; z-index: 2; }
 }
 
-/* ── Phase 6: Bilingual / Sinhala font ─────────────────────── */
-/* Iskoola Pota is pre-installed on Windows/Android — no import needed for most SL users.
-   Noto Sans Sinhala is the web-safe fallback. */
-[lang="si"],
-[data-i18n][lang="si"] {
-  font-family: 'Iskoola Pota', 'Noto Sans Sinhala', sans-serif;
-  letter-spacing: 0;
-  line-height: 1.8; /* Sinhala needs more vertical space */
-}
-
-/* Language toggle button in navbar */
-#lang-toggle {
-  background: transparent;
-  border: 1.5px solid var(--accent);
-  color: var(--accent);
-  border-radius: var(--radius-pill);
-  padding: .25rem .75rem;
-  font-size: .78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-  white-space: nowrap;
-}
-#lang-toggle:hover {
-  background: var(--accent);
-  color: var(--white);
-}
-
 /* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; font-size: 16px; }
@@ -539,13 +511,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   padding: 10px 12px; margin-bottom: 12px;
 }
 .cart-first-order-field input { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; accent-color: var(--gold); cursor: pointer; }
-.cart-upsell #cartUpsellWrap, #cartUpsellWrap { margin-top: 32px; }
+#cartUpsellWrap { margin-top: 32px; }
 .cart-footer { padding: 16px 20px 20px; border-top: 1px solid var(--border); }
-.cart-total-row {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: .95rem; margin-bottom: 12px;
-}
-.cart-total-row strong { font-size: 1.1rem; color: var(--accent); }
 .cart-wa-btn { width: 100%; justify-content: center; }
 
 /* ── Add to Cart button on product cards ────────────────────── */
@@ -585,8 +552,8 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .bundle-exit:hover { opacity: 1; }
 /* 20.3 Shared WhatsApp-button base — every WA CTA is green-on-white with
    centered content; each keeps its own display/gap/padding/shape below. */
-.bundle-wa-btn, .nav-wa-btn, .mobile-wa-btn, .gift-order-btn,
-.btn-wa-large, .offer-wa-btn, .way-wa-btn, .pd-wa-btn {
+.bundle-wa-btn, .nav-wa-btn, .mobile-wa-btn,
+.btn-wa-large, .offer-wa-btn, .way-wa-btn {
   align-items: center;
   background: var(--wa-green);
   color: var(--white);
@@ -615,12 +582,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 }
 .pd-add-cart-btn:hover:not(:disabled) { background: var(--accent); }
 .pd-add-cart-btn:disabled { background: var(--light-gray); color: var(--mid-gray); cursor: not-allowed; }
-/* "Same design, other sizes" nudge shown when only 1 unit left */
-.pd-design-prompt {
-  font-size: .8rem; color: var(--text-muted);
-  margin-top: 8px; line-height: 1.5;
-}
-.pd-design-prompt a { color: var(--accent); font-weight: 600; text-decoration: underline; }
 
 /* ── Toast ──────────────────────────────────────────────────── */
 .cart-toast {
@@ -759,8 +720,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 
 .hero-sub { font-size: 1rem; opacity: .82; line-height: 1.7; margin-bottom: 34px; }
 
-.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
-
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 24px; border-radius: var(--radius-pill);
@@ -769,8 +728,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 }
 .btn-primary { background: var(--accent); color: var(--white); }
 .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(233,69,96,.4); }
-.btn-secondary { background: rgba(255,255,255,.12); color: var(--white); border: 1.5px solid rgba(255,255,255,.25); }
-.btn-secondary:hover { background: rgba(255,255,255,.2); transform: translateY(-2px); }
 .btn-wa { background: var(--wa-green); color: var(--white); }
 .btn-wa:hover { background: var(--wa-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,211,102,.4); }
 .btn-sm { padding: 8px 16px; font-size: .8rem; }
@@ -1078,9 +1035,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
    size/colour is gone. */
 .product-card.card-out-of-stock { opacity: .55; filter: grayscale(65%); }
 .product-card.card-out-of-stock:hover { opacity: .8; filter: grayscale(35%); }
-.product-card.card-out-of-stock .badge-sale,
-.product-card.card-out-of-stock .badge-audience,
-.product-card.card-out-of-stock .badge-boost { filter: grayscale(100%); }
+.product-card.card-out-of-stock .badge-audience { filter: grayscale(100%); }
 
 /* ─ Image area ─────────────────────────────────────────────── */
 .card-img-area {
@@ -1145,9 +1100,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   text-shadow: 0 1px 3px rgba(0,0,0,.25);
   box-shadow: 0 2px 6px rgba(0,0,0,.18);
 }
-.badge-age-adults { background: var(--primary); color: var(--white); }
-.badge-age-kids   { background: #b7791f;        color: var(--white); }
-.badge-sale       { background: var(--sale-red);         color: var(--white); }
 .badge-in-stock   { background: #1e8449;         color: var(--white); }
 .badge-low        { background: #c87416;         color: var(--white); }
 .badge-out        { background: #922b21;         color: var(--white); }
@@ -1180,19 +1132,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 }
 .product-card:hover .card-wa-hover { transform: translateY(0); opacity: 1; }
 
-.wa-quick-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 14px;
-  background: var(--white); color: var(--text);
-  border-radius: 10px;
-  font-weight: 600; font-size: .88rem;
-  transition: background var(--transition), color var(--transition);
-}
-.wa-quick-btn i { color: var(--wa-green); font-size: 1.1rem; transition: color var(--transition); }
-.wa-quick-btn:hover { background: var(--wa-green); color: var(--white); }
-.wa-quick-btn:hover i { color: var(--white); }
-.wa-quick-btn.out-of-stock { background: rgba(255,255,255,.75); color: var(--mid-gray); cursor: not-allowed; }
-
 /* ─ Info area (below image) ────────────────────────────────── */
 .card-info {
   padding: 0 2px 6px;
@@ -1203,7 +1142,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   font-size: .95rem; font-weight: 600; color: var(--text); line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.card-id { font-size: .68rem; color: var(--mid-gray); font-weight: 500; }
 
 /* Price row */
 .card-price { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
@@ -1220,29 +1158,13 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   padding: 2px 7px; border-radius: var(--radius-pill); font-size: .67rem; font-weight: 600;
 }
 
-/* Colour swatch + meta label — slide on hover (SimplyTek effect) */
-.card-meta-slide { position: relative; height: 20px; overflow: hidden; margin-top: 5px; }
-.card-swatch-row {
-  display: flex; align-items: center; gap: 5px;
-  position: absolute; top: 0; left: 0;
-  transform: translateY(100%);         /* hidden below by default */
-  transition: transform .25s ease;
-}
+/* Colour swatch dot (product-card meta bar) */
 .card-swatch-dot {
   width: 16px; height: 16px; border-radius: 50%;
   border: 2px solid transparent;
   box-shadow: 0 0 0 1px rgba(0,0,0,.18);
   flex-shrink: 0;
 }
-.card-meta-label {
-  position: absolute; top: 0; left: 0;
-  font-size: .75rem; color: var(--text-muted); line-height: 20px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-  transform: translateY(0);            /* visible by default */
-  transition: transform .25s ease;
-}
-.product-card:hover .card-swatch-row { transform: translateY(0); }       /* slide in */
-.product-card:hover .card-meta-label { transform: translateY(-100%); }   /* slide out */
 
 /* Custom CTA bar */
 .custom-cta {
@@ -1337,59 +1259,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   transition: background var(--transition), box-shadow var(--transition);
 }
 .btn-bundle-primary:hover { background: var(--wa-hover); box-shadow: 0 8px 24px rgba(37,211,102,.4); }
-
-/* ─────────────────────────────────────────────────────────────
-   GIFT SECTION — Proxy Targeting
-───────────────────────────────────────────────────────────── */
-.gift-section {
-  padding: 90px 0;
-  background: linear-gradient(135deg, #fff5f7 0%, #ffeef0 100%);
-}
-.gift-inner {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 64px; align-items: center;
-}
-.gift-text .section-label { color: var(--accent); }
-.gift-text h2 {
-  font-size: clamp(1.8rem, 3.5vw, 2.4rem); font-weight: 800;
-  line-height: 1.2; letter-spacing: -.5px; margin: 12px 0 16px;
-  color: var(--primary);
-}
-.gift-text p { color: var(--text-muted); line-height: 1.8; margin-bottom: 24px; }
-.gift-text em { color: var(--accent); font-style: normal; font-weight: 600; }
-.gift-bullets { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-.gift-bullet { display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: .95rem; }
-.gb-icon { font-size: 1.4rem; }
-.gift-cta { display: inline-flex; }
-
-/* Gift visual */
-.gift-visual { display: flex; flex-direction: column; gap: 16px; align-items: center; }
-.gift-card {
-  background: var(--white); border-radius: var(--radius-lg);
-  padding: 28px 24px; text-align: center;
-  box-shadow: var(--shadow-md);
-  width: 100%; max-width: 320px;
-}
-.gift-card-icon { font-size: 3.2rem; margin-bottom: 12px; }
-.gift-card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
-.gift-card-sub { font-size: .85rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
-.gift-card-price { display: flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 16px; }
-.gift-order-btn {
-  display: flex; justify-content: center; gap: 8px;
-  width: 100%; padding: 12px;
-  border-radius: var(--radius-sm); font-weight: 700; font-size: .95rem;
-  transition: background var(--transition);
-}
-.gift-order-btn:hover { background: var(--wa-hover); }
-.gift-bubbles { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
-.gift-bubble {
-  background: var(--white); padding: 10px 16px; border-radius: var(--radius-pill);
-  font-size: .85rem; font-weight: 500; color: var(--text);
-  box-shadow: var(--shadow-sm); text-align: center;
-  animation: float 3s ease-in-out infinite;
-}
-.gift-bubble:nth-child(2) { animation-delay: .8s; }
-.gift-bubble:nth-child(3) { animation-delay: 1.6s; }
 
 /* ─────────────────────────────────────────────────────────────
    SOCIAL FEED
@@ -1596,7 +1465,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 @media (max-width: 1000px) {
   .about-grid { grid-template-columns: 1fr; gap: 44px; }
   .about-cards { grid-template-columns: 1fr 1fr; }
-  .gift-inner { grid-template-columns: 1fr; gap: 44px; }
   .social-feed-grid { grid-template-columns: 1fr; }
   .fb-embed-wrap { min-height: 400px; }
   .products-grid { grid-template-columns: repeat(3, 1fr); }
@@ -2097,12 +1965,6 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 
 /* WhatsApp order button */
 .pd-order-wrap { margin: 4px 0 10px; }
-.pd-wa-btn { display: flex; justify-content: center; gap: 10px; width: 100%; padding: 16px 24px; font-size: 1.1rem; font-weight: 700; border-radius: 14px; text-decoration: none; border: none; cursor: pointer; transition: background .2s, transform .15s; box-shadow: 0 4px 14px rgba(37,211,102,.35); }
-.pd-wa-btn:hover { background: var(--wa-hover); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(37,211,102,.45); }
-.pd-wa-btn-out { background: var(--mid-gray); cursor: not-allowed; box-shadow: none; }
-.pd-wa-btn-out:hover { transform: none; background: var(--mid-gray); box-shadow: none; }
-
-.pd-item-id { font-size: .72rem; color: var(--text-muted); text-align: left; margin: 0 0 10px; }
 
 /* Related section */
 .pd-related { padding-top: 48px; border-top: 1px solid var(--border); }
