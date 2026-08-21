@@ -227,6 +227,30 @@
       <div id="pdRelatedGrid" class="products-grid"></div>
     </div>
 
+    <!-- Phase 24: Reviews — filled in by renderReviews() in main.js once the
+         product loads. Reviews are moderated: nothing here shows until
+         Ashirwadh approves it in the Reviews sheet. -->
+    <div id="pdReviewsWrap" class="pd-reviews pd-related">
+      <details class="pd-reviews-toggle" open>
+        <summary>Reviews (<span id="pdReviewCount">0</span>)</summary>
+        <div class="pd-reviews-body">
+          <div class="pd-reviews-summary">
+            <p class="pd-reviews-based">Based on <span id="pdReviewBasedCount">0</span> review(s)</p>
+            <div class="pd-reviews-avg">
+              <span id="pdReviewAvg">0.00</span>
+              <span id="pdReviewAvgStars"></span>
+            </div>
+            <div id="pdReviewBars" class="pd-review-bars"></div>
+            <div id="pdReviewList" class="pd-review-list"></div>
+          </div>
+          <div class="pd-reviews-form">
+            <h3>Write a Review</h3>
+            <iframe id="pdReviewFormFrame" class="pd-review-iframe" loading="lazy" title="Write a review"></iframe>
+          </div>
+        </div>
+      </details>
+    </div>
+
   </div>
 </section>
 

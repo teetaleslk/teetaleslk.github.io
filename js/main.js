@@ -33,6 +33,14 @@ const CONFIG = {
   WA_NUMBER:   '94774407066',  // ← WhatsApp number WITHOUT + sign (e.g. 94XXXXXXXXX)
   CURRENCY:    'Rs.',          // ← currency label shown before prices
   REFRESH_MIN: 5,
+  /* Phase 24 — Product Reviews. Separate spreadsheet (TeeTales Google account,
+     not the personal one WebStock lives in) auto-created by the Google Form's
+     "Create a new spreadsheet" link. Single tab, so no sheet name needed —
+     columns are: Timestamp | Your Name | Your Rating | Your Review | Product | Approved.
+     A review only appears on the site once Approved is manually set to "Yes". */
+  REVIEWS_SHEET_ID:           '1SwchYhdxSRSJPlslIkyS6BFBaj629l4zu5HAZ9ZOuWU',
+  REVIEWS_FORM_ID:            '1FAIpQLSdLamSOwns486A2XM7A-zZ7q8qap4dUZOLSLeK2DHHWvsj6dA',
+  REVIEWS_FORM_PRODUCT_ENTRY: 'entry.546042900',  // the "Product" field's pre-fill entry ID
   // Social media — UPDATE THESE with your actual profile URLs
   SOCIAL: {
     facebook:  'https://facebook.com/teetales',
@@ -137,10 +145,12 @@ const footerYear    = document.getElementById('footerYear');
 /* ═══════════════════════════════════════════════════════════════
    FETCH & PARSE
 ═══════════════════════════════════════════════════════════════ */
-async function fetchSheetTab(tabName) {
+async function fetchSheetTab(tabName, sheetId = CONFIG.SHEET_ID) {
+  // tabName is optional — omit it to read a sheet's default first tab
+  // (used by fetchReviews(), whose spreadsheet only has one tab).
   const url =
-    `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq` +
-    `?tqx=out:json&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
+    `?tqx=out:json${tabName ? `&sheet=${encodeURIComponent(tabName)}` : ''}&_=${Date.now()}`;
 
   // 10-second timeout — fail fast instead of spinning forever
   const ctrl = new AbortController();
@@ -1678,6 +1688,148 @@ async function initShop() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PHASE 24 — PRODUCT REVIEWS
+   Submission: Google Form (embedded), pre-filled with the product's Item ID.
+   Storage: a separate Google Sheet (see CONFIG.REVIEWS_SHEET_ID) the Form
+   auto-created — Timestamp | Your Name | Your Rating | Your Review | Product | Approved.
+   Moderation: nothing shows until Ashirwadh types "Yes" in the Approved column
+   — that's the only spam/fake-review guard, no rate-limiting needed.
+   Grouping: the "Product" column stores the exact Item ID reviewed; reviews
+   are shown across every current size/colour variant of that design (same
+   grouping product.html already uses for colour/size siblings), not just
+   the one exact SKU — reusing designKeyOf() from the colour-swatcher code.
+   Privacy: reviewer's first name is masked before display (e.g. "Ashirwadh"
+   → "Ash*****") — the real name only ever lives in the sheet, for Ashirwadh's
+   own reference (spotting a bogus entry, replying if needed).
+═══════════════════════════════════════════════════════════════ */
+const REVIEW_COL = { TIMESTAMP: 0, NAME: 1, RATING: 2, TEXT: 3, PRODUCT_ID: 4, APPROVED: 5 };
+
+async function fetchReviews() {
+  const table = await fetchSheetTab(undefined, CONFIG.REVIEWS_SHEET_ID);
+  return parseReviewsTable(table);
+}
+
+function parseReviewsTable(table) {
+  const rows = table.rows || [];
+  return rows
+    .map(row => {
+      const cells = row.c || [];
+      const val = (i) => {
+        const c = cells[i];
+        return (c && c.v !== null && c.v !== undefined) ? String(c.v).trim() : '';
+      };
+      if (val(REVIEW_COL.APPROVED).toLowerCase() !== 'yes') return null;  // moderation gate
+      const rating = Math.round(parseFloat(val(REVIEW_COL.RATING)));
+      return {
+        name:      val(REVIEW_COL.NAME),
+        rating:    isNaN(rating) ? 0 : Math.max(0, Math.min(5, rating)),
+        text:      val(REVIEW_COL.TEXT),
+        productId: val(REVIEW_COL.PRODUCT_ID),
+      };
+    })
+    .filter(Boolean);
+}
+
+/** "Ashirwadh" → "Ash*****" — first name only, fixed-length mask so the
+    original name's length is never revealed either. */
+function maskName(name) {
+  const first = (name || '').trim().split(/\s+/)[0] || '';
+  if (!first) return 'Anonymous';
+  return first.slice(0, Math.min(3, first.length)) + '*****';
+}
+
+/** Reviews whose stored Item ID currently belongs to the same design
+    (design+type+category) as product p — i.e. any size/colour of "this tee". */
+function reviewsForProduct(p, allReviews) {
+  const key = designKeyOf(p);
+  return allReviews.filter(r => {
+    const rp = _ttProdMap[r.productId];
+    return rp && designKeyOf(rp) === key;
+  });
+}
+
+function reviewStats(reviews) {
+  const counts = [0, 0, 0, 0, 0];  // counts[0] = 1-star … counts[4] = 5-star
+  reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1]++; });
+  const total = reviews.length;
+  const avg   = total ? reviews.reduce((s, r) => s + r.rating, 0) / total : 0;
+  return { counts, total, avg };
+}
+
+/** Partial-fill star rating, 0–5 (works for both whole and fractional averages). */
+function starsHtml(rating) {
+  const pct = Math.max(0, Math.min(100, (rating / 5) * 100));
+  return `<span class="pd-stars"><span class="pd-stars-fill" style="width:${pct}%"></span></span>`;
+}
+
+function reviewBarsHtml(counts, total) {
+  return [5, 4, 3, 2, 1].map(star => {
+    const c   = counts[star - 1] || 0;
+    const pct = total ? Math.round((c / total) * 100) : 0;
+    return `
+      <div class="pd-review-bar-row">
+        <span class="pd-review-bar-label">${star}★</span>
+        <div class="pd-review-bar-track"><div class="pd-review-bar-fill" style="width:${pct}%"></div></div>
+        <span class="pd-review-bar-pct">${pct}%</span>
+      </div>`;
+  }).join('');
+}
+
+function reviewItemHtml(r) {
+  return `
+    <div class="pd-review-item">
+      <div class="pd-review-item-head">
+        <span class="pd-review-name">${escHtml(maskName(r.name))}</span>
+        ${starsHtml(r.rating)}
+      </div>
+      ${r.text ? `<p class="pd-review-text">${escHtml(r.text)}</p>` : ''}
+    </div>`;
+}
+
+function reviewFormEmbedUrl(productId) {
+  return `https://docs.google.com/forms/d/e/${CONFIG.REVIEWS_FORM_ID}/viewform` +
+         `?usp=pp_url&${CONFIG.REVIEWS_FORM_PRODUCT_ENTRY}=${encodeURIComponent(productId)}&embedded=true`;
+}
+
+/** Fire-and-forget from initProduct() — reviews are supplementary content and
+    must never block or delay the rest of the product page. Fails silently
+    (with a plain-English message in place of the list) if the Reviews sheet
+    is unreachable, since a broken review widget shouldn't look like a broken page. */
+async function renderReviews(p) {
+  const wrap = document.getElementById('pdReviewsWrap');
+  if (!wrap) return;
+
+  const frame = document.getElementById('pdReviewFormFrame');
+  if (frame) frame.src = reviewFormEmbedUrl(p.id);
+
+  const countEl = document.getElementById('pdReviewCount');
+  const basedEl = document.getElementById('pdReviewBasedCount');
+  const avgEl   = document.getElementById('pdReviewAvg');
+  const avgStarsEl = document.getElementById('pdReviewAvgStars');
+  const barsEl  = document.getElementById('pdReviewBars');
+  const listEl  = document.getElementById('pdReviewList');
+
+  try {
+    const allReviews = await fetchReviews();
+    const reviews = reviewsForProduct(p, allReviews);
+    const stats   = reviewStats(reviews);
+
+    if (countEl) countEl.textContent = stats.total;
+    if (basedEl) basedEl.textContent = stats.total;
+    if (avgEl)   avgEl.textContent = stats.avg.toFixed(2);
+    if (avgStarsEl) avgStarsEl.innerHTML = starsHtml(stats.avg);
+    if (barsEl)  barsEl.innerHTML = reviewBarsHtml(stats.counts, stats.total);
+    if (listEl) {
+      listEl.innerHTML = reviews.length
+        ? reviews.slice().reverse().map(reviewItemHtml).join('')  // newest first
+        : `<p class="pd-review-empty">No reviews yet — be the first!</p>`;
+    }
+  } catch (err) {
+    if (listEl) listEl.innerHTML = `<p class="pd-review-empty">Reviews are unavailable right now.</p>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL PAGE  (product.html?id=xxx)
 ═══════════════════════════════════════════════════════════════ */
 async function initProduct() {
@@ -2000,6 +2152,10 @@ async function initProduct() {
       }
     }
     recentViewedAdd(p.id);
+
+    /* Phase 24 — Reviews. Not awaited: a slow/unreachable Reviews sheet must
+       never delay or block the rest of the product page. */
+    renderReviews(p);
 
   } catch (err) {
     if (loadEl) loadEl.style.display = 'none';
