@@ -188,6 +188,7 @@
           <div id="pdBadges" class="pd-badges"></div>
           <h1 id="pdTitle" class="pd-title"></h1>
           <p id="pdIdentity" class="pd-identity"></p>
+          <a href="#pdReviewForm" id="pdRateBtn" class="pd-rate-btn"><i class="fas fa-star"></i> Rate this item</a>
           <div id="pdPrice" class="pd-price-block"></div>
           <p id="pdValueLine" class="pd-value-line"></p>
           <p id="pdZeroRisk" class="pd-zero-risk"></p>
@@ -245,7 +246,26 @@
           </div>
           <div class="pd-reviews-form">
             <h3>Write a Review</h3>
-            <iframe id="pdReviewFormFrame" class="pd-review-iframe" loading="lazy" title="Write a review"></iframe>
+            <form id="pdReviewForm" class="pd-review-form" novalidate>
+              <div class="pd-review-field">
+                <label for="pdRevName">Your Name *</label>
+                <input type="text" id="pdRevName" maxlength="60" placeholder="e.g. Ashirwadh" required>
+              </div>
+              <div class="pd-review-field">
+                <label>Your Rating *</label>
+                <div id="pdRevStars" class="pd-review-star-input" role="radiogroup" aria-label="Your rating"></div>
+                <input type="hidden" id="pdRevRating">
+              </div>
+              <div class="pd-review-field">
+                <label for="pdRevText">Your Review</label>
+                <textarea id="pdRevText" rows="4" maxlength="600" placeholder="How was the fit, print quality, sizing..."></textarea>
+              </div>
+              <button type="submit" id="pdRevSubmitBtn" class="btn btn-primary">Submit Review</button>
+              <p id="pdRevMsg" class="pd-review-msg" role="status" aria-live="polite"></p>
+            </form>
+            <!-- Hidden target so the review POSTs to Google Forms without navigating away or
+                 ever showing the Google Forms UI (see renderReviews()/wireReviewFormSubmit() in main.js). -->
+            <iframe name="pdRevHiddenFrame" style="display:none" title="review-submit-target"></iframe>
           </div>
         </div>
       </details>

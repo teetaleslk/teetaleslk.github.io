@@ -1994,7 +1994,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .pd-reviews-toggle summary::-webkit-details-marker { display: none; }
 .pd-reviews-toggle summary::after { content: '−'; font-size: 1.4rem; font-weight: 400; color: var(--accent); flex-shrink: 0; }
 .pd-reviews-toggle:not([open]) summary::after { content: '+'; }
-.pd-reviews-body { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; margin-top: 22px; }
+.pd-reviews-body { display: grid; grid-template-columns: .85fr 1.15fr; gap: 40px; margin-top: 22px; }
 @media (max-width: 800px) { .pd-reviews-body { grid-template-columns: 1fr; } }
 
 .pd-reviews-based { color: var(--text-muted); font-size: .88rem; margin-bottom: 8px; }
@@ -2025,5 +2025,52 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .pd-review-empty { color: var(--text-muted); font-size: .88rem; }
 
 .pd-reviews-form h3 { font-size: 1.05rem; margin-bottom: 14px; }
-.pd-review-iframe { width: 100%; height: 760px; border: 1px solid var(--border); border-radius: var(--radius-md); }
-@media (max-width: 800px) { .pd-review-iframe { height: 900px; } }
+
+/* Custom review form — posts straight to Google's formResponse endpoint via
+   a hidden iframe (see wireReviewFormSubmit() in main.js), so the real
+   Google Form UI (and its Product field) is never shown to the customer. */
+.pd-review-form { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+.pd-review-field { display: flex; flex-direction: column; gap: 6px; }
+.pd-review-field label { font-size: .82rem; font-weight: 700; color: var(--text); }
+.pd-review-field input[type="text"],
+.pd-review-field textarea {
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 10px 12px; font-size: .88rem; font-family: inherit; color: var(--text);
+  background: var(--white); resize: vertical;
+}
+.pd-review-field input[type="text"]:focus,
+.pd-review-field textarea:focus { outline: none; border-color: var(--accent); }
+
+.pd-review-star-input { display: flex; gap: 6px; }
+.pd-rev-star-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 1.6rem; line-height: 1; color: var(--border);
+  transition: color .15s, transform .1s;
+}
+.pd-rev-star-btn:hover { transform: scale(1.15); }
+.pd-rev-star-btn.is-active { color: var(--gold); }
+
+.pd-review-msg { font-size: .84rem; min-height: 1.2em; margin: 0; }
+.pd-review-msg.is-error { color: var(--accent); font-weight: 600; }
+.pd-review-msg.is-success { color: #2e7d32; font-weight: 600; }
+
+/* "Rate this item" — jumps straight to the review form so a customer doesn't
+   have to scroll past the whole page to leave a review. scroll-margin-top
+   keeps the fixed navbar from covering the form once scrolled to. */
+#pdReviewForm { scroll-margin-top: calc(var(--nav-h) + 16px); }
+.pd-rate-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 10px 0 14px; padding: 8px 16px;
+  background: var(--gold); color: var(--primary);
+  font-weight: 700; font-size: .84rem; text-decoration: none;
+  border-radius: var(--radius-pill); box-shadow: 0 0 0 0 rgba(255,193,7,.6);
+  animation: pdRatePulse 2.2s ease-out infinite;
+}
+.pd-rate-btn:hover { transform: translateY(-1px); }
+.pd-rate-btn i { font-size: .8rem; }
+@keyframes pdRatePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,193,7,.55); }
+  70%  { box-shadow: 0 0 0 10px rgba(255,193,7,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,193,7,0); }
+}
+@media (prefers-reduced-motion: reduce) { .pd-rate-btn { animation: none; } }

@@ -40,7 +40,10 @@ const CONFIG = {
      A review only appears on the site once Approved is manually set to "Yes". */
   REVIEWS_SHEET_ID:           '1SwchYhdxSRSJPlslIkyS6BFBaj629l4zu5HAZ9ZOuWU',
   REVIEWS_FORM_ID:            '1FAIpQLSdLamSOwns486A2XM7A-zZ7q8qap4dUZOLSLeK2DHHWvsj6dA',
-  REVIEWS_FORM_PRODUCT_ENTRY: 'entry.546042900',  // the "Product" field's pre-fill entry ID
+  REVIEWS_FORM_PRODUCT_ENTRY: 'entry.546042900',   // "Product" field — filled from the page, never shown to the customer
+  REVIEWS_FORM_NAME_ENTRY:    'entry.1196699535',  // "Your Name" field
+  REVIEWS_FORM_RATING_ENTRY:  'entry.2085526289',  // "Your Rating" field
+  REVIEWS_FORM_TEXT_ENTRY:    'entry.1196727543',  // "Your Review" field
   // Social media — UPDATE THESE with your actual profile URLs
   SOCIAL: {
     facebook:  'https://facebook.com/teetales',
@@ -1689,7 +1692,10 @@ async function initShop() {
 
 /* ═══════════════════════════════════════════════════════════════
    PHASE 24 — PRODUCT REVIEWS
-   Submission: Google Form (embedded), pre-filled with the product's Item ID.
+   Submission: a custom-styled HTML form on the page POSTs directly to Google's
+   formResponse endpoint (see reviewFormActionUrl()/wireReviewFormSubmit()) —
+   the real Google Form UI is never shown, so the Product field (the Item ID)
+   is never rendered as an input the customer could see or edit.
    Storage: a separate Google Sheet (see CONFIG.REVIEWS_SHEET_ID) the Form
    auto-created — Timestamp | Your Name | Your Rating | Your Review | Product | Approved.
    Moderation: nothing shows until Ashirwadh types "Yes" in the Approved column
@@ -1786,9 +1792,89 @@ function reviewItemHtml(r) {
     </div>`;
 }
 
-function reviewFormEmbedUrl(productId) {
-  return `https://docs.google.com/forms/d/e/${CONFIG.REVIEWS_FORM_ID}/viewform` +
-         `?usp=pp_url&${CONFIG.REVIEWS_FORM_PRODUCT_ENTRY}=${encodeURIComponent(productId)}&embedded=true`;
+/** Google's raw form-submission endpoint — POSTing the right entry.NNNN fields
+    here has the same effect as a customer filling out and submitting the real
+    Google Form, but we build our own styled inputs instead of showing Google's
+    UI. This is also how the Product field (the Item ID) stays completely
+    invisible and non-editable to the customer — it's never rendered as an
+    input at all, just appended to the POST from p.id. */
+function reviewFormActionUrl() {
+  return `https://docs.google.com/forms/d/e/${CONFIG.REVIEWS_FORM_ID}/formResponse`;
+}
+
+/** Builds the 1–5 clickable star buttons for the review form and wires their
+    click handling into the hidden #pdRevRating input. Safe to call more than
+    once (e.g. after a submit resets the form) — it just rebuilds the buttons. */
+function initReviewStarInput() {
+  const wrap = document.getElementById('pdRevStars');
+  const ratingEl = document.getElementById('pdRevRating');
+  if (!wrap || !ratingEl) return;
+  wrap.innerHTML = [1, 2, 3, 4, 5].map(n =>
+    `<button type="button" class="pd-rev-star-btn" data-val="${n}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`
+  ).join('');
+  const btns = Array.from(wrap.querySelectorAll('.pd-rev-star-btn'));
+  const setRating = (val) => {
+    ratingEl.value = val;
+    btns.forEach(b => b.classList.toggle('is-active', Number(b.dataset.val) <= val));
+  };
+  btns.forEach(b => b.addEventListener('click', () => setRating(Number(b.dataset.val))));
+  setRating(0);
+}
+
+/** Wires the custom review form's submit handler once per page load. Builds a
+    throwaway <form> POSTing straight to Google's formResponse endpoint,
+    targeted at the hidden iframe so the page never navigates away and the
+    customer never sees Google's own form UI (avoids the sign-in-prompt issue
+    too, since that only appears on the real Forms page). Since the request is
+    cross-origin we can't read a real success/failure response back — Google's
+    formResponse endpoint reliably accepts well-formed submissions, so we show
+    a thank-you message optimistically. */
+function wireReviewFormSubmit(productId) {
+  const form = document.getElementById('pdReviewForm');
+  if (!form) return;
+  form.dataset.productId = productId;
+  if (form.dataset.wired === '1') return;
+  form.dataset.wired = '1';
+
+  const msgEl = document.getElementById('pdRevMsg');
+  const btn   = document.getElementById('pdRevSubmitBtn');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name   = document.getElementById('pdRevName').value.trim();
+    const rating = document.getElementById('pdRevRating').value;
+    const text   = document.getElementById('pdRevText').value.trim();
+
+    if (!name)   { msgEl.textContent = 'Please enter your name.'; msgEl.className = 'pd-review-msg is-error'; return; }
+    if (!rating) { msgEl.textContent = 'Please pick a star rating.'; msgEl.className = 'pd-review-msg is-error'; return; }
+
+    const gform = document.createElement('form');
+    gform.action = reviewFormActionUrl();
+    gform.method = 'POST';
+    gform.target = 'pdRevHiddenFrame';
+    gform.style.display = 'none';
+    const fields = {
+      [CONFIG.REVIEWS_FORM_NAME_ENTRY]:    name,
+      [CONFIG.REVIEWS_FORM_RATING_ENTRY]:  rating,
+      [CONFIG.REVIEWS_FORM_TEXT_ENTRY]:    text,
+      [CONFIG.REVIEWS_FORM_PRODUCT_ENTRY]: form.dataset.productId,
+    };
+    Object.entries(fields).forEach(([entry, value]) => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = entry; inp.value = value;
+      gform.appendChild(inp);
+    });
+    document.body.appendChild(gform);
+    gform.submit();
+    document.body.removeChild(gform);
+
+    btn.disabled = true;
+    msgEl.textContent = 'Thank you! Your review has been submitted and will appear once it’s reviewed.';
+    msgEl.className = 'pd-review-msg is-success';
+    form.reset();
+    initReviewStarInput();
+    setTimeout(() => { btn.disabled = false; }, 4000);
+  });
 }
 
 /** Fire-and-forget from initProduct() — reviews are supplementary content and
@@ -1799,8 +1885,8 @@ async function renderReviews(p) {
   const wrap = document.getElementById('pdReviewsWrap');
   if (!wrap) return;
 
-  const frame = document.getElementById('pdReviewFormFrame');
-  if (frame) frame.src = reviewFormEmbedUrl(p.id);
+  initReviewStarInput();
+  wireReviewFormSubmit(p.id);
 
   const countEl = document.getElementById('pdReviewCount');
   const basedEl = document.getElementById('pdReviewBasedCount');
@@ -1827,6 +1913,28 @@ async function renderReviews(p) {
   } catch (err) {
     if (listEl) listEl.innerHTML = `<p class="pd-review-empty">Reviews are unavailable right now.</p>`;
   }
+}
+
+/** "Rate this item" pill button near the top of the page — jumps straight to
+    the review form so a customer doesn't have to scroll past the whole page
+    (images, price, related products, etc.) just to leave a review. Wired
+    independently of renderReviews()'s data fetch, since the button/form are
+    static HTML that exist whether or not the Reviews sheet loads. */
+function wireRateThisItemButton() {
+  const btn = document.getElementById('pdRateBtn');
+  if (!btn) return;
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const details = document.querySelector('.pd-reviews-toggle');
+    if (details && !details.open) details.open = true;
+    const target = document.getElementById('pdReviewForm');
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      const nameEl = document.getElementById('pdRevName');
+      if (nameEl) nameEl.focus({ preventScroll: true });
+    }, 550);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2156,6 +2264,7 @@ async function initProduct() {
     /* Phase 24 — Reviews. Not awaited: a slow/unreachable Reviews sheet must
        never delay or block the rest of the product page. */
     renderReviews(p);
+    wireRateThisItemButton();
 
   } catch (err) {
     if (loadEl) loadEl.style.display = 'none';
