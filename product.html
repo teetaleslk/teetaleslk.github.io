@@ -188,7 +188,6 @@
           <div id="pdBadges" class="pd-badges"></div>
           <h1 id="pdTitle" class="pd-title"></h1>
           <p id="pdIdentity" class="pd-identity"></p>
-          <a href="#pdReviewForm" id="pdRateBtn" class="pd-rate-btn"><i class="fas fa-star"></i> Rate this item</a>
           <div id="pdPrice" class="pd-price-block"></div>
           <p id="pdValueLine" class="pd-value-line"></p>
           <p id="pdZeroRisk" class="pd-zero-risk"></p>
@@ -268,8 +267,8 @@
                 <input type="hidden" id="pdRevRating">
               </div>
               <div class="pd-review-field">
-                <label for="pdRevText">Your Review</label>
-                <textarea id="pdRevText" rows="4" maxlength="600" placeholder="How was the fit, print quality, sizing..."></textarea>
+                <label for="pdRevText">Your Review *</label>
+                <textarea id="pdRevText" rows="4" maxlength="600" placeholder="How was the fit, print quality, sizing..." required></textarea>
               </div>
               <button type="submit" id="pdRevSubmitBtn" class="btn btn-primary">Submit Review</button>
               <p id="pdRevMsg" class="pd-review-msg" role="status" aria-live="polite"></p>

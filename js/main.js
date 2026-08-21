@@ -937,11 +937,15 @@ function createProductCard(p) {
         onclick="event.stopPropagation(); wishToggle('${escHtml(p.id)}', this)">
         <i class="${wishHas(p.id) ? 'fas' : 'far'} fa-heart"></i>
       </button>
-      <button class="card-quickview" aria-label="Quick view" type="button"
-        onclick="event.stopPropagation(); openQuickView('${escHtml(p.id)}')">
-        <i class="far fa-eye"></i>
-      </button>
-      <div class="card-wa-hover">${cartBtn}</div>
+      <div class="card-wa-hover">
+        <div class="card-hover-row">
+          ${cartBtn}
+          <button class="card-quickview" aria-label="Quick view" type="button"
+            onclick="event.stopPropagation(); openQuickView('${escHtml(p.id)}')">
+            <i class="far fa-eye"></i>
+          </button>
+        </div>
+      </div>
     </div>
     <div class="card-info">
       <div class="card-info-main">
@@ -1837,6 +1841,7 @@ function wireReviewFormSubmit(productId) {
 
     if (!name)   { msgEl.textContent = 'Please enter your name.'; msgEl.className = 'pd-review-msg is-error'; return; }
     if (!rating) { msgEl.textContent = 'Please pick a star rating.'; msgEl.className = 'pd-review-msg is-error'; return; }
+    if (!text)   { msgEl.textContent = 'Please write a short review.'; msgEl.className = 'pd-review-msg is-error'; return; }
 
     const gform = document.createElement('form');
     gform.action = reviewFormActionUrl();
@@ -2102,7 +2107,15 @@ async function initProduct() {
       ageIsKids    ? `<div class="pd-meta-item"><dt>Age Group</dt><dd>🎂 ${escHtml(p.ageGrp)}</dd></div>` : '',
       p.material   ? `<div class="pd-meta-item"><dt>Material</dt><dd>${escHtml(p.material)}</dd></div>` : '',
       p.design.length
-        ? `<div class="pd-meta-item pd-meta-full"><dt>Design</dt><dd>${p.design.map(t => `<span class="card-tag-chip">${escHtml(t)}</span>`).join('')}</dd></div>`
+        ? `<div class="pd-meta-item pd-meta-full"><dt>Design</dt><dd>
+             ${p.design.map(t => `<span class="card-tag-chip">${escHtml(t)}</span>`).join('')}
+             <a href="#pdReviewForm" id="pdRateBtn" class="pd-rate-link"><i class="fas fa-star"></i> Rate this item</a>
+           </dd></div>`
+        : '',
+      /* Safety net: if a product has no Design tags, the "Rate this item" link above
+         never renders — give it a fallback spot so it's never entirely missing. */
+      !p.design.length
+        ? `<div class="pd-meta-item pd-meta-full"><dd><a href="#pdReviewForm" id="pdRateBtn" class="pd-rate-link"><i class="fas fa-star"></i> Rate this item</a></dd></div>`
         : '',
     ].filter(Boolean);
     document.getElementById('pdMeta').innerHTML = metaItems.join('');

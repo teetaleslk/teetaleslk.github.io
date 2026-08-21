@@ -523,7 +523,7 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   display: flex; align-items: center; justify-content: center; gap: 6px;
   transition: background .2s;
 }
-.card-cart-btn:hover:not(:disabled) { background: var(--accent); }
+.card-cart-btn:hover:not(:disabled) { background: var(--wa-hover); }
 .card-cart-btn:disabled { background: var(--light-gray); color: var(--mid-gray); cursor: not-allowed; }
 .card-cart-btn.selected { background: var(--wa-green); }
 .card-cart-btn.selected:hover { background: var(--wa-hover); }
@@ -2054,33 +2054,39 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
 .pd-review-msg.is-error { color: var(--accent); font-weight: 600; }
 .pd-review-msg.is-success { color: #2e7d32; font-weight: 600; }
 
-/* "Rate this item" — jumps straight to the review form so a customer doesn't
-   have to scroll past the whole page to leave a review. scroll-margin-top
-   keeps the fixed navbar from covering the form once scrolled to. */
+/* "Rate this item" — small link sitting beside the Design tags in the meta
+   list (below Age Group in the stacking order), jumps straight to the review
+   form. scroll-margin-top keeps the fixed navbar from covering the form. */
 #pdReviewForm { scroll-margin-top: calc(var(--nav-h) + 16px); }
-.pd-rate-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin: 10px 0 14px; padding: 8px 16px;
+.pd-rate-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-left: 8px; padding: 3px 10px;
   background: var(--gold); color: var(--primary);
-  font-weight: 700; font-size: .84rem; text-decoration: none;
-  border-radius: var(--radius-pill); box-shadow: 0 0 0 0 rgba(255,193,7,.6);
+  font-weight: 700; font-size: .72rem; text-decoration: none;
+  border-radius: var(--radius-pill); vertical-align: middle;
+  box-shadow: 0 0 0 0 rgba(255,193,7,.6);
   animation: pdRatePulse 2.2s ease-out infinite;
 }
-.pd-rate-btn:hover { transform: translateY(-1px); }
-.pd-rate-btn i { font-size: .8rem; }
+.pd-rate-link:hover { transform: translateY(-1px); }
+.pd-rate-link i { font-size: .68rem; }
 @keyframes pdRatePulse {
-  0%   { box-shadow: 0 0 0 0 rgba(255,193,7,.55); }
-  70%  { box-shadow: 0 0 0 10px rgba(255,193,7,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(255,193,7,.5); }
+  70%  { box-shadow: 0 0 0 7px rgba(255,193,7,0); }
   100% { box-shadow: 0 0 0 0 rgba(255,193,7,0); }
 }
-@media (prefers-reduced-motion: reduce) { .pd-rate-btn { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .pd-rate-link { animation: none; } }
 
 /* ── Phase 25: Quick View + Share ────────────────────────────── */
+/* Quick View now sits inside the same hover row as Add to Cart, on the right
+   (not stacked over it as a separate floating circle — that used to overlap
+   the cart button). The wishlist heart stays in its original corner spot. */
+.card-hover-row { display: flex; align-items: center; gap: 8px; }
+.card-hover-row .card-cart-btn { width: auto; flex: 1; }
 .card-quickview {
-  position: absolute; bottom: 10px; right: 52px; width: 34px; height: 34px; border-radius: 50%;
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
   border: none; background: rgba(255,255,255,.92); color: #b2bec3; font-size: .95rem; cursor: pointer;
   display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
-  transition: color .15s, transform .12s; z-index: 2;
+  transition: color .15s, transform .12s;
 }
 .card-quickview:hover { transform: scale(1.12); color: var(--primary); }
 
