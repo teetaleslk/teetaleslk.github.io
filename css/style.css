@@ -2074,3 +2074,60 @@ a.pd-colour-swatch:hover { box-shadow: 0 0 0 1.5px var(--accent); transform: tra
   100% { box-shadow: 0 0 0 0 rgba(255,193,7,0); }
 }
 @media (prefers-reduced-motion: reduce) { .pd-rate-btn { animation: none; } }
+
+/* ── Phase 25: Quick View + Share ────────────────────────────── */
+.card-quickview {
+  position: absolute; bottom: 10px; right: 52px; width: 34px; height: 34px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,.92); color: #b2bec3; font-size: .95rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);
+  transition: color .15s, transform .12s; z-index: 2;
+}
+.card-quickview:hover { transform: scale(1.12); color: var(--primary); }
+
+.tt-qv-overlay { z-index: 3200; }
+.tt-qv-modal { max-width: 720px; text-align: left; padding: 0; overflow: hidden; }
+.tt-qv-close {
+  position: absolute; top: 10px; right: 14px; background: none; border: none;
+  font-size: 1.6rem; line-height: 1; color: var(--text-muted); cursor: pointer; z-index: 2;
+}
+.tt-qv-close:hover { color: var(--accent); }
+.tt-qv-body { display: grid; grid-template-columns: 1fr 1fr; }
+@media (max-width: 640px) { .tt-qv-body { grid-template-columns: 1fr; } }
+.tt-qv-img { position: relative; overflow: hidden; background: var(--off-white); display: flex; align-items: center; justify-content: center; min-height: 260px; }
+.tt-qv-img img { width: 100%; height: 100%; max-height: 420px; object-fit: cover; }
+.tt-qv-info { padding: 30px 26px; display: flex; flex-direction: column; gap: 4px; }
+.tt-qv-info h3 { font-size: 1.15rem; margin: 0 0 8px; padding-right: 20px; }
+.tt-qv-info .card-price { margin-bottom: 6px; }
+
+.tt-qv-field { margin-top: 14px; }
+.tt-qv-field label { display: block; font-size: .8rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.tt-qv-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tt-qv-chip {
+  border: 1.5px solid var(--border); background: var(--white); border-radius: var(--radius-md);
+  padding: 6px 12px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: var(--transition);
+}
+.tt-qv-chip.is-active { border-color: var(--primary); background: var(--primary); color: #fff; }
+.tt-qv-chip:disabled { opacity: .4; cursor: not-allowed; text-decoration: line-through; }
+.tt-qv-swatch {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); cursor: pointer;
+  transition: var(--transition); padding: 0;
+}
+.tt-qv-swatch.is-active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--primary); }
+.tt-qv-swatch:disabled { opacity: .35; cursor: not-allowed; }
+
+.tt-qv-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+.tt-qv-actions .btn { flex: 1; min-width: 150px; justify-content: center; }
+
+/* Product page share row — copy link + Facebook share, no backend needed */
+.pd-share-row { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+.pd-share-label { font-size: .8rem; font-weight: 700; color: var(--text); }
+.pd-share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--white); color: var(--text-muted); cursor: pointer; font-size: .9rem;
+  transition: var(--transition); text-decoration: none;
+}
+.pd-share-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.pd-share-btn.pd-share-fb:hover { background: #1877f2; color: #fff; border-color: #1877f2; }
+.pd-share-btn.pd-share-copy:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pd-share-btn.is-copied { background: #2e7d32; color: #fff; border-color: #2e7d32; }

@@ -875,22 +875,8 @@ function createProductCard(p) {
                : `<i class="fas fa-shopping-bag"></i> Add to Cart`}
            </button>`);
 
-  /* ── Price block ── */
-  let priceHtml = '';
-  if (p.price !== null && p.strike !== null && p.strike > p.price) {
-    const disc = Math.round((1 - p.price / p.strike) * 100);
-    priceHtml = `<div class="card-price">
-      <span class="price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>
-      <span class="price-original">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>
-      <span class="price-badge">-${disc}%</span>
-    </div>`;
-  } else if (p.price !== null) {
-    priceHtml = `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.price)}</span></div>`;
-  } else if (p.strike !== null) {
-    priceHtml = `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span></div>`;
-  } else {
-    priceHtml = `<div class="card-price"><span style="font-size:.83rem;color:var(--mid-gray)">Ask for price</span></div>`;
-  }
+  /* ── Price block (shared with the Phase 25 Quick View popup — see priceBlockHtml()) ── */
+  const priceHtml = priceBlockHtml(p);
 
   /* ── Tags ── */
   const tagsHtml = p.design.length
@@ -950,6 +936,10 @@ function createProductCard(p) {
       <button class="card-wish${wishHas(p.id) ? ' saved' : ''}" aria-label="Save for later"
         onclick="event.stopPropagation(); wishToggle('${escHtml(p.id)}', this)">
         <i class="${wishHas(p.id) ? 'fas' : 'far'} fa-heart"></i>
+      </button>
+      <button class="card-quickview" aria-label="Quick view" type="button"
+        onclick="event.stopPropagation(); openQuickView('${escHtml(p.id)}')">
+        <i class="far fa-eye"></i>
       </button>
       <div class="card-wa-hover">${cartBtn}</div>
     </div>
@@ -2265,6 +2255,7 @@ async function initProduct() {
        never delay or block the rest of the product page. */
     renderReviews(p);
     wireRateThisItemButton();
+    wireShareButtons();
 
   } catch (err) {
     if (loadEl) loadEl.style.display = 'none';
@@ -2545,6 +2536,154 @@ function cartAddFromCard(id) {
   openCart();
 }
 window.cartAddFromCard = cartAddFromCard;
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 25 — QUICK VIEW
+   A shop-grid hover icon (the eye, next to the wishlist heart) opens a
+   popup with the product's photo, price, size/colour pickers, and an
+   Add to Cart button — so a customer can act without leaving the grid.
+   Follows the same create-once-and-toggle pattern as showWaQrModal().
+═══════════════════════════════════════════════════════════════ */
+function priceBlockHtml(p) {
+  if (p.price !== null && p.strike !== null && p.strike > p.price) {
+    const disc = Math.round((1 - p.price / p.strike) * 100);
+    return `<div class="card-price">
+      <span class="price-current">${CONFIG.CURRENCY} ${formatNum(p.price)}</span>
+      <span class="price-original">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span>
+      <span class="price-badge">-${disc}%</span>
+    </div>`;
+  }
+  if (p.price !== null) return `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.price)}</span></div>`;
+  if (p.strike !== null) return `<div class="card-price"><span class="price-only">${CONFIG.CURRENCY} ${formatNum(p.strike)}</span></div>`;
+  return `<div class="card-price"><span style="font-size:.83rem;color:var(--mid-gray)">Ask for price</span></div>`;
+}
+
+function openQuickView(id) {
+  const p = _ttProdMap[id];
+  if (!p) return;
+  let m = document.getElementById('ttQuickView');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'ttQuickView';
+    m.className = 'tt-modal-overlay tt-qv-overlay';
+    m.innerHTML = `
+      <div class="tt-modal tt-qv-modal">
+        <button class="tt-qv-close" aria-label="Close" type="button" onclick="closeQuickView()">&times;</button>
+        <div class="tt-qv-body" id="ttQvBody"></div>
+      </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click', e => { if (e.target === m) closeQuickView(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeQuickView(); });
+  }
+  renderQuickView(p);
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (typeof gtag === 'function') gtag('event', 'quick_view', { item_id: p.id });
+}
+window.openQuickView = openQuickView;
+
+function closeQuickView() {
+  const m = document.getElementById('ttQuickView');
+  if (m) m.classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.closeQuickView = closeQuickView;
+
+/** Re-renders the quick view body for product p — called on open, and again
+    when a size/colour chip inside the modal is clicked (swaps to that variant
+    without closing the popup). */
+function renderQuickView(p) {
+  const body = document.getElementById('ttQvBody');
+  if (!body) return;
+  const imgUrl = resolveImageUrl(p.image);
+  const outOfStock = isOutOfStock(p);
+
+  const sizes = familyMembers(p);  // same design + colour, every size
+  const sizesHtml = sizes.length > 1 ? `
+    <div class="tt-qv-field">
+      <label>Size</label>
+      <div class="tt-qv-chip-row">
+        ${sizes.map(q => `<button type="button" class="tt-qv-chip${q.id === p.id ? ' is-active' : ''}"
+            ${isOutOfStock(q) ? 'disabled' : `onclick="renderQuickView(_ttProdMap['${escHtml(q.id)}'])"`}>${escHtml(q.size || '-')}</button>`).join('')}
+      </div>
+    </div>` : '';
+
+  const colours = colourSiblings(p);
+  const coloursHtml = colours.length > 1 ? `
+    <div class="tt-qv-field">
+      <label>Colour</label>
+      <div class="tt-qv-chip-row">
+        ${colours.map(c => `<button type="button" class="tt-qv-swatch${c.isCurrent ? ' is-active' : ''}"
+            style="background:${getSwatchColor(c.colour) || '#ccc'}" title="${escHtml(c.colour)}"
+            ${c.soldOut ? 'disabled' : `onclick="renderQuickView(_ttProdMap['${escHtml(c.rep.id)}'])"`}></button>`).join('')}
+      </div>
+    </div>` : '';
+
+  body.innerHTML = `
+    <div class="tt-qv-img">${imgUrl
+      ? `<img src="${escHtml(imgUrl)}" alt="${escHtml(p.type)}" onerror="ttImgErr(this)" />`
+      : placeholderHtml()}</div>
+    <div class="tt-qv-info">
+      <h3>${escHtml(productDisplayName(p, { tee: true, category: true }))}</h3>
+      ${priceBlockHtml(p)}
+      ${sizesHtml}
+      ${coloursHtml}
+      <div class="tt-qv-actions">
+        ${outOfStock
+          ? `<button class="btn btn-primary" type="button" disabled>✕ Sold Out</button>`
+          : `<button class="btn btn-primary" type="button" onclick="cartAddFromCard('${escHtml(p.id)}'); closeQuickView();"><i class="fas fa-shopping-bag"></i> Add to Cart</button>`}
+        <a class="btn btn-outline" href="product.html?id=${encodeURIComponent(p.id)}">View Full Details</a>
+      </div>
+    </div>`;
+}
+
+/** Product page "Share" row — Copy Link + Share on Facebook. No backend
+    involved: Facebook's own sharer.php just needs the page URL, and the
+    "copy" button uses the standard Clipboard API with an execCommand
+    fallback for older browsers. */
+function wireShareButtons() {
+  const url = window.location.href;
+
+  const fbBtn = document.getElementById('pdShareFbBtn');
+  if (fbBtn) {
+    fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    fbBtn.addEventListener('click', () => { if (typeof gtag === 'function') gtag('event', 'share_facebook', { link: url }); });
+  }
+
+  const copyBtn = document.getElementById('pdShareCopyBtn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      let copied = false;
+      // Try the modern Clipboard API first...
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url);
+          copied = true;
+        }
+      } catch (err) { /* permission denied or unsupported — fall through to the fallback below */ }
+      // ...falling back to the old execCommand trick if that failed or isn't available
+      // (older browsers, or a context where Clipboard API access is blocked).
+      if (!copied) {
+        try {
+          const tmp = document.createElement('textarea');
+          tmp.value = url; tmp.style.position = 'fixed'; tmp.style.opacity = '0';
+          document.body.appendChild(tmp); tmp.select();
+          copied = document.execCommand('copy');
+          document.body.removeChild(tmp);
+        } catch (err) { /* both approaches failed — button just won't confirm */ }
+      }
+      if (!copied) return;
+      const icon = copyBtn.querySelector('i');
+      copyBtn.classList.add('is-copied');
+      if (icon) icon.className = 'fas fa-check';
+      if (typeof gtag === 'function') gtag('event', 'share_copy_link', { link: url });
+      setTimeout(() => {
+        copyBtn.classList.remove('is-copied');
+        if (icon) icon.className = 'fas fa-link';
+      }, 1800);
+    });
+  }
+}
 
 /* 17.11 Cart abandonment nudge — pulse the WA button if the drawer sits open 30s with no click */
 let _ttCartPulseTimer = null;
